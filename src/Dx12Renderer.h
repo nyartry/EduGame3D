@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <wrl/client.h>
 
+#include "Camera.h"
 #include "Ground.h"
 
 #include <array>
@@ -50,6 +51,7 @@ private:
 	std::array<float, 4> m_clearColor{ 0.08f, 0.12f, 0.18f, 1.0f };
 	SceneConstants m_constantBufferData{};
 	UINT8* m_constantBufferMappedData{};
+	Camera m_camera;
 
 	Microsoft::WRL::ComPtr<ID3D12Device> m_device;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_commandQueue;

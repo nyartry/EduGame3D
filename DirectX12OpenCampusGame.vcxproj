@@ -86,6 +86,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Dx12Renderer.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Ground.cpp" />
@@ -93,6 +94,7 @@
     <ClCompile Include="src\Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Common.h" />
     <ClInclude Include="src\Dx12Renderer.h" />
     <ClInclude Include="src\Game.h" />

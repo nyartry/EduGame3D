@@ -6,18 +6,19 @@
 #include <cmath>
 #include <cstdint>
 #include <d3dcompiler.h>
+#include <cstring>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 
 namespace
 {
-constexpr DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+	constexpr DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 
-UINT AlignConstantBufferSize(UINT size)
-{
-	return (size + 255) & ~255u;
-}
+	UINT AlignConstantBufferSize(UINT size)
+	{
+		return (size + 255) & ~255u;
+	}
 }
 
 Dx12Renderer::~Dx12Renderer()
@@ -36,6 +37,12 @@ void Dx12Renderer::Initialize(HWND hwnd, UINT width, UINT height)
 
 	LoadPipeline();
 	LoadAssets();
+	const float aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
+	m_camera.SetLens(XMConvertToRadians(55.0f), aspectRatio, 0.1f, 100.0f);
+	m_camera.LookAt(
+		XMFLOAT3{ 0.0f, 9.0f, -9.0f },
+		XMFLOAT3{ 0.0f, 0.0f, 1.5f },
+		XMFLOAT3{ 0.0f, 1.0f, 0.0f });
 	m_startTime = std::chrono::steady_clock::now();
 }
 
@@ -47,13 +54,7 @@ void Dx12Renderer::Update()
 	m_clearColor = { 0.07f, 0.10f + 0.03f * pulse, 0.16f + 0.04f * pulse, 1.0f };
 
 	const XMMATRIX world = XMMatrixIdentity();
-	const XMVECTOR eye = XMVectorSet(0.0f, 5.0f, -8.0f, 1.0f);
-	const XMVECTOR focus = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-	const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	const XMMATRIX view = XMMatrixLookAtLH(eye, focus, up);
-	const float aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
-	const XMMATRIX projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), aspectRatio, 0.1f, 100.0f);
-	const XMMATRIX worldViewProjection = world * view * projection;
+	const XMMATRIX worldViewProjection = world * m_camera.GetViewProjectionMatrix();
 
 	XMStoreFloat4x4(&m_constantBufferData.worldViewProjection, XMMatrixTranspose(worldViewProjection));
 	memcpy(m_constantBufferMappedData, &m_constantBufferData, sizeof(m_constantBufferData));
