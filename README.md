@@ -10,6 +10,14 @@ Windows desktop DirectX 12 starter project for Visual Studio 2022.
 - A simple animated triangle
 - Visual Studio 2022 solution and project files
 
+## Source layout
+
+- `src/main.cpp`: Application entry point and top-level exception handling.
+- `src/Win32Application.*`: Window creation and the Win32 message loop.
+- `src/Game.*`: Game lifecycle bridge for update/render ticks.
+- `src/Dx12Renderer.*`: Direct3D 12 device setup, GPU resources, and drawing.
+- `src/Common.h`: Small shared helpers.
+
 ## Requirements
 
 - Windows 10 or later
