@@ -16,6 +16,8 @@ Windows desktop DirectX 12 starter project for Visual Studio 2022.
 - `src/Win32Application.*`: Window creation and the Win32 message loop.
 - `src/Game.*`: Game lifecycle bridge for update/render ticks.
 - `src/Dx12Renderer.*`: Direct3D 12 device setup, GPU resources, and drawing.
+- `src/Ground.*`: Ground field object and its vertex buffer.
+- `src/Vertex.h`: Shared vertex format.
 - `src/Common.h`: Small shared helpers.
 
 ## Requirements

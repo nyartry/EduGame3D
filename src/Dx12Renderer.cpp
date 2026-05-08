@@ -1,10 +1,10 @@
 #include "Dx12Renderer.h"
 
 #include "Common.h"
+#include "Vertex.h"
 
 #include <cmath>
 #include <cstdint>
-#include <cstring>
 #include <d3dcompiler.h>
 
 using Microsoft::WRL::ComPtr;
@@ -293,7 +293,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 
 	CreateDepthBuffer();
 	CreateConstantBuffer();
-	CreateVertexBuffer();
+	m_ground.Initialize(m_device.Get());
 
 	ThrowIfFailed(m_device->CreateFence(m_fenceValues[m_frameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
 	++m_fenceValues[m_frameIndex];
@@ -303,49 +303,6 @@ float4 PSMain(PSInput input) : SV_TARGET
 	{
 		ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
 	}
-}
-
-void Dx12Renderer::CreateVertexBuffer()
-{
-	const UINT vertexBufferSize = sizeof(m_groundVertices);
-
-	D3D12_HEAP_PROPERTIES heapProperties{};
-	heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	heapProperties.CreationNodeMask = 1;
-	heapProperties.VisibleNodeMask = 1;
-
-	D3D12_RESOURCE_DESC resourceDesc{};
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	resourceDesc.Alignment = 0;
-	resourceDesc.Width = vertexBufferSize;
-	resourceDesc.Height = 1;
-	resourceDesc.DepthOrArraySize = 1;
-	resourceDesc.MipLevels = 1;
-	resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-	resourceDesc.SampleDesc.Count = 1;
-	resourceDesc.SampleDesc.Quality = 0;
-	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	ThrowIfFailed(m_device->CreateCommittedResource(
-		&heapProperties,
-		D3D12_HEAP_FLAG_NONE,
-		&resourceDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&m_vertexBuffer)));
-
-	UINT8* vertexDataBegin = nullptr;
-	D3D12_RANGE readRange{};
-	ThrowIfFailed(m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&vertexDataBegin)));
-	memcpy(vertexDataBegin, m_groundVertices.data(), vertexBufferSize);
-	m_vertexBuffer->Unmap(0, nullptr);
-
-	m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
-	m_vertexBufferView.StrideInBytes = sizeof(Vertex);
-	m_vertexBufferView.SizeInBytes = vertexBufferSize;
 }
 
 void Dx12Renderer::CreateDepthBuffer()
@@ -462,8 +419,7 @@ void Dx12Renderer::PopulateCommandList()
 	m_commandList->ClearRenderTargetView(rtvHandle, m_clearColor.data(), 0, nullptr);
 	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
-	m_commandList->DrawInstanced(static_cast<UINT>(m_groundVertices.size()), 1, 0, 0);
+	m_ground.Draw(m_commandList.Get());
 
 	D3D12_RESOURCE_BARRIER barrierToPresent = barrierToRenderTarget;
 	barrierToPresent.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;

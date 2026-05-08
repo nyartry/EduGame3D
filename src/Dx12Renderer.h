@@ -3,6 +3,8 @@
 #include <Windows.h>
 #include <wrl/client.h>
 
+#include "Ground.h"
+
 #include <array>
 #include <chrono>
 #include <d3d12.h>
@@ -26,12 +28,6 @@ public:
 	void WaitForGpu();
 
 private:
-	struct Vertex
-	{
-		float position[3];
-		float color[4];
-	};
-
 	struct SceneConstants
 	{
 		DirectX::XMFLOAT4X4 worldViewProjection{};
@@ -39,7 +35,6 @@ private:
 
 	void LoadPipeline();
 	void LoadAssets();
-	void CreateVertexBuffer();
 	void CreateDepthBuffer();
 	void CreateConstantBuffer();
 	void PopulateCommandList();
@@ -67,19 +62,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_constantBuffer;
-	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView{};
 	Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
 	std::array<UINT64, FrameCount> m_fenceValues{};
-
-	std::array<Vertex, 6> m_groundVertices =
-	{
-		Vertex{ { -8.0f, 0.0f, 8.0f }, { 0.28f, 0.58f, 0.28f, 1.0f } },
-		Vertex{ { 8.0f, 0.0f, 8.0f }, { 0.34f, 0.68f, 0.34f, 1.0f } },
-		Vertex{ { 8.0f, 0.0f, -8.0f }, { 0.18f, 0.42f, 0.22f, 1.0f } },
-		Vertex{ { -8.0f, 0.0f, 8.0f }, { 0.28f, 0.58f, 0.28f, 1.0f } },
-		Vertex{ { 8.0f, 0.0f, -8.0f }, { 0.18f, 0.42f, 0.22f, 1.0f } },
-		Vertex{ { -8.0f, 0.0f, -8.0f }, { 0.16f, 0.36f, 0.20f, 1.0f } },
-	};
+	Ground m_ground;
 };
