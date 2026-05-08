@@ -7,7 +7,7 @@ Windows desktop DirectX 12 starter project for Visual Studio 2022.
 - Win32 window creation
 - Direct3D 12 device, swap chain, command queue, command list
 - Root signature and graphics pipeline state
-- A simple animated triangle
+- A perspective camera, depth buffer, and simple 3D ground mesh
 - Visual Studio 2022 solution and project files
 
 ## Source layout
