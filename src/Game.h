@@ -5,6 +5,8 @@
 
 #include <Windows.h>
 
+#include <chrono>
+
 class Game
 {
 public:
@@ -13,7 +15,14 @@ public:
 	void WaitForGpu();
 
 private:
+	void UpdateDebugTitle();
+	float CalculateDeltaTime();
+
+	HWND m_hwnd{};
 	Dx12Renderer m_renderer;
 	GameScene m_scene;
+	std::chrono::steady_clock::time_point m_lastTickTime{};
+	std::chrono::steady_clock::time_point m_fpsLastUpdate{};
+	UINT m_fpsFrameCount{};
 };
 

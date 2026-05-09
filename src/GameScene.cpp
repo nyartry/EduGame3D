@@ -16,8 +16,9 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_ground.Initialize(device);
 }
 
-void GameScene::Update()
+void GameScene::Update(float deltaTime)
 {
+	m_camera.Update(deltaTime);
 }
 
 void GameScene::Render(Dx12Renderer& renderer) const

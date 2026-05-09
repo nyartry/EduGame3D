@@ -14,7 +14,7 @@ class GameScene
 {
 public:
 	void Initialize(ID3D12Device* device, UINT width, UINT height);
-	void Update();
+	void Update(float deltaTime);
 	void Render(Dx12Renderer& renderer) const;
 
 	DirectX::XMMATRIX GetViewProjectionMatrix() const;

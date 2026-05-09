@@ -1,15 +1,19 @@
 #pragma once
 
+#include <Windows.h>
+
 #include <DirectXMath.h>
 
 class Camera
 {
 public:
+	void Update(float deltaTime);
 	void SetLens(float fovYRadians, float aspectRatio, float nearZ, float farZ);
 	void LookAt(
 		const DirectX::XMFLOAT3& position,
 		const DirectX::XMFLOAT3& target,
 		const DirectX::XMFLOAT3& up);
+	void Move(float x, float y, float z);
 
 	DirectX::XMMATRIX GetViewMatrix() const;
 	DirectX::XMMATRIX GetProjectionMatrix() const;
