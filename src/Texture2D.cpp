@@ -87,7 +87,7 @@ namespace
 			width * 4,
 			static_cast<UINT>(pixels.size()),
 			pixels.data()));
-		return pixels;
+	return pixels;
 	}
 
 	void ExecuteAndWait(ID3D12Device* device, ID3D12CommandQueue* commandQueue, ID3D12GraphicsCommandList* commandList)
@@ -126,15 +126,12 @@ void Texture2D::Initialize(ID3D12Device* device, const std::string& filePath)
 	{
 		CreateFallbackTexture(device);
 	}
-
-	CreateShaderResourceView(device);
 }
 
-void Texture2D::Bind(ID3D12GraphicsCommandList* commandList, UINT rootParameterIndex) const
+void Texture2D::InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha)
 {
-	ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap.Get() };
-	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-	commandList->SetGraphicsRootDescriptorTable(rootParameterIndex, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
+	const UINT8 pixels[] = { red, green, blue, alpha };
+	CreateTextureResource(device, pixels, 1, 1);
 }
 
 void Texture2D::CreateFallbackTexture(ID3D12Device* device)
@@ -240,19 +237,13 @@ void Texture2D::CreateTextureResource(ID3D12Device* device, const void* pixels, 
 	ExecuteAndWait(device, commandQueue.Get(), commandList.Get());
 }
 
-void Texture2D::CreateShaderResourceView(ID3D12Device* device)
+void Texture2D::CreateShaderResourceView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE handle) const
 {
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
-	heapDesc.NumDescriptors = 1;
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ThrowIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_srvHeap)));
-
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Format = TextureFormat;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 
-	device->CreateShaderResourceView(m_resource.Get(), &srvDesc, m_srvHeap->GetCPUDescriptorHandleForHeapStart());
+	device->CreateShaderResourceView(m_resource.Get(), &srvDesc, handle);
 }

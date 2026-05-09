@@ -16,7 +16,7 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 {
 	const float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 	m_camera.SetLens(XMConvertToRadians(CameraFovYDegrees), aspectRatio, CameraNearZ, CameraFarZ);
-	m_camera.SetPosition(0.0f, 9.0f, -9.0f);
+	m_camera.SetPosition(0.0f, 9.0f, -1.0f);
 	m_camera.SetTarget(0.0f, 0.0f, 1.5f);
 
 	m_ground.Initialize(device);

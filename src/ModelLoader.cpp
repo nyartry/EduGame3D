@@ -12,57 +12,21 @@
 
 namespace
 {
-	constexpr float DefaultColor[] = { 0.62f, 0.78f, 0.95f, 1.0f };
-
-	void CopyColor(float destination[4], const float source[4])
-	{
-		destination[0] = source[0];
-		destination[1] = source[1];
-		destination[2] = source[2];
-		destination[3] = source[3];
-	}
-
-	void GetMaterialColor(const aiScene* scene, unsigned int materialIndex, float color[4])
-	{
-		CopyColor(color, DefaultColor);
-
-		if (scene == nullptr || materialIndex >= scene->mNumMaterials)
-		{
-			return;
-		}
-
-		aiColor4D diffuseColor;
-		if (AI_SUCCESS == scene->mMaterials[materialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor))
-		{
-			color[0] = diffuseColor.r;
-			color[1] = diffuseColor.g;
-			color[2] = diffuseColor.b;
-			color[3] = diffuseColor.a;
-
-			const float brightness = color[0] + color[1] + color[2];
-			if (brightness < 0.05f)
-			{
-				CopyColor(color, DefaultColor);
-			}
-		}
-	}
-
-	Vertex MakeVertex(const aiVector3D& position, const float color[4])
-	{
-		return Vertex
-		{
-			{ position.x, position.y, position.z },
-			{ color[0], color[1], color[2], color[3] }
-		};
-	}
-
 	TexturedVertex MakeTexturedVertex(const aiMesh* mesh, unsigned int vertexIndex)
 	{
 		TexturedVertex vertex
 		{
 			{ mesh->mVertices[vertexIndex].x, mesh->mVertices[vertexIndex].y, mesh->mVertices[vertexIndex].z },
+			{ 0.0f, 1.0f, 0.0f },
 			{ 0.0f, 0.0f }
 		};
+
+		if (mesh->HasNormals())
+		{
+			vertex.normal[0] = mesh->mNormals[vertexIndex].x;
+			vertex.normal[1] = mesh->mNormals[vertexIndex].y;
+			vertex.normal[2] = mesh->mNormals[vertexIndex].z;
+		}
 
 		if (mesh->HasTextureCoords(0))
 		{
@@ -121,7 +85,11 @@ namespace
 		return {};
 	}
 
-	std::string GetMaterialTexturePath(const aiScene* scene, unsigned int materialIndex, const std::filesystem::path& modelDirectory)
+	std::string GetMaterialTexturePath(
+		const aiScene* scene,
+		unsigned int materialIndex,
+		const std::filesystem::path& modelDirectory,
+		const std::vector<aiTextureType>& textureTypes)
 	{
 		if (scene == nullptr || materialIndex >= scene->mNumMaterials)
 		{
@@ -129,12 +97,6 @@ namespace
 		}
 
 		const aiMaterial* material = scene->mMaterials[materialIndex];
-		const aiTextureType textureTypes[] =
-		{
-			aiTextureType_BASE_COLOR,
-			aiTextureType_DIFFUSE,
-		};
-
 		for (const aiTextureType textureType : textureTypes)
 		{
 			if (material->GetTextureCount(textureType) == 0)
@@ -166,7 +128,7 @@ bool ModelLoader::Load(const std::string& filePath, ModelData& modelData)
 			aiProcess_JoinIdenticalVertices |
 			aiProcess_ConvertToLeftHanded |
 			aiProcess_PreTransformVertices |
-			aiProcess_GenNormals);
+			aiProcess_GenSmoothNormals);
 
 	if (scene == nullptr)
 	{
@@ -174,7 +136,6 @@ bool ModelLoader::Load(const std::string& filePath, ModelData& modelData)
 		return false;
 	}
 
-	modelData.vertices.clear();
 	modelData.texturedMeshes.clear();
 
 	const std::filesystem::path modelDirectory = std::filesystem::path(filePath).parent_path();
@@ -182,10 +143,17 @@ bool ModelLoader::Load(const std::string& filePath, ModelData& modelData)
 	for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
 	{
 		const aiMesh* mesh = scene->mMeshes[meshIndex];
-		float color[4]{};
-		GetMaterialColor(scene, mesh->mMaterialIndex, color);
 		TexturedMeshData texturedMesh;
-		texturedMesh.texturePath = GetMaterialTexturePath(scene, mesh->mMaterialIndex, modelDirectory);
+		texturedMesh.baseColorTexturePath = GetMaterialTexturePath(
+			scene,
+			mesh->mMaterialIndex,
+			modelDirectory,
+			{ aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE });
+		texturedMesh.opacityTexturePath = GetMaterialTexturePath(
+			scene,
+			mesh->mMaterialIndex,
+			modelDirectory,
+			{ aiTextureType_OPACITY });
 
 		for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
 		{
@@ -198,7 +166,6 @@ bool ModelLoader::Load(const std::string& filePath, ModelData& modelData)
 			for (unsigned int index = 0; index < face.mNumIndices; ++index)
 			{
 				const unsigned int vertexIndex = face.mIndices[index];
-				modelData.vertices.push_back(MakeVertex(mesh->mVertices[vertexIndex], color));
 				texturedMesh.vertices.push_back(MakeTexturedVertex(mesh, vertexIndex));
 			}
 		}
@@ -209,7 +176,7 @@ bool ModelLoader::Load(const std::string& filePath, ModelData& modelData)
 		}
 	}
 
-	if (modelData.vertices.empty())
+	if (modelData.texturedMeshes.empty())
 	{
 		m_lastError = "Model has no drawable triangle vertices.";
 		return false;

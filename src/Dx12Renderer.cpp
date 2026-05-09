@@ -1,7 +1,7 @@
 #include "Dx12Renderer.h"
 
 #include "Common.h"
-#include "Texture2D.h"
+#include "TexturedMaterial.h"
 #include "TexturedVertexBuffer.h"
 
 #include <cmath>
@@ -89,11 +89,11 @@ void Dx12Renderer::Draw(const VertexBuffer& vertexBuffer, const XMMATRIX& world)
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
-void Dx12Renderer::DrawTextured(const TexturedVertexBuffer& vertexBuffer, const Texture2D& texture, const XMMATRIX& world)
+void Dx12Renderer::DrawTextured(const TexturedVertexBuffer& vertexBuffer, const TexturedMaterial& material, const XMMATRIX& world)
 {
 	m_commandList->SetPipelineState(m_texturedPipeline.GetPipelineState());
 	m_texturedPipeline.Bind(m_commandList.Get());
-	texture.Bind(m_commandList.Get(), 1);
+	material.Bind(m_commandList.Get(), 1);
 
 	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
 	const XMMATRIX worldViewProjection = world * viewProjection;

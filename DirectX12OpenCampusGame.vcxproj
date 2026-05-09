@@ -100,6 +100,7 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Cube.cpp" />
     <ClCompile Include="src\Dx12BufferHelper.cpp" />
+    <ClCompile Include="src\Dx12PipelineHelper.cpp" />
     <ClCompile Include="src\Dx12Renderer.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\GameScene.cpp" />
@@ -110,6 +111,7 @@
     <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\PrimitiveObject.cpp" />
     <ClCompile Include="src\Texture2D.cpp" />
+    <ClCompile Include="src\TexturedMaterial.cpp" />
     <ClCompile Include="src\TexturedPipeline.cpp" />
     <ClCompile Include="src\TexturedVertexBuffer.cpp" />
     <ClCompile Include="src\VertexBuffer.cpp" />
@@ -121,6 +123,7 @@
     <ClInclude Include="src\Common.h" />
     <ClInclude Include="src\Cube.h" />
     <ClInclude Include="src\Dx12BufferHelper.h" />
+    <ClInclude Include="src\Dx12PipelineHelper.h" />
     <ClInclude Include="src\Dx12Renderer.h" />
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\GameScene.h" />
@@ -130,6 +133,7 @@
     <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\PrimitiveObject.h" />
     <ClInclude Include="src\Texture2D.h" />
+    <ClInclude Include="src\TexturedMaterial.h" />
     <ClInclude Include="src\TexturedPipeline.h" />
     <ClInclude Include="src\TexturedVertex.h" />
     <ClInclude Include="src\TexturedVertexBuffer.h" />

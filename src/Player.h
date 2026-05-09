@@ -1,12 +1,13 @@
 #pragma once
 
 #include "ModelLoader.h"
-#include "Texture2D.h"
+#include "TexturedMaterial.h"
 #include "TexturedVertexBuffer.h"
 
 #include <Windows.h>
 
 #include <DirectXMath.h>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -26,7 +27,7 @@ private:
 	struct MeshPart
 	{
 		TexturedVertexBuffer vertexBuffer;
-		Texture2D texture;
+		std::shared_ptr<TexturedMaterial> material;
 	};
 
 	void FitModelToPlayerSize(ModelData& modelData) const;

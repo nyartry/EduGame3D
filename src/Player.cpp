@@ -5,7 +5,9 @@
 #include <DirectXMath.h>
 #include <algorithm>
 #include <limits>
+#include <memory>
 #include <stdexcept>
+#include <unordered_map>
 
 using namespace DirectX;
 
@@ -28,11 +30,22 @@ void Player::Initialize(ID3D12Device* device, const std::string& modelPath)
 
 	m_meshParts.clear();
 	m_meshParts.reserve(modelData.texturedMeshes.size());
+	std::unordered_map<std::string, std::shared_ptr<TexturedMaterial>> materialCache;
+
 	for (const TexturedMeshData& meshData : modelData.texturedMeshes)
 	{
+		const std::string baseColorTexturePath = meshData.baseColorTexturePath.empty() ? FallbackTexturePath : meshData.baseColorTexturePath;
+		const std::string materialKey = baseColorTexturePath + "|" + meshData.opacityTexturePath;
+		std::shared_ptr<TexturedMaterial>& material = materialCache[materialKey];
+		if (material == nullptr)
+		{
+			material = std::make_shared<TexturedMaterial>();
+			material->Initialize(device, baseColorTexturePath, meshData.opacityTexturePath);
+		}
+
 		MeshPart meshPart;
 		meshPart.vertexBuffer.Initialize(device, meshData.vertices);
-		meshPart.texture.Initialize(device, meshData.texturePath.empty() ? FallbackTexturePath : meshData.texturePath);
+		meshPart.material = material;
 		m_meshParts.push_back(std::move(meshPart));
 	}
 }
@@ -42,7 +55,7 @@ void Player::Draw(Dx12Renderer& renderer) const
 	const XMMATRIX world = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	for (const MeshPart& meshPart : m_meshParts)
 	{
-		renderer.DrawTextured(meshPart.vertexBuffer, meshPart.texture, world);
+		renderer.DrawTextured(meshPart.vertexBuffer, *meshPart.material, world);
 	}
 }
 

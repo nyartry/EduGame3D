@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Vertex.h"
 #include "TexturedVertex.h"
 
 #include <string>
@@ -9,12 +8,12 @@
 struct TexturedMeshData
 {
 	std::vector<TexturedVertex> vertices;
-	std::string texturePath;
+	std::string baseColorTexturePath;
+	std::string opacityTexturePath;
 };
 
 struct ModelData
 {
-	std::vector<Vertex> vertices;
 	std::vector<TexturedMeshData> texturedMeshes;
 };
 

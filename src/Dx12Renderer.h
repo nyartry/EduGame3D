@@ -13,7 +13,7 @@
 #include <DirectXMath.h>
 #include <dxgi1_6.h>
 
-class Texture2D;
+class TexturedMaterial;
 class TexturedVertexBuffer;
 
 class Dx12Renderer
@@ -30,7 +30,7 @@ public:
 	void Initialize(HWND hwnd, UINT width, UINT height);
 	void BeginFrame(const DirectX::XMMATRIX& viewProjection);
 	void Draw(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world);
-	void DrawTextured(const TexturedVertexBuffer& vertexBuffer, const Texture2D& texture, const DirectX::XMMATRIX& world);
+	void DrawTextured(const TexturedVertexBuffer& vertexBuffer, const TexturedMaterial& material, const DirectX::XMMATRIX& world);
 	void EndFrame();
 	void WaitForGpu();
 	ID3D12Device* GetDevice() const;

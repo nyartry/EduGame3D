@@ -2,10 +2,9 @@
 
 #include "Common.h"
 #include "Dx12BufferHelper.h"
+#include "Dx12PipelineHelper.h"
 
-#include <d3dcompiler.h>
 #include <cstring>
-#include <stdexcept>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -13,42 +12,7 @@ using namespace DirectX;
 namespace
 {
 	constexpr DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;
-	constexpr const wchar_t* ShaderFileNames[] =
-	{
-		L"src\\Textured.hlsl",
-		L"..\\..\\src\\Textured.hlsl",
-	};
-
-	void ThrowIfShaderFailed(HRESULT hr, ID3DBlob* error)
-	{
-		if (FAILED(hr))
-		{
-			if (error != nullptr)
-			{
-				const char* message = static_cast<const char*>(error->GetBufferPointer());
-				throw std::runtime_error(message);
-			}
-
-			ThrowIfFailed(hr);
-		}
-	}
-
-	void CompileShader(const char* entryPoint, const char* target, UINT compileFlags, ComPtr<ID3DBlob>& shader)
-	{
-		ComPtr<ID3DBlob> lastError;
-
-		for (const wchar_t* fileName : ShaderFileNames)
-		{
-			lastError.Reset();
-			const HRESULT hr = D3DCompileFromFile(fileName, nullptr, nullptr, entryPoint, target, compileFlags, 0, &shader, &lastError);
-			if (SUCCEEDED(hr))
-			{
-				return;
-			}
-		}
-
-		ThrowIfShaderFailed(E_FAIL, lastError.Get());
-	}
+	constexpr const wchar_t* ShaderFileName = L"src\\Textured.hlsl";
 }
 
 void TexturedPipeline::Initialize(ID3D12Device* device)
@@ -85,7 +49,7 @@ void TexturedPipeline::CreateRootSignature(ID3D12Device* device)
 
 	D3D12_DESCRIPTOR_RANGE srvRange{};
 	srvRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	srvRange.NumDescriptors = 1;
+	srvRange.NumDescriptors = 2;
 	srvRange.BaseShaderRegister = 0;
 	srvRange.RegisterSpace = 0;
 	srvRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -125,51 +89,24 @@ void TexturedPipeline::CreateRootSignature(ID3D12Device* device)
 
 void TexturedPipeline::CreatePipelineState(ID3D12Device* device)
 {
-	ComPtr<ID3DBlob> vertexShader;
-	ComPtr<ID3DBlob> pixelShader;
-	UINT compileFlags = 0;
-#if defined(_DEBUG)
-	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-	CompileShader("VSMain", "vs_5_0", compileFlags, vertexShader);
-	CompileShader("PSMain", "ps_5_0", compileFlags, pixelShader);
+	ComPtr<ID3DBlob> vertexShader = Dx12PipelineHelper::CompileShader(ShaderFileName, "VSMain", "vs_5_0");
+	ComPtr<ID3DBlob> pixelShader = Dx12PipelineHelper::CompileShader(ShaderFileName, "PSMain", "ps_5_0");
 
 	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
-
-	D3D12_RASTERIZER_DESC rasterizerDesc{};
-	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
-	rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
-	rasterizerDesc.DepthClipEnable = TRUE;
-
-	D3D12_BLEND_DESC blendDesc{};
-	const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc =
-	{
-		FALSE, FALSE,
-		D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
-		D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
-		D3D12_LOGIC_OP_NOOP,
-		D3D12_COLOR_WRITE_ENABLE_ALL,
-	};
-	for (auto& target : blendDesc.RenderTarget)
-	{
-		target = defaultRenderTargetBlendDesc;
-	}
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
 	psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
 	psoDesc.pRootSignature = m_rootSignature.Get();
 	psoDesc.VS = { vertexShader->GetBufferPointer(), vertexShader->GetBufferSize() };
 	psoDesc.PS = { pixelShader->GetBufferPointer(), pixelShader->GetBufferSize() };
-	psoDesc.RasterizerState = rasterizerDesc;
-	psoDesc.BlendState = blendDesc;
-	psoDesc.DepthStencilState.DepthEnable = TRUE;
-	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
-	psoDesc.DepthStencilState.StencilEnable = FALSE;
+	psoDesc.RasterizerState = Dx12PipelineHelper::CreateDefaultRasterizerDesc();
+	psoDesc.BlendState = Dx12PipelineHelper::CreateDefaultBlendDesc();
+	psoDesc.DepthStencilState = Dx12PipelineHelper::CreateDefaultDepthStencilDesc();
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	psoDesc.NumRenderTargets = 1;
