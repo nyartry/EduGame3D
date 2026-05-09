@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Dx12Renderer.h"
+#include "GameScene.h"
 
 #include <Windows.h>
 
@@ -13,5 +14,6 @@ public:
 
 private:
 	Dx12Renderer m_renderer;
+	GameScene m_scene;
 };
 

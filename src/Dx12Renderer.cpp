@@ -29,31 +29,73 @@ void Dx12Renderer::Initialize(HWND hwnd, UINT width, UINT height)
 
 	LoadPipeline();
 	LoadAssets();
-	const float aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
-	m_camera.SetLens(XMConvertToRadians(55.0f), aspectRatio, 0.1f, 100.0f);
-	m_camera.LookAt(
-		XMFLOAT3{ 0.0f, 9.0f, -9.0f },
-		XMFLOAT3{ 0.0f, 0.0f, 1.5f },
-		XMFLOAT3{ 0.0f, 1.0f, 0.0f });
 	m_startTime = std::chrono::steady_clock::now();
-	Update();
 }
 
-void Dx12Renderer::Update()
+void Dx12Renderer::BeginFrame(const XMMATRIX& viewProjection)
 {
-	const auto now = std::chrono::steady_clock::now();
-	const float seconds = std::chrono::duration<float>(now - m_startTime).count();
-	const float pulse = (std::sin(seconds * 2.0f) + 1.0f) * 0.5f;
-	m_clearColor = { 0.07f, 0.10f + 0.03f * pulse, 0.16f + 0.04f * pulse, 1.0f };
+	XMStoreFloat4x4(&m_viewProjection, viewProjection);
+	UpdateClearColor();
 
-	const XMMATRIX world = XMMatrixIdentity();
-	const XMMATRIX worldViewProjection = world * m_camera.GetViewProjectionMatrix();
+	ThrowIfFailed(m_commandAllocators[m_frameIndex]->Reset());
+	ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_frameIndex].Get(), m_basicColorPipeline.GetPipelineState()));
+
+	D3D12_VIEWPORT viewport{};
+	viewport.Width = static_cast<float>(m_width);
+	viewport.Height = static_cast<float>(m_height);
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+
+	D3D12_RECT scissorRect{};
+	scissorRect.left = 0;
+	scissorRect.top = 0;
+	scissorRect.right = static_cast<LONG>(m_width);
+	scissorRect.bottom = static_cast<LONG>(m_height);
+
+	m_commandList->RSSetViewports(1, &viewport);
+	m_commandList->RSSetScissorRects(1, &scissorRect);
+	m_basicColorPipeline.Bind(m_commandList.Get());
+
+	D3D12_RESOURCE_BARRIER barrierToRenderTarget{};
+	barrierToRenderTarget.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrierToRenderTarget.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrierToRenderTarget.Transition.pResource = m_renderTargets[m_frameIndex].Get();
+	barrierToRenderTarget.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	barrierToRenderTarget.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrierToRenderTarget.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	m_commandList->ResourceBarrier(1, &barrierToRenderTarget);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
+	rtvHandle.ptr += static_cast<SIZE_T>(m_frameIndex) * m_rtvDescriptorSize;
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+
+	m_commandList->ClearRenderTargetView(rtvHandle, m_clearColor.data(), 0, nullptr);
+	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void Dx12Renderer::Draw(const VertexBuffer& vertexBuffer, const XMMATRIX& world)
+{
+	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
+	const XMMATRIX worldViewProjection = world * viewProjection;
 	m_basicColorPipeline.UpdateWorldViewProjection(worldViewProjection);
+	vertexBuffer.Bind(m_commandList.Get());
+	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
-void Dx12Renderer::Render()
+void Dx12Renderer::EndFrame()
 {
-	PopulateCommandList();
+	D3D12_RESOURCE_BARRIER barrierToPresent{};
+	barrierToPresent.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrierToPresent.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrierToPresent.Transition.pResource = m_renderTargets[m_frameIndex].Get();
+	barrierToPresent.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrierToPresent.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	barrierToPresent.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	m_commandList->ResourceBarrier(1, &barrierToPresent);
+
+	ThrowIfFailed(m_commandList->Close());
 
 	ID3D12CommandList* commandLists[] = { m_commandList.Get() };
 	m_commandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
@@ -68,6 +110,11 @@ void Dx12Renderer::WaitForGpu()
 	ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent));
 	WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
 	++m_fenceValues[m_frameIndex];
+}
+
+ID3D12Device* Dx12Renderer::GetDevice() const
+{
+	return m_device.Get();
 }
 
 void Dx12Renderer::LoadPipeline()
@@ -173,7 +220,6 @@ void Dx12Renderer::LoadAssets()
 	ThrowIfFailed(m_commandList->Close());
 
 	CreateDepthBuffer();
-	m_ground.Initialize(m_device.Get());
 
 	ThrowIfFailed(m_device->CreateFence(m_fenceValues[m_frameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
 	++m_fenceValues[m_frameIndex];
@@ -223,52 +269,12 @@ void Dx12Renderer::CreateDepthBuffer()
 	m_device->CreateDepthStencilView(m_depthStencil.Get(), nullptr, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
-void Dx12Renderer::PopulateCommandList()
+void Dx12Renderer::UpdateClearColor()
 {
-	ThrowIfFailed(m_commandAllocators[m_frameIndex]->Reset());
-	ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_frameIndex].Get(), m_basicColorPipeline.GetPipelineState()));
-
-	D3D12_VIEWPORT viewport{};
-	viewport.Width = static_cast<float>(m_width);
-	viewport.Height = static_cast<float>(m_height);
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-
-	D3D12_RECT scissorRect{};
-	scissorRect.left = 0;
-	scissorRect.top = 0;
-	scissorRect.right = static_cast<LONG>(m_width);
-	scissorRect.bottom = static_cast<LONG>(m_height);
-
-	m_commandList->RSSetViewports(1, &viewport);
-	m_commandList->RSSetScissorRects(1, &scissorRect);
-	m_basicColorPipeline.Bind(m_commandList.Get());
-
-	D3D12_RESOURCE_BARRIER barrierToRenderTarget{};
-	barrierToRenderTarget.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrierToRenderTarget.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrierToRenderTarget.Transition.pResource = m_renderTargets[m_frameIndex].Get();
-	barrierToRenderTarget.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	barrierToRenderTarget.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	barrierToRenderTarget.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	m_commandList->ResourceBarrier(1, &barrierToRenderTarget);
-
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
-	rtvHandle.ptr += static_cast<SIZE_T>(m_frameIndex) * m_rtvDescriptorSize;
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
-
-	m_commandList->ClearRenderTargetView(rtvHandle, m_clearColor.data(), 0, nullptr);
-	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_ground.Draw(m_commandList.Get());
-
-	D3D12_RESOURCE_BARRIER barrierToPresent = barrierToRenderTarget;
-	barrierToPresent.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	barrierToPresent.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	m_commandList->ResourceBarrier(1, &barrierToPresent);
-
-	ThrowIfFailed(m_commandList->Close());
+	const auto now = std::chrono::steady_clock::now();
+	const float seconds = std::chrono::duration<float>(now - m_startTime).count();
+	const float pulse = (std::sin(seconds * 2.0f) + 1.0f) * 0.5f;
+	m_clearColor = { 0.07f, 0.10f + 0.03f * pulse, 0.16f + 0.04f * pulse, 1.0f };
 }
 
 void Dx12Renderer::MoveToNextFrame()

@@ -91,6 +91,7 @@
     <ClCompile Include="src\Dx12BufferHelper.cpp" />
     <ClCompile Include="src\Dx12Renderer.cpp" />
     <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\GameScene.cpp" />
     <ClCompile Include="src\Ground.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\VertexBuffer.cpp" />
@@ -103,6 +104,7 @@
     <ClInclude Include="src\Dx12BufferHelper.h" />
     <ClInclude Include="src\Dx12Renderer.h" />
     <ClInclude Include="src\Game.h" />
+    <ClInclude Include="src\GameScene.h" />
     <ClInclude Include="src\Ground.h" />
     <ClInclude Include="src\Vertex.h" />
     <ClInclude Include="src\VertexBuffer.h" />

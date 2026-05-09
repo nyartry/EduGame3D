@@ -4,8 +4,7 @@
 #include <wrl/client.h>
 
 #include "BasicColorPipeline.h"
-#include "Camera.h"
-#include "Ground.h"
+#include "VertexBuffer.h"
 
 #include <array>
 #include <chrono>
@@ -25,15 +24,17 @@ public:
 	Dx12Renderer& operator=(const Dx12Renderer&) = delete;
 
 	void Initialize(HWND hwnd, UINT width, UINT height);
-	void Update();
-	void Render();
+	void BeginFrame(const DirectX::XMMATRIX& viewProjection);
+	void Draw(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world);
+	void EndFrame();
 	void WaitForGpu();
+	ID3D12Device* GetDevice() const;
 
 private:
 	void LoadPipeline();
 	void LoadAssets();
 	void CreateDepthBuffer();
-	void PopulateCommandList();
+	void UpdateClearColor();
 	void MoveToNextFrame();
 
 	HWND m_hwnd{};
@@ -44,7 +45,7 @@ private:
 	HANDLE m_fenceEvent{};
 	std::chrono::steady_clock::time_point m_startTime{};
 	std::array<float, 4> m_clearColor{ 0.08f, 0.12f, 0.18f, 1.0f };
-	Camera m_camera;
+	DirectX::XMFLOAT4X4 m_viewProjection{};
 	BasicColorPipeline m_basicColorPipeline;
 
 	Microsoft::WRL::ComPtr<ID3D12Device> m_device;
@@ -58,5 +59,4 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
 	Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
 	std::array<UINT64, FrameCount> m_fenceValues{};
-	Ground m_ground;
 };

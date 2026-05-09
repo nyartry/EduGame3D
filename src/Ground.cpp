@@ -1,15 +1,18 @@
 #include "Ground.h"
 
+#include "Dx12Renderer.h"
+
+using namespace DirectX;
+
 void Ground::Initialize(ID3D12Device* device)
 {
 	BuildMesh();
 	m_vertexBuffer.Initialize(device, m_vertices);
 }
 
-void Ground::Draw(ID3D12GraphicsCommandList* commandList) const
+void Ground::Draw(Dx12Renderer& renderer) const
 {
-	m_vertexBuffer.Bind(commandList);
-	commandList->DrawInstanced(m_vertexBuffer.GetVertexCount(), 1, 0, 0);
+	renderer.Draw(m_vertexBuffer, XMMatrixIdentity());
 }
 
 void Ground::BuildMesh()

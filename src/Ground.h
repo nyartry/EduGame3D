@@ -9,11 +9,13 @@
 #include <d3d12.h>
 #include <vector>
 
+class Dx12Renderer;
+
 class Ground
 {
 public:
 	void Initialize(ID3D12Device* device);
-	void Draw(ID3D12GraphicsCommandList* commandList) const;
+	void Draw(Dx12Renderer& renderer) const;
 
 private:
 	void BuildMesh();
