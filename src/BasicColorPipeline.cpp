@@ -5,6 +5,7 @@
 
 #include <d3dcompiler.h>
 #include <cstring>
+#include <string>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -12,38 +13,46 @@ using namespace DirectX;
 namespace
 {
 	constexpr DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+	constexpr const wchar_t* ShaderFileNames[] =
+	{
+		L"src\\BasicColor.hlsl",
+		L"..\\..\\src\\BasicColor.hlsl",
+	};
 
-	constexpr char ShaderSource[] = R"(
-struct VSInput
-{
-    float3 position : POSITION;
-    float4 color : COLOR;
-};
+	void ThrowIfShaderFailed(HRESULT hr, ID3DBlob* error)
+	{
+		if (FAILED(hr))
+		{
+			if (error != nullptr)
+			{
+				const char* message = static_cast<const char*>(error->GetBufferPointer());
+				throw std::runtime_error(message);
+			}
 
-struct PSInput
-{
-    float4 position : SV_POSITION;
-    float4 color : COLOR;
-};
+			ThrowIfFailed(hr);
+		}
+	}
 
-cbuffer SceneConstants : register(b0)
-{
-    matrix worldViewProjection;
-};
+	void CompileShader(
+		const char* entryPoint,
+		const char* target,
+		UINT compileFlags,
+		ComPtr<ID3DBlob>& shader)
+	{
+		ComPtr<ID3DBlob> lastError;
 
-PSInput VSMain(VSInput input)
-{
-    PSInput output;
-    output.position = mul(worldViewProjection, float4(input.position, 1.0f));
-    output.color = input.color;
-    return output;
-}
+		for (const wchar_t* fileName : ShaderFileNames)
+		{
+			lastError.Reset();
+			const HRESULT hr = D3DCompileFromFile(fileName, nullptr, nullptr, entryPoint, target, compileFlags, 0, &shader, &lastError);
+			if (SUCCEEDED(hr))
+			{
+				return;
+			}
+		}
 
-float4 PSMain(PSInput input) : SV_TARGET
-{
-    return input.color;
-}
-)";
+		ThrowIfShaderFailed(E_FAIL, lastError.Get());
+	}
 }
 
 void BasicColorPipeline::Initialize(ID3D12Device* device)
@@ -95,13 +104,12 @@ void BasicColorPipeline::CreatePipelineState(ID3D12Device* device)
 {
 	ComPtr<ID3DBlob> vertexShader;
 	ComPtr<ID3DBlob> pixelShader;
-	ComPtr<ID3DBlob> error;
 	UINT compileFlags = 0;
 #if defined(_DEBUG)
 	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
-	ThrowIfFailed(D3DCompile(ShaderSource, sizeof(ShaderSource), nullptr, nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, &error));
-	ThrowIfFailed(D3DCompile(ShaderSource, sizeof(ShaderSource), nullptr, nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, &error));
+	CompileShader("VSMain", "vs_5_0", compileFlags, vertexShader);
+	CompileShader("PSMain", "ps_5_0", compileFlags, pixelShader);
 
 	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{

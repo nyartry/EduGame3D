@@ -30,7 +30,7 @@ void Camera::Update(float deltaTime, const Input& input)
 		moveY -= moveDistance;
 	}
 
-	Move(moveX, moveY, 0.0f);
+	MovePosition(moveX, moveY, 0.0f);
 }
 
 void Camera::SetLens(float fovYRadians, float aspectRatio, float nearZ, float farZ)
@@ -39,6 +39,16 @@ void Camera::SetLens(float fovYRadians, float aspectRatio, float nearZ, float fa
 	m_aspectRatio = aspectRatio;
 	m_nearZ = nearZ;
 	m_farZ = farZ;
+}
+
+void Camera::SetPosition(float x, float y, float z)
+{
+	m_position = XMFLOAT3{ x, y, z };
+}
+
+void Camera::SetTarget(float x, float y, float z)
+{
+	m_target = XMFLOAT3{ x, y, z };
 }
 
 void Camera::LookAt(const XMFLOAT3& position, const XMFLOAT3& target, const XMFLOAT3& up)
@@ -50,9 +60,19 @@ void Camera::LookAt(const XMFLOAT3& position, const XMFLOAT3& target, const XMFL
 
 void Camera::Move(float x, float y, float z)
 {
+	MovePosition(x, y, z);
+	MoveTarget(x, y, z);
+}
+
+void Camera::MovePosition(float x, float y, float z)
+{
 	m_position.x += x;
 	m_position.y += y;
 	m_position.z += z;
+}
+
+void Camera::MoveTarget(float x, float y, float z)
+{
 	m_target.x += x;
 	m_target.y += y;
 	m_target.z += z;

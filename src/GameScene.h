@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Camera.h"
+#include "Cube.h"
 #include "Ground.h"
 #include "Input.h"
 
@@ -23,4 +24,5 @@ public:
 private:
 	Camera m_camera;
 	Ground m_ground;
+	Cube m_originCube;
 };
