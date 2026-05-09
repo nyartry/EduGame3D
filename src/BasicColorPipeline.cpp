@@ -1,6 +1,7 @@
 #include "BasicColorPipeline.h"
 
 #include "Common.h"
+#include "Dx12BufferHelper.h"
 
 #include <d3dcompiler.h>
 #include <cstring>
@@ -11,11 +12,6 @@ using namespace DirectX;
 namespace
 {
 	constexpr DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;
-
-	UINT AlignConstantBufferSize(UINT size)
-	{
-		return (size + 255) & ~255u;
-	}
 
 	constexpr char ShaderSource[] = R"(
 struct VSInput
@@ -164,35 +160,8 @@ void BasicColorPipeline::CreatePipelineState(ID3D12Device* device)
 
 void BasicColorPipeline::CreateConstantBuffer(ID3D12Device* device)
 {
-	const UINT constantBufferSize = AlignConstantBufferSize(sizeof(SceneConstants));
-
-	D3D12_HEAP_PROPERTIES heapProperties{};
-	heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	heapProperties.CreationNodeMask = 1;
-	heapProperties.VisibleNodeMask = 1;
-
-	D3D12_RESOURCE_DESC resourceDesc{};
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	resourceDesc.Alignment = 0;
-	resourceDesc.Width = constantBufferSize;
-	resourceDesc.Height = 1;
-	resourceDesc.DepthOrArraySize = 1;
-	resourceDesc.MipLevels = 1;
-	resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-	resourceDesc.SampleDesc.Count = 1;
-	resourceDesc.SampleDesc.Quality = 0;
-	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	ThrowIfFailed(device->CreateCommittedResource(
-		&heapProperties,
-		D3D12_HEAP_FLAG_NONE,
-		&resourceDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&m_constantBuffer)));
+	const UINT constantBufferSize = Dx12BufferHelper::AlignConstantBufferSize(sizeof(SceneConstants));
+	m_constantBuffer = Dx12BufferHelper::CreateUploadBuffer(device, constantBufferSize);
 
 	D3D12_RANGE readRange{};
 	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_constantBufferMappedData)));

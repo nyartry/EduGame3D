@@ -1,9 +1,9 @@
 #pragma once
 
+#include "VertexBuffer.h"
 #include "Vertex.h"
 
 #include <Windows.h>
-#include <wrl/client.h>
 
 #include <array>
 #include <d3d12.h>
@@ -17,9 +17,7 @@ public:
 
 private:
 	void BuildMesh();
-	void CreateVertexBuffer(ID3D12Device* device);
 
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_vertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView{};
+	VertexBuffer m_vertexBuffer;
 	std::vector<Vertex> m_vertices;
 };
