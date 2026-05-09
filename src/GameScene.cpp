@@ -9,7 +9,7 @@ namespace
 	constexpr float CameraFovYDegrees = 55.0f;
 	constexpr float CameraNearZ = 0.1f;
 	constexpr float CameraFarZ = 100.0f;
-	constexpr const char* PlayerModelPath = "Content\\Models\\forest_goddess\\forest_goddess.fbx";
+	constexpr const char* PlayerModelPath = "Content\\Models\\Daven\\t-pose.fbx";
 }
 
 void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)

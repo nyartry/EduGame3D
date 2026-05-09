@@ -19,6 +19,12 @@ public:
 	void Bind(ID3D12GraphicsCommandList* commandList, UINT rootParameterIndex) const;
 
 private:
+	static constexpr UINT TextureCount = 3;
+
+	void LoadTextures(ID3D12Device* device, const std::string& baseColorTexturePath, const std::string& opacityTexturePath, const std::string& normalTexturePath);
+	void CreateDescriptorHeap(ID3D12Device* device);
+	void CreateShaderResourceViews(ID3D12Device* device);
+
 	Texture2D m_baseColorTexture;
 	Texture2D m_opacityTexture;
 	Texture2D m_normalTexture;

@@ -16,6 +16,7 @@ public:
 private:
 	void CreateFallbackTexture(ID3D12Device* device);
 	void CreateTextureResource(ID3D12Device* device, const void* pixels, UINT width, UINT height, bool useSrgb);
+	void UploadPixels(ID3D12Device* device, const void* pixels, const D3D12_RESOURCE_DESC& textureDesc);
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_resource;
 	DXGI_FORMAT m_format{ DXGI_FORMAT_R8G8B8A8_UNORM };

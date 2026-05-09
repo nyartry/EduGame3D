@@ -107,7 +107,9 @@
     <ClCompile Include="src\Ground.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\MeshTangentCalculator.cpp" />
     <ClCompile Include="src\ModelLoader.cpp" />
+    <ClCompile Include="src\ModelTextureResolver.cpp" />
     <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\PrimitiveObject.cpp" />
     <ClCompile Include="src\Texture2D.cpp" />
@@ -129,7 +131,9 @@
     <ClInclude Include="src\GameScene.h" />
     <ClInclude Include="src\Ground.h" />
     <ClInclude Include="src\Input.h" />
+    <ClInclude Include="src\MeshTangentCalculator.h" />
     <ClInclude Include="src\ModelLoader.h" />
+    <ClInclude Include="src\ModelTextureResolver.h" />
     <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\PrimitiveObject.h" />
     <ClInclude Include="src\Texture2D.h" />

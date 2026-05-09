@@ -85,7 +85,7 @@ namespace
 			width * 4,
 			static_cast<UINT>(pixels.size()),
 			pixels.data()));
-	return pixels;
+		return pixels;
 	}
 
 	void ExecuteAndWait(ID3D12Device* device, ID3D12CommandQueue* commandQueue, ID3D12GraphicsCommandList* commandList)
@@ -176,6 +176,11 @@ void Texture2D::CreateTextureResource(ID3D12Device* device, const void* pixels, 
 		nullptr,
 		IID_PPV_ARGS(&m_resource)));
 
+	UploadPixels(device, pixels, textureDesc);
+}
+
+void Texture2D::UploadPixels(ID3D12Device* device, const void* pixels, const D3D12_RESOURCE_DESC& textureDesc)
+{
 	UINT64 uploadBufferSize = 0;
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout{};
 	UINT rowCount = 0;
