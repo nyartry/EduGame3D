@@ -2,6 +2,7 @@
 
 #include "Camera.h"
 #include "Ground.h"
+#include "Input.h"
 
 #include <Windows.h>
 
@@ -14,7 +15,7 @@ class GameScene
 {
 public:
 	void Initialize(ID3D12Device* device, UINT width, UINT height);
-	void Update(float deltaTime);
+	void Update(float deltaTime, const Input& input);
 	void Render(Dx12Renderer& renderer) const;
 
 	DirectX::XMMATRIX GetViewProjectionMatrix() const;

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Windows.h>
+#include "Input.h"
 
 #include <DirectXMath.h>
 
 class Camera
 {
 public:
-	void Update(float deltaTime);
+	void Update(float deltaTime, const Input& input);
 	void SetLens(float fovYRadians, float aspectRatio, float nearZ, float farZ);
 	void LookAt(
 		const DirectX::XMFLOAT3& position,

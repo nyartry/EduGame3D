@@ -2,6 +2,7 @@
 
 #include "Dx12Renderer.h"
 #include "GameScene.h"
+#include "Input.h"
 
 #include <Windows.h>
 
@@ -19,6 +20,7 @@ private:
 	float CalculateDeltaTime();
 
 	HWND m_hwnd{};
+	Input m_input;
 	Dx12Renderer m_renderer;
 	GameScene m_scene;
 	std::chrono::steady_clock::time_point m_lastTickTime{};

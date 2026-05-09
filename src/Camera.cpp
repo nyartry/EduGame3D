@@ -5,32 +5,27 @@ using namespace DirectX;
 namespace
 {
 	constexpr float CameraMoveSpeed = 5.0f;
-
-	bool IsKeyDown(int virtualKey)
-	{
-		return (GetAsyncKeyState(virtualKey) & 0x8000) != 0;
-	}
 }
 
-void Camera::Update(float deltaTime)
+void Camera::Update(float deltaTime, const Input& input)
 {
 	const float moveDistance = CameraMoveSpeed * deltaTime;
 	float moveX = 0.0f;
 	float moveY = 0.0f;
 
-	if (IsKeyDown(VK_LEFT))
+	if (input.IsDown(InputKey::Left))
 	{
 		moveX -= moveDistance;
 	}
-	if (IsKeyDown(VK_RIGHT))
+	if (input.IsDown(InputKey::Right))
 	{
 		moveX += moveDistance;
 	}
-	if (IsKeyDown(VK_UP))
+	if (input.IsDown(InputKey::Up))
 	{
 		moveY += moveDistance;
 	}
-	if (IsKeyDown(VK_DOWN))
+	if (input.IsDown(InputKey::Down))
 	{
 		moveY -= moveDistance;
 	}
