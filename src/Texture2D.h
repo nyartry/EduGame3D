@@ -9,13 +9,14 @@
 class Texture2D
 {
 public:
-	void Initialize(ID3D12Device* device, const std::string& filePath);
-	void InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha);
+	void Initialize(ID3D12Device* device, const std::string& filePath, bool useSrgb);
+	void InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha, bool useSrgb);
 	void CreateShaderResourceView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE handle) const;
 
 private:
 	void CreateFallbackTexture(ID3D12Device* device);
-	void CreateTextureResource(ID3D12Device* device, const void* pixels, UINT width, UINT height);
+	void CreateTextureResource(ID3D12Device* device, const void* pixels, UINT width, UINT height, bool useSrgb);
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_resource;
+	DXGI_FORMAT m_format{ DXGI_FORMAT_R8G8B8A8_UNORM };
 };

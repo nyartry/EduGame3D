@@ -8,16 +8,23 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <filesystem>
 
 namespace
 {
+	struct TriangleVertex
+	{
+		TexturedVertex vertex;
+	};
+
 	TexturedVertex MakeTexturedVertex(const aiMesh* mesh, unsigned int vertexIndex)
 	{
 		TexturedVertex vertex
 		{
 			{ mesh->mVertices[vertexIndex].x, mesh->mVertices[vertexIndex].y, mesh->mVertices[vertexIndex].z },
 			{ 0.0f, 1.0f, 0.0f },
+			{ 1.0f, 0.0f, 0.0f },
 			{ 0.0f, 0.0f }
 		};
 
@@ -35,6 +42,49 @@ namespace
 		}
 
 		return vertex;
+	}
+
+	void ApplyTriangleTangents(TriangleVertex (&triangleVertices)[3])
+	{
+		const TexturedVertex& v0 = triangleVertices[0].vertex;
+		const TexturedVertex& v1 = triangleVertices[1].vertex;
+		const TexturedVertex& v2 = triangleVertices[2].vertex;
+
+		const float edge1[] =
+		{
+			v1.position[0] - v0.position[0],
+			v1.position[1] - v0.position[1],
+			v1.position[2] - v0.position[2],
+		};
+		const float edge2[] =
+		{
+			v2.position[0] - v0.position[0],
+			v2.position[1] - v0.position[1],
+			v2.position[2] - v0.position[2],
+		};
+
+		const float deltaUv1[] = { v1.uv[0] - v0.uv[0], v1.uv[1] - v0.uv[1] };
+		const float deltaUv2[] = { v2.uv[0] - v0.uv[0], v2.uv[1] - v0.uv[1] };
+		const float denominator = deltaUv1[0] * deltaUv2[1] - deltaUv2[0] * deltaUv1[1];
+		if (std::abs(denominator) < 0.000001f)
+		{
+			return;
+		}
+
+		const float scale = 1.0f / denominator;
+		const float tangent[] =
+		{
+			(edge1[0] * deltaUv2[1] - edge2[0] * deltaUv1[1]) * scale,
+			(edge1[1] * deltaUv2[1] - edge2[1] * deltaUv1[1]) * scale,
+			(edge1[2] * deltaUv2[1] - edge2[2] * deltaUv1[1]) * scale,
+		};
+
+		for (TriangleVertex& triangleVertex : triangleVertices)
+		{
+			triangleVertex.vertex.tangent[0] = tangent[0];
+			triangleVertex.vertex.tangent[1] = tangent[1];
+			triangleVertex.vertex.tangent[2] = tangent[2];
+		}
 	}
 
 	std::string ToLower(std::string text)
@@ -154,6 +204,11 @@ bool ModelLoader::Load(const std::string& filePath, ModelData& modelData)
 			mesh->mMaterialIndex,
 			modelDirectory,
 			{ aiTextureType_OPACITY });
+		texturedMesh.normalTexturePath = GetMaterialTexturePath(
+			scene,
+			mesh->mMaterialIndex,
+			modelDirectory,
+			{ aiTextureType_NORMALS, aiTextureType_NORMAL_CAMERA, aiTextureType_HEIGHT });
 
 		for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
 		{
@@ -163,10 +218,17 @@ bool ModelLoader::Load(const std::string& filePath, ModelData& modelData)
 				continue;
 			}
 
+			TriangleVertex triangleVertices[3]{};
 			for (unsigned int index = 0; index < face.mNumIndices; ++index)
 			{
 				const unsigned int vertexIndex = face.mIndices[index];
-				texturedMesh.vertices.push_back(MakeTexturedVertex(mesh, vertexIndex));
+				triangleVertices[index].vertex = MakeTexturedVertex(mesh, vertexIndex);
+			}
+
+			ApplyTriangleTangents(triangleVertices);
+			for (const TriangleVertex& triangleVertex : triangleVertices)
+			{
+				texturedMesh.vertices.push_back(triangleVertex.vertex);
 			}
 		}
 

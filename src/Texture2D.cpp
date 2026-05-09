@@ -13,8 +13,6 @@ using Microsoft::WRL::ComPtr;
 
 namespace
 {
-	constexpr DXGI_FORMAT TextureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-
 	std::wstring ToWideString(const std::string& text)
 	{
 		if (text.empty())
@@ -113,14 +111,14 @@ namespace
 	}
 }
 
-void Texture2D::Initialize(ID3D12Device* device, const std::string& filePath)
+void Texture2D::Initialize(ID3D12Device* device, const std::string& filePath, bool useSrgb)
 {
 	try
 	{
 		UINT width = 0;
 		UINT height = 0;
 		const std::vector<UINT8> pixels = LoadPixelsWithWic(filePath, width, height);
-		CreateTextureResource(device, pixels.data(), width, height);
+		CreateTextureResource(device, pixels.data(), width, height, useSrgb);
 	}
 	catch (...)
 	{
@@ -128,10 +126,10 @@ void Texture2D::Initialize(ID3D12Device* device, const std::string& filePath)
 	}
 }
 
-void Texture2D::InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha)
+void Texture2D::InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha, bool useSrgb)
 {
 	const UINT8 pixels[] = { red, green, blue, alpha };
-	CreateTextureResource(device, pixels, 1, 1);
+	CreateTextureResource(device, pixels, 1, 1, useSrgb);
 }
 
 void Texture2D::CreateFallbackTexture(ID3D12Device* device)
@@ -143,11 +141,13 @@ void Texture2D::CreateFallbackTexture(ID3D12Device* device)
 		180, 180, 180, 255,
 		255, 255, 255, 255,
 	};
-	CreateTextureResource(device, pixels, 2, 2);
+	CreateTextureResource(device, pixels, 2, 2, true);
 }
 
-void Texture2D::CreateTextureResource(ID3D12Device* device, const void* pixels, UINT width, UINT height)
+void Texture2D::CreateTextureResource(ID3D12Device* device, const void* pixels, UINT width, UINT height, bool useSrgb)
 {
+	m_format = useSrgb ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
+
 	D3D12_RESOURCE_DESC textureDesc{};
 	textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	textureDesc.Alignment = 0;
@@ -155,7 +155,7 @@ void Texture2D::CreateTextureResource(ID3D12Device* device, const void* pixels, 
 	textureDesc.Height = height;
 	textureDesc.DepthOrArraySize = 1;
 	textureDesc.MipLevels = 1;
-	textureDesc.Format = TextureFormat;
+	textureDesc.Format = m_format;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
 	textureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -241,7 +241,7 @@ void Texture2D::CreateShaderResourceView(ID3D12Device* device, D3D12_CPU_DESCRIP
 {
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = TextureFormat;
+	srvDesc.Format = m_format;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 

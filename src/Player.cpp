@@ -35,12 +35,12 @@ void Player::Initialize(ID3D12Device* device, const std::string& modelPath)
 	for (const TexturedMeshData& meshData : modelData.texturedMeshes)
 	{
 		const std::string baseColorTexturePath = meshData.baseColorTexturePath.empty() ? FallbackTexturePath : meshData.baseColorTexturePath;
-		const std::string materialKey = baseColorTexturePath + "|" + meshData.opacityTexturePath;
+		const std::string materialKey = baseColorTexturePath + "|" + meshData.opacityTexturePath + "|" + meshData.normalTexturePath;
 		std::shared_ptr<TexturedMaterial>& material = materialCache[materialKey];
 		if (material == nullptr)
 		{
 			material = std::make_shared<TexturedMaterial>();
-			material->Initialize(device, baseColorTexturePath, meshData.opacityTexturePath);
+			material->Initialize(device, baseColorTexturePath, meshData.opacityTexturePath, meshData.normalTexturePath);
 		}
 
 		MeshPart meshPart;

@@ -10,6 +10,7 @@ struct TexturedMeshData
 	std::vector<TexturedVertex> vertices;
 	std::string baseColorTexturePath;
 	std::string opacityTexturePath;
+	std::string normalTexturePath;
 };
 
 struct ModelData
