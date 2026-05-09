@@ -9,6 +9,7 @@ namespace
 	constexpr float CameraFovYDegrees = 55.0f;
 	constexpr float CameraNearZ = 0.1f;
 	constexpr float CameraFarZ = 100.0f;
+	constexpr const char* PlayerModelPath = "Content\\Models\\forest_goddess\\forest_goddess.fbx";
 }
 
 void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
@@ -21,6 +22,9 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_ground.Initialize(device);
 	m_originCube.SetPosition(0.0f, 0.0f, 0.0f);
 	m_originCube.Initialize(device);
+
+	m_player.SetPosition(0.0f, 0.0f, 0.0f);
+	m_player.Initialize(device, PlayerModelPath);
 }
 
 void GameScene::Update(float deltaTime, const Input& input)
@@ -32,6 +36,7 @@ void GameScene::Render(Dx12Renderer& renderer) const
 {
 	m_ground.Draw(renderer);
 	m_originCube.Draw(renderer);
+	m_player.Draw(renderer);
 }
 
 XMMATRIX GameScene::GetViewProjectionMatrix() const

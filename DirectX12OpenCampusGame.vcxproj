@@ -107,6 +107,7 @@
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ModelLoader.cpp" />
+    <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\PrimitiveObject.cpp" />
     <ClCompile Include="src\VertexBuffer.cpp" />
     <ClCompile Include="src\Win32Application.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="src\Ground.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\ModelLoader.h" />
+    <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\PrimitiveObject.h" />
     <ClInclude Include="src\Vertex.h" />
     <ClInclude Include="src\VertexBuffer.h" />

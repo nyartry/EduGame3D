@@ -4,6 +4,7 @@
 #include "Cube.h"
 #include "Ground.h"
 #include "Input.h"
+#include "Player.h"
 
 #include <Windows.h>
 
@@ -25,4 +26,5 @@ private:
 	Camera m_camera;
 	Ground m_ground;
 	Cube m_originCube;
+	Player m_player;
 };
