@@ -41,6 +41,9 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ModelLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\PrimitiveObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -80,6 +83,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModelLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\PrimitiveObject.h">
