@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <wrl/client.h>
 
+#include "BasicColorPipeline.h"
 #include "Camera.h"
 #include "Ground.h"
 
@@ -29,15 +30,9 @@ public:
 	void WaitForGpu();
 
 private:
-	struct SceneConstants
-	{
-		DirectX::XMFLOAT4X4 worldViewProjection{};
-	};
-
 	void LoadPipeline();
 	void LoadAssets();
 	void CreateDepthBuffer();
-	void CreateConstantBuffer();
 	void PopulateCommandList();
 	void MoveToNextFrame();
 
@@ -49,9 +44,8 @@ private:
 	HANDLE m_fenceEvent{};
 	std::chrono::steady_clock::time_point m_startTime{};
 	std::array<float, 4> m_clearColor{ 0.08f, 0.12f, 0.18f, 1.0f };
-	SceneConstants m_constantBufferData{};
-	UINT8* m_constantBufferMappedData{};
 	Camera m_camera;
+	BasicColorPipeline m_basicColorPipeline;
 
 	Microsoft::WRL::ComPtr<ID3D12Device> m_device;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_commandQueue;
@@ -61,10 +55,7 @@ private:
 	std::array<Microsoft::WRL::ComPtr<ID3D12Resource>, FrameCount> m_renderTargets;
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_depthStencil;
 	std::array<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>, FrameCount> m_commandAllocators;
-	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_constantBuffer;
 	Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
 	std::array<UINT64, FrameCount> m_fenceValues{};
 	Ground m_ground;
