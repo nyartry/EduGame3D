@@ -4,6 +4,7 @@
 #include <wrl/client.h>
 
 #include "BasicColorPipeline.h"
+#include "TexturedPipeline.h"
 #include "VertexBuffer.h"
 
 #include <array>
@@ -11,6 +12,9 @@
 #include <d3d12.h>
 #include <DirectXMath.h>
 #include <dxgi1_6.h>
+
+class Texture2D;
+class TexturedVertexBuffer;
 
 class Dx12Renderer
 {
@@ -26,6 +30,7 @@ public:
 	void Initialize(HWND hwnd, UINT width, UINT height);
 	void BeginFrame(const DirectX::XMMATRIX& viewProjection);
 	void Draw(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world);
+	void DrawTextured(const TexturedVertexBuffer& vertexBuffer, const Texture2D& texture, const DirectX::XMMATRIX& world);
 	void EndFrame();
 	void WaitForGpu();
 	ID3D12Device* GetDevice() const;
@@ -47,6 +52,7 @@ private:
 	std::array<float, 4> m_clearColor{ 0.08f, 0.12f, 0.18f, 1.0f };
 	DirectX::XMFLOAT4X4 m_viewProjection{};
 	BasicColorPipeline m_basicColorPipeline;
+	TexturedPipeline m_texturedPipeline;
 
 	Microsoft::WRL::ComPtr<ID3D12Device> m_device;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_commandQueue;

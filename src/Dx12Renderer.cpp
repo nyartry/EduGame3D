@@ -1,6 +1,8 @@
 #include "Dx12Renderer.h"
 
 #include "Common.h"
+#include "Texture2D.h"
+#include "TexturedVertexBuffer.h"
 
 #include <cmath>
 #include <cstdint>
@@ -77,9 +79,25 @@ void Dx12Renderer::BeginFrame(const XMMATRIX& viewProjection)
 
 void Dx12Renderer::Draw(const VertexBuffer& vertexBuffer, const XMMATRIX& world)
 {
+	m_commandList->SetPipelineState(m_basicColorPipeline.GetPipelineState());
+	m_basicColorPipeline.Bind(m_commandList.Get());
+
 	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
 	const XMMATRIX worldViewProjection = world * viewProjection;
 	m_basicColorPipeline.UpdateWorldViewProjection(worldViewProjection);
+	vertexBuffer.Bind(m_commandList.Get());
+	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
+}
+
+void Dx12Renderer::DrawTextured(const TexturedVertexBuffer& vertexBuffer, const Texture2D& texture, const XMMATRIX& world)
+{
+	m_commandList->SetPipelineState(m_texturedPipeline.GetPipelineState());
+	m_texturedPipeline.Bind(m_commandList.Get());
+	texture.Bind(m_commandList.Get(), 1);
+
+	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
+	const XMMATRIX worldViewProjection = world * viewProjection;
+	m_texturedPipeline.UpdateWorldViewProjection(worldViewProjection);
 	vertexBuffer.Bind(m_commandList.Get());
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
@@ -210,6 +228,7 @@ void Dx12Renderer::LoadPipeline()
 void Dx12Renderer::LoadAssets()
 {
 	m_basicColorPipeline.Initialize(m_device.Get());
+	m_texturedPipeline.Initialize(m_device.Get());
 
 	ThrowIfFailed(m_device->CreateCommandList(
 		0,

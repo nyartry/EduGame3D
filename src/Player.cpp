@@ -1,7 +1,6 @@
 #include "Player.h"
 
 #include "Dx12Renderer.h"
-#include "ModelLoader.h"
 
 #include <DirectXMath.h>
 #include <algorithm>
@@ -13,6 +12,7 @@ using namespace DirectX;
 namespace
 {
 	constexpr float PlayerHeight = 1.8f;
+	constexpr const char* FallbackTexturePath = "";
 }
 
 void Player::Initialize(ID3D12Device* device, const std::string& modelPath)
@@ -24,14 +24,26 @@ void Player::Initialize(ID3D12Device* device, const std::string& modelPath)
 		throw std::runtime_error("Failed to load player model: " + loader.GetLastError());
 	}
 
-	FitModelToPlayerSize(modelData.vertices);
-	m_vertexBuffer.Initialize(device, modelData.vertices);
+	FitModelToPlayerSize(modelData);
+
+	m_meshParts.clear();
+	m_meshParts.reserve(modelData.texturedMeshes.size());
+	for (const TexturedMeshData& meshData : modelData.texturedMeshes)
+	{
+		MeshPart meshPart;
+		meshPart.vertexBuffer.Initialize(device, meshData.vertices);
+		meshPart.texture.Initialize(device, meshData.texturePath.empty() ? FallbackTexturePath : meshData.texturePath);
+		m_meshParts.push_back(std::move(meshPart));
+	}
 }
 
 void Player::Draw(Dx12Renderer& renderer) const
 {
 	const XMMATRIX world = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
-	renderer.Draw(m_vertexBuffer, world);
+	for (const MeshPart& meshPart : m_meshParts)
+	{
+		renderer.DrawTextured(meshPart.vertexBuffer, meshPart.texture, world);
+	}
 }
 
 void Player::SetPosition(float x, float y, float z)
@@ -44,9 +56,9 @@ XMFLOAT3 Player::GetPosition() const
 	return m_position;
 }
 
-void Player::FitModelToPlayerSize(std::vector<Vertex>& vertices) const
+void Player::FitModelToPlayerSize(ModelData& modelData) const
 {
-	if (vertices.empty())
+	if (modelData.texturedMeshes.empty())
 	{
 		return;
 	}
@@ -58,14 +70,17 @@ void Player::FitModelToPlayerSize(std::vector<Vertex>& vertices) const
 	float maxY = std::numeric_limits<float>::lowest();
 	float maxZ = std::numeric_limits<float>::lowest();
 
-	for (const Vertex& vertex : vertices)
+	for (const TexturedMeshData& meshData : modelData.texturedMeshes)
 	{
-		minX = std::min(minX, vertex.position[0]);
-		minY = std::min(minY, vertex.position[1]);
-		minZ = std::min(minZ, vertex.position[2]);
-		maxX = std::max(maxX, vertex.position[0]);
-		maxY = std::max(maxY, vertex.position[1]);
-		maxZ = std::max(maxZ, vertex.position[2]);
+		for (const TexturedVertex& vertex : meshData.vertices)
+		{
+			minX = std::min(minX, vertex.position[0]);
+			minY = std::min(minY, vertex.position[1]);
+			minZ = std::min(minZ, vertex.position[2]);
+			maxX = std::max(maxX, vertex.position[0]);
+			maxY = std::max(maxY, vertex.position[1]);
+			maxZ = std::max(maxZ, vertex.position[2]);
+		}
 	}
 
 	const float height = maxY - minY;
@@ -78,10 +93,13 @@ void Player::FitModelToPlayerSize(std::vector<Vertex>& vertices) const
 	const float centerZ = (minZ + maxZ) * 0.5f;
 	const float scale = PlayerHeight / height;
 
-	for (Vertex& vertex : vertices)
+	for (TexturedMeshData& meshData : modelData.texturedMeshes)
 	{
-		vertex.position[0] = (vertex.position[0] - centerX) * scale;
-		vertex.position[1] = (vertex.position[1] - minY) * scale;
-		vertex.position[2] = (vertex.position[2] - centerZ) * scale;
+		for (TexturedVertex& vertex : meshData.vertices)
+		{
+			vertex.position[0] = (vertex.position[0] - centerX) * scale;
+			vertex.position[1] = (vertex.position[1] - minY) * scale;
+			vertex.position[2] = (vertex.position[2] - centerZ) * scale;
+		}
 	}
 }

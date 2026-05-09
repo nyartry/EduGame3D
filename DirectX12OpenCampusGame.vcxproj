@@ -66,7 +66,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)third_party\assimp\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(ProjectDir)third_party\assimp\bin\Debug\assimp-vc143-mtd.dll" copy /Y "$(ProjectDir)third_party\assimp\bin\Debug\assimp-vc143-mtd.dll" "$(OutDir)"</Command>
@@ -89,7 +89,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)third_party\assimp\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(ProjectDir)third_party\assimp\bin\Release\assimp-vc143-mt.dll" copy /Y "$(ProjectDir)third_party\assimp\bin\Release\assimp-vc143-mt.dll" "$(OutDir)"</Command>
@@ -109,6 +109,9 @@
     <ClCompile Include="src\ModelLoader.cpp" />
     <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\PrimitiveObject.cpp" />
+    <ClCompile Include="src\Texture2D.cpp" />
+    <ClCompile Include="src\TexturedPipeline.cpp" />
+    <ClCompile Include="src\TexturedVertexBuffer.cpp" />
     <ClCompile Include="src\VertexBuffer.cpp" />
     <ClCompile Include="src\Win32Application.cpp" />
   </ItemGroup>
@@ -126,12 +129,17 @@
     <ClInclude Include="src\ModelLoader.h" />
     <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\PrimitiveObject.h" />
+    <ClInclude Include="src\Texture2D.h" />
+    <ClInclude Include="src\TexturedPipeline.h" />
+    <ClInclude Include="src\TexturedVertex.h" />
+    <ClInclude Include="src\TexturedVertexBuffer.h" />
     <ClInclude Include="src\Vertex.h" />
     <ClInclude Include="src\VertexBuffer.h" />
     <ClInclude Include="src\Win32Application.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\BasicColor.hlsl" />
+    <None Include="src\Textured.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

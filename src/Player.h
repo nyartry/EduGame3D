@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Vertex.h"
-#include "VertexBuffer.h"
+#include "ModelLoader.h"
+#include "Texture2D.h"
+#include "TexturedVertexBuffer.h"
 
 #include <Windows.h>
 
@@ -22,8 +23,14 @@ public:
 	DirectX::XMFLOAT3 GetPosition() const;
 
 private:
-	void FitModelToPlayerSize(std::vector<Vertex>& vertices) const;
+	struct MeshPart
+	{
+		TexturedVertexBuffer vertexBuffer;
+		Texture2D texture;
+	};
 
-	VertexBuffer m_vertexBuffer;
+	void FitModelToPlayerSize(ModelData& modelData) const;
+
+	std::vector<MeshPart> m_meshParts;
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
 };
