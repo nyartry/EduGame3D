@@ -114,6 +114,7 @@ void Player::SetAnimationState(AnimationState state)
 	{
 	case AnimationState::Idle:
 		m_model.PlayAnimation(IdleAnimationName);
+		m_position.y = GroundHeight;
 		break;
 	case AnimationState::Jogging:
 		m_model.PlayAnimation(JoggingAnimationName);

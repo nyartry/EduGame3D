@@ -38,7 +38,7 @@ private:
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
 	AnimationState m_animationState{ AnimationState::Idle };
 	RootMotionMode m_rootMotionMode{ RootMotionMode::Apply };
-	RootMotionVerticalMode m_rootMotionVerticalMode{ RootMotionVerticalMode::Ignore };
+	RootMotionVerticalMode m_rootMotionVerticalMode{ RootMotionVerticalMode::Apply };
 	float m_rootMotionBlendWeight{ 0.5f };
 	float m_rotationY{};
 };
