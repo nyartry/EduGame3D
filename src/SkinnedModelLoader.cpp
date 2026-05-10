@@ -12,6 +12,7 @@
 
 #include <DirectXMath.h>
 
+#include <cmath>
 #include <filesystem>
 #include <string>
 #include <unordered_map>
@@ -195,6 +196,28 @@ namespace
 			bones[boneIndex].parentIndex < 0;
 	}
 
+	bool HasChangingTranslation(const std::vector<VectorAnimationKey>& translations)
+	{
+		if (translations.size() < 2)
+		{
+			return false;
+		}
+
+		const XMFLOAT3 firstValue = translations.front().value;
+		constexpr float epsilon = 0.0001f;
+		for (const VectorAnimationKey& key : translations)
+		{
+			if (std::abs(key.value.x - firstValue.x) > epsilon ||
+				std::abs(key.value.y - firstValue.y) > epsilon ||
+				std::abs(key.value.z - firstValue.z) > epsilon)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	AnimationClip BuildAnimationClip(
 		const aiAnimation* aiAnimation,
 		const std::string& fallbackName,
@@ -221,14 +244,13 @@ namespace
 			{
 				continue;
 			}
-			boneAnimation.lockTranslationToBindPose = ShouldLockTranslationToBindPose(
-				boneName,
-				boneAnimation.boneIndex,
-				bones);
 
 			AddPositionKeys(channel, boneAnimation.translations);
 			AddRotationKeys(channel, boneAnimation.rotations);
 			AddScaleKeys(channel, boneAnimation.scales);
+			boneAnimation.lockTranslationToBindPose =
+				ShouldLockTranslationToBindPose(boneName, boneAnimation.boneIndex, bones) ||
+				HasChangingTranslation(boneAnimation.translations);
 
 			clip.boneAnimations.push_back(std::move(boneAnimation));
 		}
