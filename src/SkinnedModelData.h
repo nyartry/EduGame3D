@@ -55,4 +55,5 @@ struct SkinnedModelData
 	std::vector<SkinnedMeshData> meshes;
 	std::vector<BoneData> bones;
 	std::vector<AnimationClip> animations;
+	DirectX::XMFLOAT4X4 rootInverseTransform{};
 };

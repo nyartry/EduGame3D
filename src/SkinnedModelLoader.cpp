@@ -23,10 +23,10 @@ namespace
 	{
 		return XMFLOAT4X4
 		{
-			matrix.a1, matrix.a2, matrix.a3, matrix.a4,
-			matrix.b1, matrix.b2, matrix.b3, matrix.b4,
-			matrix.c1, matrix.c2, matrix.c3, matrix.c4,
-			matrix.d1, matrix.d2, matrix.d3, matrix.d4
+			matrix.a1, matrix.b1, matrix.c1, matrix.d1,
+			matrix.a2, matrix.b2, matrix.c2, matrix.d2,
+			matrix.a3, matrix.b3, matrix.c3, matrix.d3,
+			matrix.a4, matrix.b4, matrix.c4, matrix.d4
 		};
 	}
 
@@ -150,6 +150,9 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 	}
 
 	modelData = SkinnedModelData{};
+	aiMatrix4x4 rootInverseTransform = scene->mRootNode->mTransformation;
+	rootInverseTransform.Inverse();
+	modelData.rootInverseTransform = ToFloat4x4(rootInverseTransform);
 
 	std::unordered_map<std::string, int> boneMap;
 	AddBoneRecursive(scene->mRootNode, -1, modelData.bones, boneMap);

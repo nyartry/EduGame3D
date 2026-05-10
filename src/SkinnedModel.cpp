@@ -30,6 +30,17 @@ namespace
 			XMMatrixTranslation(translation.x, translation.y, translation.z);
 	}
 
+	XMVECTOR NormalizeOrDefault(XMVECTOR vector, XMVECTOR defaultVector)
+	{
+		const XMVECTOR length = XMVector3LengthSq(vector);
+		if (XMVectorGetX(length) <= 0.0f)
+		{
+			return defaultVector;
+		}
+
+		return XMVector3Normalize(vector);
+	}
+
 	const AnimationKey& FindAnimationKey(const std::vector<AnimationKey>& keys, double animationTimeTicks)
 	{
 		if (keys.empty())
@@ -183,7 +194,8 @@ void SkinnedModel::UpdateBoneMatrices()
 		}
 
 		const XMMATRIX offset = LoadMatrix(bone.offsetMatrix);
-		XMStoreFloat4x4(&m_boneMatrices[boneIndex], offset * globalTransforms[boneIndex]);
+		const XMMATRIX rootInverse = LoadMatrix(m_modelData.rootInverseTransform);
+		XMStoreFloat4x4(&m_boneMatrices[boneIndex], offset * globalTransforms[boneIndex] * rootInverse);
 	}
 }
 
@@ -227,6 +239,12 @@ void SkinnedModel::SkinMeshes()
 				normal = sourceNormal;
 				tangent = sourceTangent;
 			}
+			else if (totalWeight != 1.0f)
+			{
+				position /= totalWeight;
+				normal /= totalWeight;
+				tangent /= totalWeight;
+			}
 
 			position = XMVectorSet(
 				(XMVectorGetX(position) - m_modelCenterX) * m_modelScale,
@@ -235,8 +253,8 @@ void SkinnedModel::SkinMeshes()
 				1.0f);
 
 			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(skinnedVertex.position), position);
-			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(skinnedVertex.normal), XMVector3Normalize(normal));
-			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(skinnedVertex.tangent), XMVector3Normalize(tangent));
+			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(skinnedVertex.normal), NormalizeOrDefault(normal, sourceNormal));
+			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(skinnedVertex.tangent), NormalizeOrDefault(tangent, sourceTangent));
 			meshPart.skinnedVertices[vertexIndex] = skinnedVertex;
 		}
 
