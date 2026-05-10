@@ -20,6 +20,9 @@
     <ClCompile Include="src\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\CpuSkinnedMeshProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\Cube.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,6 +42,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Ground.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuSkinnedMeshProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Input.cpp">
@@ -69,6 +75,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SkinnedModelLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SkinnedTexturedPipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SkinnedVertexBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\StaticModel.cpp">
@@ -106,6 +118,9 @@
     <ClInclude Include="src\Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\CpuSkinnedMeshProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Cube.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -127,7 +142,13 @@
     <ClInclude Include="src\Ground.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\GpuSkinnedMeshProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ISkinnedMeshProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\MeshTangentCalculator.h">
@@ -154,6 +175,9 @@
     <ClInclude Include="src\RootMotionPolicy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\SkinningMode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\SkinnedModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -161,6 +185,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SkinnedModelLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SkinnedTexturedPipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SkinnedVertexBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\StaticModel.h">
@@ -193,6 +223,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\BasicColor.hlsl" />
+    <None Include="src\SkinnedTextured.hlsl" />
     <None Include="src\Textured.hlsl" />
   </ItemGroup>
 </Project>

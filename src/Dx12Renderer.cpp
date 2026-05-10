@@ -1,6 +1,7 @@
 #include "Dx12Renderer.h"
 
 #include "Common.h"
+#include "SkinnedVertexBuffer.h"
 #include "TexturedMaterial.h"
 #include "TexturedVertexBuffer.h"
 
@@ -98,6 +99,33 @@ void Dx12Renderer::DrawTextured(const TexturedVertexBuffer& vertexBuffer, const 
 	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
 	const XMMATRIX worldViewProjection = world * viewProjection;
 	m_texturedPipeline.UpdateWorldViewProjection(worldViewProjection);
+	vertexBuffer.Bind(m_commandList.Get());
+	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
+}
+
+void Dx12Renderer::DrawSkinnedTextured(
+	const SkinnedVertexBuffer& vertexBuffer,
+	const TexturedMaterial& material,
+	const XMMATRIX& world,
+	const std::vector<XMFLOAT4X4>& boneMatrices,
+	float modelCenterX,
+	float modelMinY,
+	float modelCenterZ,
+	float modelScale)
+{
+	m_commandList->SetPipelineState(m_skinnedTexturedPipeline.GetPipelineState());
+	m_skinnedTexturedPipeline.Bind(m_commandList.Get());
+	material.Bind(m_commandList.Get(), 2);
+
+	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
+	const XMMATRIX worldViewProjection = world * viewProjection;
+	m_skinnedTexturedPipeline.UpdateConstants(
+		worldViewProjection,
+		boneMatrices,
+		modelCenterX,
+		modelMinY,
+		modelCenterZ,
+		modelScale);
 	vertexBuffer.Bind(m_commandList.Get());
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
@@ -229,6 +257,7 @@ void Dx12Renderer::LoadAssets()
 {
 	m_basicColorPipeline.Initialize(m_device.Get());
 	m_texturedPipeline.Initialize(m_device.Get());
+	m_skinnedTexturedPipeline.Initialize(m_device.Get());
 
 	ThrowIfFailed(m_device->CreateCommandList(
 		0,

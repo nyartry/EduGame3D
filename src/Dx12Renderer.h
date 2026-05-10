@@ -4,6 +4,7 @@
 #include <wrl/client.h>
 
 #include "BasicColorPipeline.h"
+#include "SkinnedTexturedPipeline.h"
 #include "TexturedPipeline.h"
 #include "VertexBuffer.h"
 
@@ -12,8 +13,10 @@
 #include <d3d12.h>
 #include <DirectXMath.h>
 #include <dxgi1_6.h>
+#include <vector>
 
 class TexturedMaterial;
+class SkinnedVertexBuffer;
 class TexturedVertexBuffer;
 
 class Dx12Renderer
@@ -31,6 +34,15 @@ public:
 	void BeginFrame(const DirectX::XMMATRIX& viewProjection);
 	void Draw(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world);
 	void DrawTextured(const TexturedVertexBuffer& vertexBuffer, const TexturedMaterial& material, const DirectX::XMMATRIX& world);
+	void DrawSkinnedTextured(
+		const SkinnedVertexBuffer& vertexBuffer,
+		const TexturedMaterial& material,
+		const DirectX::XMMATRIX& world,
+		const std::vector<DirectX::XMFLOAT4X4>& boneMatrices,
+		float modelCenterX,
+		float modelMinY,
+		float modelCenterZ,
+		float modelScale);
 	void EndFrame();
 	void WaitForGpu();
 	ID3D12Device* GetDevice() const;
@@ -53,6 +65,7 @@ private:
 	DirectX::XMFLOAT4X4 m_viewProjection{};
 	BasicColorPipeline m_basicColorPipeline;
 	TexturedPipeline m_texturedPipeline;
+	SkinnedTexturedPipeline m_skinnedTexturedPipeline;
 
 	Microsoft::WRL::ComPtr<ID3D12Device> m_device;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_commandQueue;

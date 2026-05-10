@@ -1,9 +1,10 @@
 #pragma once
 
+#include "ISkinnedMeshProcessor.h"
 #include "RootMotion.h"
+#include "SkinningMode.h"
 #include "SkinnedModelData.h"
 #include "TexturedMaterial.h"
-#include "TexturedVertexBuffer.h"
 #include "ModelScaleSettings.h"
 
 #include <DirectXMath.h>
@@ -22,7 +23,8 @@ public:
 	void Initialize(
 		ID3D12Device* device,
 		const std::string& modelPath,
-		const ModelScaleSettings& scaleSettings = ModelScaleSettings::OriginalSize());
+		const ModelScaleSettings& scaleSettings = ModelScaleSettings::OriginalSize(),
+		SkinningMode skinningMode = SkinningMode::Cpu);
 	void AddAnimation(const std::string& animationName, const std::string& animationPath);
 	void PlayAnimation(const std::string& animationName);
 	RootMotionDelta Update(float deltaTime);
@@ -32,23 +34,15 @@ public:
 	void SetRotationY(float radians);
 
 private:
-	struct MeshPart
-	{
-		std::vector<SkinnedVertex> sourceVertices;
-		std::vector<TexturedVertex> skinnedVertices;
-		TexturedVertexBuffer vertexBuffer;
-		std::shared_ptr<TexturedMaterial> material;
-	};
-
+	static std::unique_ptr<ISkinnedMeshProcessor> CreateMeshProcessor(SkinningMode skinningMode);
 	void FitModel(const ModelScaleSettings& scaleSettings);
 	RootMotionDelta ExtractRootMotionDelta(float deltaTime) const;
 	void UpdateBoneMatrices();
-	void SkinMeshes();
 
 	DirectX::XMMATRIX GetLocalTransform(const BoneData& bone) const;
 
 	SkinnedModelData m_modelData;
-	std::vector<MeshPart> m_meshParts;
+	std::vector<std::unique_ptr<ISkinnedMeshProcessor>> m_meshProcessors;
 	std::vector<DirectX::XMFLOAT4X4> m_boneMatrices;
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
 	float m_animationTimeSeconds{};

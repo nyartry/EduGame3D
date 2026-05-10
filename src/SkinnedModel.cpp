@@ -1,7 +1,9 @@
 #include "SkinnedModel.h"
 
 #include "AnimationSampler.h"
+#include "CpuSkinnedMeshProcessor.h"
 #include "Dx12Renderer.h"
+#include "GpuSkinnedMeshProcessor.h"
 #include "SkinnedModelLoader.h"
 
 #include <algorithm>
@@ -21,23 +23,13 @@ namespace
 	{
 		return XMLoadFloat4x4(&matrix);
 	}
-
-	XMVECTOR NormalizeOrDefault(XMVECTOR vector, XMVECTOR defaultVector)
-	{
-		const XMVECTOR length = XMVector3LengthSq(vector);
-		if (XMVectorGetX(length) <= 0.0f)
-		{
-			return defaultVector;
-		}
-
-		return XMVector3Normalize(vector);
-	}
 }
 
 void SkinnedModel::Initialize(
 	ID3D12Device* device,
 	const std::string& modelPath,
-	const ModelScaleSettings& scaleSettings)
+	const ModelScaleSettings& scaleSettings,
+	SkinningMode skinningMode)
 {
 	SkinnedModelLoader loader;
 	if (!loader.Load(modelPath, m_modelData))
@@ -49,8 +41,8 @@ void SkinnedModel::Initialize(
 	m_boneMatrices.resize(m_modelData.bones.size());
 
 	std::unordered_map<std::string, std::shared_ptr<TexturedMaterial>> materialCache;
-	m_meshParts.clear();
-	m_meshParts.reserve(m_modelData.meshes.size());
+	m_meshProcessors.clear();
+	m_meshProcessors.reserve(m_modelData.meshes.size());
 
 	for (const SkinnedMeshData& meshData : m_modelData.meshes)
 	{
@@ -63,21 +55,16 @@ void SkinnedModel::Initialize(
 			material->Initialize(device, baseColorTexturePath, meshData.opacityTexturePath, meshData.normalTexturePath);
 		}
 
-		MeshPart meshPart;
-		meshPart.sourceVertices = meshData.vertices;
-		meshPart.skinnedVertices.resize(meshData.vertices.size());
-		for (size_t index = 0; index < meshData.vertices.size(); ++index)
-		{
-			meshPart.skinnedVertices[index] = meshData.vertices[index].vertex;
-		}
-
-		meshPart.vertexBuffer.Initialize(device, meshPart.skinnedVertices);
-		meshPart.material = material;
-		m_meshParts.push_back(std::move(meshPart));
+		std::unique_ptr<ISkinnedMeshProcessor> meshProcessor = CreateMeshProcessor(skinningMode);
+		meshProcessor->Initialize(device, meshData.vertices, material);
+		m_meshProcessors.push_back(std::move(meshProcessor));
 	}
 
 	UpdateBoneMatrices();
-	SkinMeshes();
+	for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
+	{
+		meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
+	}
 }
 
 void SkinnedModel::AddAnimation(const std::string& animationName, const std::string& animationPath)
@@ -110,16 +97,19 @@ RootMotionDelta SkinnedModel::Update(float deltaTime)
 	const RootMotionDelta rootMotionDelta = ExtractRootMotionDelta(deltaTime);
 	m_animationTimeSeconds += deltaTime;
 	UpdateBoneMatrices();
-	SkinMeshes();
+	for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
+	{
+		meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
+	}
 	return rootMotionDelta;
 }
 
 void SkinnedModel::Draw(Dx12Renderer& renderer) const
 {
 	const XMMATRIX world = XMMatrixRotationY(m_rotationY) * XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
-	for (const MeshPart& meshPart : m_meshParts)
+	for (const std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
 	{
-		renderer.DrawTextured(meshPart.vertexBuffer, *meshPart.material, world);
+		meshProcessor->Draw(renderer, world, m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
 	}
 }
 
@@ -175,6 +165,18 @@ void SkinnedModel::FitModel(const ModelScaleSettings& scaleSettings)
 	m_modelMinY = minY;
 	m_modelCenterZ = (minZ + maxZ) * 0.5f;
 	m_modelScale = scaleSettings.targetHeight / height;
+}
+
+std::unique_ptr<ISkinnedMeshProcessor> SkinnedModel::CreateMeshProcessor(SkinningMode skinningMode)
+{
+	switch (skinningMode)
+	{
+	case SkinningMode::Gpu:
+		return std::make_unique<GpuSkinnedMeshProcessor>();
+	case SkinningMode::Cpu:
+	default:
+		return std::make_unique<CpuSkinnedMeshProcessor>();
+	}
 }
 
 RootMotionDelta SkinnedModel::ExtractRootMotionDelta(float deltaTime) const
@@ -267,69 +269,6 @@ void SkinnedModel::UpdateBoneMatrices()
 		const XMMATRIX offset = LoadMatrix(bone.offsetMatrix);
 		const XMMATRIX rootInverse = LoadMatrix(m_modelData.rootInverseTransform);
 		XMStoreFloat4x4(&m_boneMatrices[boneIndex], offset * globalTransforms[boneIndex] * rootInverse);
-	}
-}
-
-void SkinnedModel::SkinMeshes()
-{
-	for (MeshPart& meshPart : m_meshParts)
-	{
-		for (size_t vertexIndex = 0; vertexIndex < meshPart.sourceVertices.size(); ++vertexIndex)
-		{
-			const SkinnedVertex& sourceVertex = meshPart.sourceVertices[vertexIndex];
-			TexturedVertex skinnedVertex = sourceVertex.vertex;
-
-			XMVECTOR position = XMVectorZero();
-			XMVECTOR normal = XMVectorZero();
-			XMVECTOR tangent = XMVectorZero();
-			float totalWeight = 0.0f;
-
-			const XMVECTOR sourcePosition = XMLoadFloat3(&sourceVertex.vertex.position);
-			const XMVECTOR sourceNormal = XMLoadFloat3(&sourceVertex.vertex.normal);
-			const XMVECTOR sourceTangent = XMLoadFloat3(&sourceVertex.vertex.tangent);
-
-			for (int slot = 0; slot < 4; ++slot)
-			{
-				const int boneIndex = sourceVertex.boneIndices[slot];
-				const float weight = sourceVertex.boneWeights[slot];
-				if (boneIndex < 0 || weight == 0.0f || boneIndex >= static_cast<int>(m_boneMatrices.size()))
-				{
-					continue;
-				}
-
-				const XMMATRIX boneMatrix = XMLoadFloat4x4(&m_boneMatrices[boneIndex]);
-				position += XMVector3TransformCoord(sourcePosition, boneMatrix) * weight;
-				normal += XMVector3TransformNormal(sourceNormal, boneMatrix) * weight;
-				tangent += XMVector3TransformNormal(sourceTangent, boneMatrix) * weight;
-				totalWeight += weight;
-			}
-
-			if (totalWeight == 0.0f)
-			{
-				position = sourcePosition;
-				normal = sourceNormal;
-				tangent = sourceTangent;
-			}
-			else if (totalWeight != 1.0f)
-			{
-				position /= totalWeight;
-				normal /= totalWeight;
-				tangent /= totalWeight;
-			}
-
-			position = XMVectorSet(
-				(XMVectorGetX(position) - m_modelCenterX) * m_modelScale,
-				(XMVectorGetY(position) - m_modelMinY) * m_modelScale,
-				(XMVectorGetZ(position) - m_modelCenterZ) * m_modelScale,
-				1.0f);
-
-			XMStoreFloat3(&skinnedVertex.position, position);
-			XMStoreFloat3(&skinnedVertex.normal, NormalizeOrDefault(normal, sourceNormal));
-			XMStoreFloat3(&skinnedVertex.tangent, NormalizeOrDefault(tangent, sourceTangent));
-			meshPart.skinnedVertices[vertexIndex] = skinnedVertex;
-		}
-
-		meshPart.vertexBuffer.Update(meshPart.skinnedVertices);
 	}
 }
 

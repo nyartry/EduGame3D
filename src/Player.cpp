@@ -15,6 +15,7 @@ namespace
 	constexpr const char* JoggingAnimationName = "Jogging";
 	constexpr float PlayerHeight = 1.8f;
 	constexpr float MoveSpeed = 3.0f;
+	constexpr SkinningMode PlayerSkinningMode = SkinningMode::Gpu;
 
 	XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float amount)
 	{
@@ -29,7 +30,11 @@ namespace
 
 void Player::Initialize(ID3D12Device* device)
 {
-	m_model.Initialize(device, IdleModelPath, ModelScaleSettings::NormalizeToHeight(PlayerHeight));
+	m_model.Initialize(
+		device,
+		IdleModelPath,
+		ModelScaleSettings::NormalizeToHeight(PlayerHeight),
+		PlayerSkinningMode);
 	m_model.AddAnimation(IdleAnimationName, IdleModelPath);
 	m_model.AddAnimation(JoggingAnimationName, JoggingAnimationPath);
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
