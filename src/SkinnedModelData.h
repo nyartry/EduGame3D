@@ -45,6 +45,7 @@ struct BoneAnimation
 {
 	int boneIndex{ -1 };
 	std::string boneName;
+	bool lockTranslationToBindPose{ false };
 	std::vector<VectorAnimationKey> translations;
 	std::vector<QuaternionAnimationKey> rotations;
 	std::vector<VectorAnimationKey> scales;

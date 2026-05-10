@@ -52,7 +52,7 @@ void Player::Update(float deltaTime, const Input& input)
 		m_position.x += movement.x * MoveSpeed * deltaTime;
 		m_position.z += movement.z * MoveSpeed * deltaTime;
 
-		m_model.SetRotationY(std::atan2(movement.x, movement.z));
+		m_model.SetRotationY(std::atan2(movement.x, movement.z) + XM_PI);
 		SetAnimationState(AnimationState::Jogging);
 	}
 	else

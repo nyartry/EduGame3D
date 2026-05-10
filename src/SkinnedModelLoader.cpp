@@ -168,10 +168,38 @@ namespace
 		return boneMap;
 	}
 
+	bool IsNamedRootMotionBone(const std::string& boneName)
+	{
+		return boneName == "Root" ||
+			boneName == "RootNode" ||
+			boneName == "Armature" ||
+			boneName == "Hips" ||
+			boneName.ends_with(":Root") ||
+			boneName.ends_with("_Root") ||
+			boneName.ends_with(":Hips") ||
+			boneName.ends_with("_Hips");
+	}
+
+	bool ShouldLockTranslationToBindPose(
+		const std::string& boneName,
+		int boneIndex,
+		const std::vector<BoneData>& bones)
+	{
+		if (IsNamedRootMotionBone(boneName))
+		{
+			return true;
+		}
+
+		return boneIndex >= 0 &&
+			boneIndex < static_cast<int>(bones.size()) &&
+			bones[boneIndex].parentIndex < 0;
+	}
+
 	AnimationClip BuildAnimationClip(
 		const aiAnimation* aiAnimation,
 		const std::string& fallbackName,
-		const std::unordered_map<std::string, int>& boneMap)
+		const std::unordered_map<std::string, int>& boneMap,
+		const std::vector<BoneData>& bones)
 	{
 		AnimationClip clip;
 		clip.name = fallbackName;
@@ -193,6 +221,10 @@ namespace
 			{
 				continue;
 			}
+			boneAnimation.lockTranslationToBindPose = ShouldLockTranslationToBindPose(
+				boneName,
+				boneAnimation.boneIndex,
+				bones);
 
 			AddPositionKeys(channel, boneAnimation.translations);
 			AddRotationKeys(channel, boneAnimation.rotations);
@@ -301,7 +333,7 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 	for (unsigned int animationIndex = 0; animationIndex < scene->mNumAnimations; ++animationIndex)
 	{
 		const aiAnimation* aiAnimation = scene->mAnimations[animationIndex];
-		modelData.animations.push_back(BuildAnimationClip(aiAnimation, aiAnimation->mName.C_Str(), boneMap));
+		modelData.animations.push_back(BuildAnimationClip(aiAnimation, aiAnimation->mName.C_Str(), boneMap, modelData.bones));
 	}
 
 	if (modelData.meshes.empty())
@@ -342,7 +374,7 @@ bool SkinnedModelLoader::LoadAnimation(const std::string& filePath, const std::s
 	for (unsigned int animationIndex = 0; animationIndex < scene->mNumAnimations; ++animationIndex)
 	{
 		const aiAnimation* aiAnimation = scene->mAnimations[animationIndex];
-		AnimationClip clip = BuildAnimationClip(aiAnimation, animationName, boneMap);
+		AnimationClip clip = BuildAnimationClip(aiAnimation, animationName, boneMap, modelData.bones);
 		if (!clip.boneAnimations.empty())
 		{
 			modelData.animations.push_back(std::move(clip));

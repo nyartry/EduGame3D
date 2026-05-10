@@ -17,6 +17,16 @@ namespace
 			XMMatrixRotationQuaternion(rotation) *
 			XMMatrixTranslationFromVector(translation);
 	}
+
+	XMVECTOR RemoveRootMotionTranslation(const BoneAnimation& boneAnimation, XMVECTOR translation, XMVECTOR bindTranslation)
+	{
+		if (!boneAnimation.lockTranslationToBindPose)
+		{
+			return translation;
+		}
+
+		return bindTranslation;
+	}
 }
 
 XMMATRIX AnimationSampler::SampleLocalTransform(
@@ -35,7 +45,10 @@ XMMATRIX AnimationSampler::SampleLocalTransform(
 	XMVECTOR bindTranslation = XMVectorZero();
 	XMMatrixDecompose(&bindScale, &bindRotation, &bindTranslation, LoadMatrix(bindPose.localBindTransform));
 
-	const XMVECTOR translation = SampleVectorKey(boneAnimation.translations, animationTimeTicks, bindTranslation);
+	const XMVECTOR translation = RemoveRootMotionTranslation(
+		boneAnimation,
+		SampleVectorKey(boneAnimation.translations, animationTimeTicks, bindTranslation),
+		bindTranslation);
 	const XMVECTOR rotation = SampleQuaternionKey(boneAnimation.rotations, animationTimeTicks, bindRotation);
 	const XMVECTOR scale = SampleVectorKey(boneAnimation.scales, animationTimeTicks, bindScale);
 
