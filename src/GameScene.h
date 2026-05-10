@@ -4,7 +4,7 @@
 #include "Cube.h"
 #include "Ground.h"
 #include "Input.h"
-#include "SkinnedModel.h"
+#include "Player.h"
 
 #include <Windows.h>
 
@@ -26,5 +26,5 @@ private:
 	Camera m_camera;
 	Ground m_ground;
 	Cube m_originCube;
-	SkinnedModel m_player;
+	Player m_player;
 };

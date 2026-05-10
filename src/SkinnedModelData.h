@@ -44,6 +44,7 @@ struct QuaternionAnimationKey
 struct BoneAnimation
 {
 	int boneIndex{ -1 };
+	std::string boneName;
 	std::vector<VectorAnimationKey> translations;
 	std::vector<QuaternionAnimationKey> rotations;
 	std::vector<VectorAnimationKey> scales;
@@ -51,6 +52,7 @@ struct BoneAnimation
 
 struct AnimationClip
 {
+	std::string name;
 	double durationTicks{};
 	double ticksPerSecond{ 30.0 };
 	std::vector<BoneAnimation> boneAnimations;

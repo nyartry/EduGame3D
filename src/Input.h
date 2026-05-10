@@ -8,6 +8,10 @@ enum class InputKey
 	Right,
 	Up,
 	Down,
+	W,
+	A,
+	S,
+	D,
 	Space,
 	Escape,
 };

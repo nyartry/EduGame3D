@@ -77,6 +77,31 @@ void SkinnedModel::Initialize(ID3D12Device* device, const std::string& modelPath
 	SkinMeshes();
 }
 
+void SkinnedModel::AddAnimation(const std::string& animationName, const std::string& animationPath)
+{
+	SkinnedModelLoader loader;
+	if (!loader.LoadAnimation(animationPath, animationName, m_modelData))
+	{
+		throw std::runtime_error("Failed to load skinned animation: " + loader.GetLastError());
+	}
+}
+
+void SkinnedModel::PlayAnimation(const std::string& animationName)
+{
+	for (size_t animationIndex = 0; animationIndex < m_modelData.animations.size(); ++animationIndex)
+	{
+		if (m_modelData.animations[animationIndex].name == animationName)
+		{
+			if (m_currentAnimationIndex != animationIndex)
+			{
+				m_currentAnimationIndex = animationIndex;
+				m_animationTimeSeconds = 0.0f;
+			}
+			return;
+		}
+	}
+}
+
 void SkinnedModel::Update(float deltaTime)
 {
 	m_animationTimeSeconds += deltaTime;
@@ -86,7 +111,7 @@ void SkinnedModel::Update(float deltaTime)
 
 void SkinnedModel::Draw(Dx12Renderer& renderer) const
 {
-	const XMMATRIX world = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
+	const XMMATRIX world = XMMatrixRotationY(m_rotationY) * XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	for (const MeshPart& meshPart : m_meshParts)
 	{
 		renderer.DrawTextured(meshPart.vertexBuffer, *meshPart.material, world);
@@ -96,6 +121,11 @@ void SkinnedModel::Draw(Dx12Renderer& renderer) const
 void SkinnedModel::SetPosition(float x, float y, float z)
 {
 	m_position = XMFLOAT3{ x, y, z };
+}
+
+void SkinnedModel::SetRotationY(float radians)
+{
+	m_rotationY = radians;
 }
 
 void SkinnedModel::FitModelToHeight()
@@ -143,9 +173,9 @@ void SkinnedModel::UpdateBoneMatrices()
 		const BoneData& bone = m_modelData.bones[boneIndex];
 		XMMATRIX localTransform = GetLocalTransform(bone);
 
-		if (!m_modelData.animations.empty())
+		if (!m_modelData.animations.empty() && m_currentAnimationIndex < m_modelData.animations.size())
 		{
-			const AnimationClip& clip = m_modelData.animations.front();
+			const AnimationClip& clip = m_modelData.animations[m_currentAnimationIndex];
 			for (const BoneAnimation& boneAnimation : clip.boneAnimations)
 			{
 				if (boneAnimation.boneIndex == static_cast<int>(boneIndex))

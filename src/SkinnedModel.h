@@ -18,10 +18,13 @@ class SkinnedModel
 {
 public:
 	void Initialize(ID3D12Device* device, const std::string& modelPath);
+	void AddAnimation(const std::string& animationName, const std::string& animationPath);
+	void PlayAnimation(const std::string& animationName);
 	void Update(float deltaTime);
 	void Draw(Dx12Renderer& renderer) const;
 
 	void SetPosition(float x, float y, float z);
+	void SetRotationY(float radians);
 
 private:
 	struct MeshPart
@@ -43,8 +46,10 @@ private:
 	std::vector<DirectX::XMFLOAT4X4> m_boneMatrices;
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
 	float m_animationTimeSeconds{};
+	size_t m_currentAnimationIndex{};
 	float m_modelScale{ 1.0f };
 	float m_modelCenterX{};
 	float m_modelMinY{};
 	float m_modelCenterZ{};
+	float m_rotationY{};
 };

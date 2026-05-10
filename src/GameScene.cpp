@@ -9,8 +9,6 @@ namespace
 	constexpr float CameraFovYDegrees = 55.0f;
 	constexpr float CameraNearZ = 0.1f;
 	constexpr float CameraFarZ = 100.0f;
-//C:\Users\haruy\Documents\3D - game - for - open - campus - Koyo\Content\Models\Jogging
-	constexpr const char* PlayerModelPath = "Content\\Models\\Jogging\\Jogging.fbx";
 }
 
 void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
@@ -24,14 +22,13 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_originCube.SetPosition(0.0f, 0.0f, 0.0f);
 	m_originCube.Initialize(device);
 
-	m_player.SetPosition(0.0f, 0.0f, 0.0f);
-	m_player.Initialize(device, PlayerModelPath);
+	m_player.Initialize(device);
 }
 
 void GameScene::Update(float deltaTime, const Input& input)
 {
 	m_camera.Update(deltaTime, input);
-	m_player.Update(deltaTime);
+	m_player.Update(deltaTime, input);
 }
 
 void GameScene::Render(Dx12Renderer& renderer) const

@@ -8,6 +8,7 @@ class SkinnedModelLoader
 {
 public:
 	bool Load(const std::string& filePath, SkinnedModelData& modelData);
+	bool LoadAnimation(const std::string& filePath, const std::string& animationName, SkinnedModelData& modelData);
 	std::string GetLastError() const;
 
 private:

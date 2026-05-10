@@ -13,6 +13,7 @@
 #include <DirectXMath.h>
 
 #include <filesystem>
+#include <string>
 #include <unordered_map>
 
 using namespace DirectX;
@@ -155,6 +156,53 @@ namespace
 				});
 		}
 	}
+
+	std::unordered_map<std::string, int> BuildBoneIndexMap(const std::vector<BoneData>& bones)
+	{
+		std::unordered_map<std::string, int> boneMap;
+		for (size_t boneIndex = 0; boneIndex < bones.size(); ++boneIndex)
+		{
+			boneMap[bones[boneIndex].name] = static_cast<int>(boneIndex);
+		}
+
+		return boneMap;
+	}
+
+	AnimationClip BuildAnimationClip(
+		const aiAnimation* aiAnimation,
+		const std::string& fallbackName,
+		const std::unordered_map<std::string, int>& boneMap)
+	{
+		AnimationClip clip;
+		clip.name = fallbackName;
+		if (clip.name.empty())
+		{
+			clip.name = aiAnimation->mName.C_Str();
+		}
+		clip.durationTicks = aiAnimation->mDuration;
+		clip.ticksPerSecond = aiAnimation->mTicksPerSecond == 0.0 ? 30.0 : aiAnimation->mTicksPerSecond;
+
+		for (unsigned int channelIndex = 0; channelIndex < aiAnimation->mNumChannels; ++channelIndex)
+		{
+			const aiNodeAnim* channel = aiAnimation->mChannels[channelIndex];
+			const std::string boneName = channel->mNodeName.C_Str();
+			BoneAnimation boneAnimation;
+			boneAnimation.boneName = boneName;
+			boneAnimation.boneIndex = FindBoneIndex(boneMap, boneName);
+			if (boneAnimation.boneIndex < 0)
+			{
+				continue;
+			}
+
+			AddPositionKeys(channel, boneAnimation.translations);
+			AddRotationKeys(channel, boneAnimation.rotations);
+			AddScaleKeys(channel, boneAnimation.scales);
+
+			clip.boneAnimations.push_back(std::move(boneAnimation));
+		}
+
+		return clip;
+	}
 }
 
 bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& modelData)
@@ -253,33 +301,57 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 	for (unsigned int animationIndex = 0; animationIndex < scene->mNumAnimations; ++animationIndex)
 	{
 		const aiAnimation* aiAnimation = scene->mAnimations[animationIndex];
-		AnimationClip clip;
-		clip.durationTicks = aiAnimation->mDuration;
-		clip.ticksPerSecond = aiAnimation->mTicksPerSecond == 0.0 ? 30.0 : aiAnimation->mTicksPerSecond;
-
-		for (unsigned int channelIndex = 0; channelIndex < aiAnimation->mNumChannels; ++channelIndex)
-		{
-			const aiNodeAnim* channel = aiAnimation->mChannels[channelIndex];
-			BoneAnimation boneAnimation;
-			boneAnimation.boneIndex = FindBoneIndex(boneMap, channel->mNodeName.C_Str());
-			if (boneAnimation.boneIndex < 0)
-			{
-				continue;
-			}
-
-			AddPositionKeys(channel, boneAnimation.translations);
-			AddRotationKeys(channel, boneAnimation.rotations);
-			AddScaleKeys(channel, boneAnimation.scales);
-
-			clip.boneAnimations.push_back(std::move(boneAnimation));
-		}
-
-		modelData.animations.push_back(std::move(clip));
+		modelData.animations.push_back(BuildAnimationClip(aiAnimation, aiAnimation->mName.C_Str(), boneMap));
 	}
 
 	if (modelData.meshes.empty())
 	{
 		m_lastError = "Skinned model has no drawable meshes.";
+		return false;
+	}
+
+	m_lastError.clear();
+	return true;
+}
+
+bool SkinnedModelLoader::LoadAnimation(const std::string& filePath, const std::string& animationName, SkinnedModelData& modelData)
+{
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(
+		filePath,
+		aiProcess_Triangulate |
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_LimitBoneWeights |
+		aiProcess_ConvertToLeftHanded |
+		aiProcess_GenSmoothNormals);
+
+	if (scene == nullptr)
+	{
+		m_lastError = importer.GetErrorString();
+		return false;
+	}
+
+	if (scene->mNumAnimations == 0)
+	{
+		m_lastError = "Model has no animations: " + filePath;
+		return false;
+	}
+
+	const std::unordered_map<std::string, int> boneMap = BuildBoneIndexMap(modelData.bones);
+	const size_t animationCountBeforeLoad = modelData.animations.size();
+	for (unsigned int animationIndex = 0; animationIndex < scene->mNumAnimations; ++animationIndex)
+	{
+		const aiAnimation* aiAnimation = scene->mAnimations[animationIndex];
+		AnimationClip clip = BuildAnimationClip(aiAnimation, animationName, boneMap);
+		if (!clip.boneAnimations.empty())
+		{
+			modelData.animations.push_back(std::move(clip));
+		}
+	}
+
+	if (modelData.animations.size() == animationCountBeforeLoad)
+	{
+		m_lastError = "Animation bones did not match the loaded model skeleton: " + filePath;
 		return false;
 	}
 
