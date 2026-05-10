@@ -14,6 +14,16 @@ namespace
 	constexpr const char* IdleAnimationName = "Idle";
 	constexpr const char* JoggingAnimationName = "Jogging";
 	constexpr float MoveSpeed = 3.0f;
+
+	XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float amount)
+	{
+		return XMFLOAT3
+		{
+			from.x * (1.0f - amount) + to.x * amount,
+			from.y * (1.0f - amount) + to.y * amount,
+			from.z * (1.0f - amount) + to.z * amount
+		};
+	}
 }
 
 void Player::Initialize(ID3D12Device* device)
@@ -116,12 +126,7 @@ XMFLOAT3 Player::ChooseDisplacement(
 	case RootMotionMode::Apply:
 		return rootMotionDisplacement;
 	case RootMotionMode::Blend:
-		return XMFLOAT3
-		{
-			inputDisplacement.x * (1.0f - m_rootMotionBlendWeight) + rootMotionDisplacement.x * m_rootMotionBlendWeight,
-			inputDisplacement.y * (1.0f - m_rootMotionBlendWeight) + rootMotionDisplacement.y * m_rootMotionBlendWeight,
-			inputDisplacement.z * (1.0f - m_rootMotionBlendWeight) + rootMotionDisplacement.z * m_rootMotionBlendWeight
-		};
+		return LerpFloat3(inputDisplacement, rootMotionDisplacement, m_rootMotionBlendWeight);
 	case RootMotionMode::Ignore:
 	default:
 		return inputDisplacement;
