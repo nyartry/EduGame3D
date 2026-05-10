@@ -5,6 +5,7 @@
 #include "SkinnedModelLoader.h"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -102,11 +103,13 @@ void SkinnedModel::PlayAnimation(const std::string& animationName)
 	}
 }
 
-void SkinnedModel::Update(float deltaTime)
+RootMotionDelta SkinnedModel::Update(float deltaTime)
 {
+	const RootMotionDelta rootMotionDelta = ExtractRootMotionDelta(deltaTime);
 	m_animationTimeSeconds += deltaTime;
 	UpdateBoneMatrices();
 	SkinMeshes();
+	return rootMotionDelta;
 }
 
 void SkinnedModel::Draw(Dx12Renderer& renderer) const
@@ -161,6 +164,56 @@ void SkinnedModel::FitModelToHeight()
 	m_modelMinY = minY;
 	m_modelCenterZ = (minZ + maxZ) * 0.5f;
 	m_modelScale = ModelHeight / height;
+}
+
+RootMotionDelta SkinnedModel::ExtractRootMotionDelta(float deltaTime) const
+{
+	if (m_modelData.animations.empty() || m_currentAnimationIndex >= m_modelData.animations.size())
+	{
+		return {};
+	}
+
+	const AnimationClip& clip = m_modelData.animations[m_currentAnimationIndex];
+	if (clip.rootMotionBoneAnimationIndex < 0 ||
+		clip.rootMotionBoneAnimationIndex >= static_cast<int>(clip.boneAnimations.size()))
+	{
+		return {};
+	}
+
+	const BoneAnimation& boneAnimation = clip.boneAnimations[clip.rootMotionBoneAnimationIndex];
+	const BoneData& bindPose = m_modelData.bones[boneAnimation.boneIndex];
+	const AnimationSampler animationSampler;
+
+	const XMVECTOR previousTranslation = animationSampler.SampleTranslation(
+		clip,
+		boneAnimation,
+		bindPose,
+		m_animationTimeSeconds);
+	const XMVECTOR nextTranslation = animationSampler.SampleTranslation(
+		clip,
+		boneAnimation,
+		bindPose,
+		m_animationTimeSeconds + deltaTime);
+
+	XMVECTOR translationDelta = nextTranslation - previousTranslation;
+	const double durationSeconds = clip.durationTicks / clip.ticksPerSecond;
+	if (durationSeconds > 0.0)
+	{
+		const double previousTime = std::fmod(m_animationTimeSeconds, static_cast<float>(durationSeconds));
+		const double nextTime = std::fmod(m_animationTimeSeconds + deltaTime, static_cast<float>(durationSeconds));
+		if (nextTime < previousTime && !boneAnimation.translations.empty())
+		{
+			const XMVECTOR firstTranslation = XMLoadFloat3(&boneAnimation.translations.front().value);
+			const XMVECTOR lastTranslation = XMLoadFloat3(&boneAnimation.translations.back().value);
+			translationDelta = (lastTranslation - previousTranslation) + (nextTranslation - firstTranslation);
+		}
+	}
+
+	translationDelta *= m_modelScale;
+
+	RootMotionDelta result;
+	XMStoreFloat3(&result.translation, translationDelta);
+	return result;
 }
 
 void SkinnedModel::UpdateBoneMatrices()

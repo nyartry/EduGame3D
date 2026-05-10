@@ -2,6 +2,7 @@
 
 #include "Dx12Renderer.h"
 
+#include <algorithm>
 #include <cmath>
 
 using namespace DirectX;
@@ -45,14 +46,16 @@ void Player::Update(float deltaTime, const Input& input)
 	}
 
 	const float length = std::sqrt(movement.x * movement.x + movement.z * movement.z);
+	XMFLOAT3 inputDisplacement{};
 	if (length > 0.0f)
 	{
 		movement.x /= length;
 		movement.z /= length;
-		m_position.x += movement.x * MoveSpeed * deltaTime;
-		m_position.z += movement.z * MoveSpeed * deltaTime;
+		inputDisplacement.x = movement.x * MoveSpeed * deltaTime;
+		inputDisplacement.z = movement.z * MoveSpeed * deltaTime;
 
-		m_model.SetRotationY(std::atan2(movement.x, movement.z) + XM_PI);
+		m_rotationY = std::atan2(movement.x, movement.z) + XM_PI;
+		m_model.SetRotationY(m_rotationY);
 		SetAnimationState(AnimationState::Jogging);
 	}
 	else
@@ -60,8 +63,14 @@ void Player::Update(float deltaTime, const Input& input)
 		SetAnimationState(AnimationState::Idle);
 	}
 
+	const RootMotionDelta rootMotionDelta = m_model.Update(deltaTime);
+	const XMFLOAT3 rootMotionDisplacement = TransformRootMotionToWorld(rootMotionDelta.translation);
+	const XMFLOAT3 displacement = ChooseDisplacement(inputDisplacement, rootMotionDisplacement);
+	m_position.x += displacement.x;
+	m_position.y += displacement.y;
+	m_position.z += displacement.z;
+
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
-	m_model.Update(deltaTime);
 }
 
 void Player::Draw(Dx12Renderer& renderer) const
@@ -86,4 +95,45 @@ void Player::SetAnimationState(AnimationState state)
 		m_model.PlayAnimation(JoggingAnimationName);
 		break;
 	}
+}
+
+void Player::SetRootMotionMode(RootMotionMode mode)
+{
+	m_rootMotionMode = mode;
+}
+
+void Player::SetRootMotionBlendWeight(float weight)
+{
+	m_rootMotionBlendWeight = std::clamp(weight, 0.0f, 1.0f);
+}
+
+XMFLOAT3 Player::ChooseDisplacement(
+	const XMFLOAT3& inputDisplacement,
+	const XMFLOAT3& rootMotionDisplacement) const
+{
+	switch (m_rootMotionMode)
+	{
+	case RootMotionMode::Apply:
+		return rootMotionDisplacement;
+	case RootMotionMode::Blend:
+		return XMFLOAT3
+		{
+			inputDisplacement.x * (1.0f - m_rootMotionBlendWeight) + rootMotionDisplacement.x * m_rootMotionBlendWeight,
+			inputDisplacement.y * (1.0f - m_rootMotionBlendWeight) + rootMotionDisplacement.y * m_rootMotionBlendWeight,
+			inputDisplacement.z * (1.0f - m_rootMotionBlendWeight) + rootMotionDisplacement.z * m_rootMotionBlendWeight
+		};
+	case RootMotionMode::Ignore:
+	default:
+		return inputDisplacement;
+	}
+}
+
+XMFLOAT3 Player::TransformRootMotionToWorld(const XMFLOAT3& localRootMotion) const
+{
+	const XMVECTOR local = XMLoadFloat3(&localRootMotion);
+	const XMVECTOR world = XMVector3TransformNormal(local, XMMatrixRotationY(m_rotationY));
+
+	XMFLOAT3 result{};
+	XMStoreFloat3(&result, world);
+	return result;
 }

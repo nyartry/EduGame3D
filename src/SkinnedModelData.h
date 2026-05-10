@@ -58,6 +58,7 @@ struct AnimationClip
 	double ticksPerSecond{ 30.0 };
 	std::vector<BoneAnimation> boneAnimations;
 	std::vector<int> boneAnimationIndicesByBone;
+	int rootMotionBoneAnimationIndex{ -1 };
 };
 
 struct SkinnedModelData

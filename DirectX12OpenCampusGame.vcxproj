@@ -142,6 +142,7 @@
     <ClInclude Include="src\ModelTextureResolver.h" />
     <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\PrimitiveObject.h" />
+    <ClInclude Include="src\RootMotion.h" />
     <ClInclude Include="src\RootMotionPolicy.h" />
     <ClInclude Include="src\SkinnedModel.h" />
     <ClInclude Include="src\SkinnedModelData.h" />

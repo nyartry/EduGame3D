@@ -35,11 +35,6 @@ XMMATRIX AnimationSampler::SampleLocalTransform(
 	const BoneData& bindPose,
 	float animationTimeSeconds) const
 {
-	const double durationSeconds = clip.durationTicks / clip.ticksPerSecond;
-	const double animationTimeTicks = durationSeconds > 0.0
-		? std::fmod(animationTimeSeconds, durationSeconds) * clip.ticksPerSecond
-		: 0.0;
-
 	XMVECTOR bindScale = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f);
 	XMVECTOR bindRotation = XMQuaternionIdentity();
 	XMVECTOR bindTranslation = XMVectorZero();
@@ -47,12 +42,38 @@ XMMATRIX AnimationSampler::SampleLocalTransform(
 
 	const XMVECTOR translation = RemoveRootMotionTranslation(
 		boneAnimation,
-		SampleVectorKey(boneAnimation.translations, animationTimeTicks, bindTranslation),
+		SampleTranslation(clip, boneAnimation, bindPose, animationTimeSeconds),
 		bindTranslation);
+	const double animationTimeTicks = GetAnimationTimeTicks(clip, animationTimeSeconds);
 	const XMVECTOR rotation = SampleQuaternionKey(boneAnimation.rotations, animationTimeTicks, bindRotation);
 	const XMVECTOR scale = SampleVectorKey(boneAnimation.scales, animationTimeTicks, bindScale);
 
 	return BuildTransform(translation, rotation, scale);
+}
+
+XMVECTOR AnimationSampler::SampleTranslation(
+	const AnimationClip& clip,
+	const BoneAnimation& boneAnimation,
+	const BoneData& bindPose,
+	float animationTimeSeconds) const
+{
+	XMVECTOR bindScale = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f);
+	XMVECTOR bindRotation = XMQuaternionIdentity();
+	XMVECTOR bindTranslation = XMVectorZero();
+	XMMatrixDecompose(&bindScale, &bindRotation, &bindTranslation, LoadMatrix(bindPose.localBindTransform));
+
+	return SampleVectorKey(
+		boneAnimation.translations,
+		GetAnimationTimeTicks(clip, animationTimeSeconds),
+		bindTranslation);
+}
+
+double AnimationSampler::GetAnimationTimeTicks(const AnimationClip& clip, float animationTimeSeconds)
+{
+	const double durationSeconds = clip.durationTicks / clip.ticksPerSecond;
+	return durationSeconds > 0.0
+		? std::fmod(animationTimeSeconds, durationSeconds) * clip.ticksPerSecond
+		: 0.0;
 }
 
 float AnimationSampler::GetInterpolationAmount(double fromTime, double toTime, double animationTimeTicks)

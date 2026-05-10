@@ -184,6 +184,7 @@ namespace
 		clip.durationTicks = aiAnimation->mDuration;
 		clip.ticksPerSecond = aiAnimation->mTicksPerSecond == 0.0 ? 30.0 : aiAnimation->mTicksPerSecond;
 		clip.boneAnimationIndicesByBone.assign(bones.size(), -1);
+		int rootMotionPriority = 0;
 
 		for (unsigned int channelIndex = 0; channelIndex < aiAnimation->mNumChannels; ++channelIndex)
 		{
@@ -200,12 +201,18 @@ namespace
 			AddPositionKeys(channel, boneAnimation.translations);
 			AddRotationKeys(channel, boneAnimation.rotations);
 			AddScaleKeys(channel, boneAnimation.scales);
-			boneAnimation.lockTranslationToBindPose = RootMotionPolicy::ShouldLockTranslationToBindPose(
+			const int boneRootMotionPriority = RootMotionPolicy::GetRootMotionPriority(
 				boneName,
 				boneAnimation.boneIndex,
 				bones);
+			boneAnimation.lockTranslationToBindPose = boneRootMotionPriority > 0;
 
 			clip.boneAnimationIndicesByBone[boneAnimation.boneIndex] = static_cast<int>(clip.boneAnimations.size());
+			if (boneRootMotionPriority > rootMotionPriority)
+			{
+				rootMotionPriority = boneRootMotionPriority;
+				clip.rootMotionBoneAnimationIndex = static_cast<int>(clip.boneAnimations.size());
+			}
 			clip.boneAnimations.push_back(std::move(boneAnimation));
 		}
 

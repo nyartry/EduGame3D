@@ -8,6 +8,11 @@
 class RootMotionPolicy
 {
 public:
+	static int GetRootMotionPriority(
+		const std::string& boneName,
+		int boneIndex,
+		const std::vector<BoneData>& bones);
+
 	static bool ShouldLockTranslationToBindPose(
 		const std::string& boneName,
 		int boneIndex,

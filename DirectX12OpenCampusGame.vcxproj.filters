@@ -145,6 +145,9 @@
     <ClInclude Include="src\PrimitiveObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\RootMotion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\RootMotionPolicy.h">
       <Filter>Header Files</Filter>
     </ClInclude>

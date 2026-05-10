@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RootMotion.h"
 #include "SkinnedModelData.h"
 #include "TexturedMaterial.h"
 #include "TexturedVertexBuffer.h"
@@ -20,7 +21,7 @@ public:
 	void Initialize(ID3D12Device* device, const std::string& modelPath);
 	void AddAnimation(const std::string& animationName, const std::string& animationPath);
 	void PlayAnimation(const std::string& animationName);
-	void Update(float deltaTime);
+	RootMotionDelta Update(float deltaTime);
 	void Draw(Dx12Renderer& renderer) const;
 
 	void SetPosition(float x, float y, float z);
@@ -36,6 +37,7 @@ private:
 	};
 
 	void FitModelToHeight();
+	RootMotionDelta ExtractRootMotionDelta(float deltaTime) const;
 	void UpdateBoneMatrices();
 	void SkinMeshes();
 
