@@ -1,10 +1,10 @@
 #include "SkinnedModel.h"
 
+#include "AnimationSampler.h"
 #include "Dx12Renderer.h"
 #include "SkinnedModelLoader.h"
 
 #include <algorithm>
-#include <cmath>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -22,14 +22,6 @@ namespace
 		return XMLoadFloat4x4(&matrix);
 	}
 
-	XMMATRIX BuildTransform(const XMFLOAT3& translation, const XMFLOAT4& rotation, const XMFLOAT3& scale)
-	{
-		const XMVECTOR rotationQuaternion = XMLoadFloat4(&rotation);
-		return XMMatrixScaling(scale.x, scale.y, scale.z) *
-			XMMatrixRotationQuaternion(rotationQuaternion) *
-			XMMatrixTranslation(translation.x, translation.y, translation.z);
-	}
-
 	XMVECTOR NormalizeOrDefault(XMVECTOR vector, XMVECTOR defaultVector)
 	{
 		const XMVECTOR length = XMVector3LengthSq(vector);
@@ -39,67 +31,6 @@ namespace
 		}
 
 		return XMVector3Normalize(vector);
-	}
-
-	float GetInterpolationAmount(double fromTime, double toTime, double animationTimeTicks)
-	{
-		const double duration = toTime - fromTime;
-		if (duration <= 0.0)
-		{
-			return 0.0f;
-		}
-
-		return static_cast<float>((animationTimeTicks - fromTime) / duration);
-	}
-
-	XMVECTOR SampleVectorKey(const std::vector<VectorAnimationKey>& keys, double animationTimeTicks, XMVECTOR fallback)
-	{
-		if (keys.empty())
-		{
-			return fallback;
-		}
-
-		if (keys.size() == 1 || animationTimeTicks <= keys.front().time)
-		{
-			return XMLoadFloat3(&keys.front().value);
-		}
-
-		for (size_t keyIndex = 1; keyIndex < keys.size(); ++keyIndex)
-		{
-			if (animationTimeTicks <= keys[keyIndex].time)
-			{
-				const XMVECTOR from = XMLoadFloat3(&keys[keyIndex - 1].value);
-				const XMVECTOR to = XMLoadFloat3(&keys[keyIndex].value);
-				return XMVectorLerp(from, to, GetInterpolationAmount(keys[keyIndex - 1].time, keys[keyIndex].time, animationTimeTicks));
-			}
-		}
-
-		return XMLoadFloat3(&keys.back().value);
-	}
-
-	XMVECTOR SampleQuaternionKey(const std::vector<QuaternionAnimationKey>& keys, double animationTimeTicks, XMVECTOR fallback)
-	{
-		if (keys.empty())
-		{
-			return fallback;
-		}
-
-		if (keys.size() == 1 || animationTimeTicks <= keys.front().time)
-		{
-			return XMQuaternionNormalize(XMLoadFloat4(&keys.front().value));
-		}
-
-		for (size_t keyIndex = 1; keyIndex < keys.size(); ++keyIndex)
-		{
-			if (animationTimeTicks <= keys[keyIndex].time)
-			{
-				const XMVECTOR from = XMLoadFloat4(&keys[keyIndex - 1].value);
-				const XMVECTOR to = XMLoadFloat4(&keys[keyIndex].value);
-				return XMQuaternionNormalize(XMQuaternionSlerp(from, to, GetInterpolationAmount(keys[keyIndex - 1].time, keys[keyIndex].time, animationTimeTicks)));
-			}
-		}
-
-		return XMQuaternionNormalize(XMLoadFloat4(&keys.back().value));
 	}
 }
 
@@ -180,12 +111,12 @@ void SkinnedModel::FitModelToHeight()
 	{
 		for (const SkinnedVertex& vertex : meshData.vertices)
 		{
-			minX = std::min(minX, vertex.vertex.position[0]);
-			minY = std::min(minY, vertex.vertex.position[1]);
-			minZ = std::min(minZ, vertex.vertex.position[2]);
-			maxX = std::max(maxX, vertex.vertex.position[0]);
-			maxY = std::max(maxY, vertex.vertex.position[1]);
-			maxZ = std::max(maxZ, vertex.vertex.position[2]);
+			minX = std::min(minX, vertex.vertex.position.x);
+			minY = std::min(minY, vertex.vertex.position.y);
+			minZ = std::min(minZ, vertex.vertex.position.z);
+			maxX = std::max(maxX, vertex.vertex.position.x);
+			maxY = std::max(maxY, vertex.vertex.position.y);
+			maxZ = std::max(maxZ, vertex.vertex.position.z);
 		}
 	}
 
@@ -205,6 +136,7 @@ void SkinnedModel::FitModelToHeight()
 void SkinnedModel::UpdateBoneMatrices()
 {
 	std::vector<XMMATRIX> globalTransforms(m_modelData.bones.size(), XMMatrixIdentity());
+	const AnimationSampler animationSampler;
 
 	for (size_t boneIndex = 0; boneIndex < m_modelData.bones.size(); ++boneIndex)
 	{
@@ -218,7 +150,11 @@ void SkinnedModel::UpdateBoneMatrices()
 			{
 				if (boneAnimation.boneIndex == static_cast<int>(boneIndex))
 				{
-					localTransform = GetAnimatedLocalTransform(clip, boneAnimation);
+					localTransform = animationSampler.SampleLocalTransform(
+						clip,
+						boneAnimation,
+						m_modelData.bones[boneAnimation.boneIndex],
+						m_animationTimeSeconds);
 					break;
 				}
 			}
@@ -253,9 +189,9 @@ void SkinnedModel::SkinMeshes()
 			XMVECTOR tangent = XMVectorZero();
 			float totalWeight = 0.0f;
 
-			const XMVECTOR sourcePosition = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(sourceVertex.vertex.position));
-			const XMVECTOR sourceNormal = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(sourceVertex.vertex.normal));
-			const XMVECTOR sourceTangent = XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(sourceVertex.vertex.tangent));
+			const XMVECTOR sourcePosition = XMLoadFloat3(&sourceVertex.vertex.position);
+			const XMVECTOR sourceNormal = XMLoadFloat3(&sourceVertex.vertex.normal);
+			const XMVECTOR sourceTangent = XMLoadFloat3(&sourceVertex.vertex.tangent);
 
 			for (int slot = 0; slot < 4; ++slot)
 			{
@@ -292,9 +228,9 @@ void SkinnedModel::SkinMeshes()
 				(XMVectorGetZ(position) - m_modelCenterZ) * m_modelScale,
 				1.0f);
 
-			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(skinnedVertex.position), position);
-			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(skinnedVertex.normal), NormalizeOrDefault(normal, sourceNormal));
-			XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(skinnedVertex.tangent), NormalizeOrDefault(tangent, sourceTangent));
+			XMStoreFloat3(&skinnedVertex.position, position);
+			XMStoreFloat3(&skinnedVertex.normal, NormalizeOrDefault(normal, sourceNormal));
+			XMStoreFloat3(&skinnedVertex.tangent, NormalizeOrDefault(tangent, sourceTangent));
 			meshPart.skinnedVertices[vertexIndex] = skinnedVertex;
 		}
 
@@ -305,29 +241,4 @@ void SkinnedModel::SkinMeshes()
 XMMATRIX SkinnedModel::GetLocalTransform(const BoneData& bone) const
 {
 	return LoadMatrix(bone.localBindTransform);
-}
-
-XMMATRIX SkinnedModel::GetAnimatedLocalTransform(const AnimationClip& clip, const BoneAnimation& boneAnimation) const
-{
-	const double durationSeconds = clip.durationTicks / clip.ticksPerSecond;
-	const double animationTime = durationSeconds > 0.0
-		? std::fmod(m_animationTimeSeconds, durationSeconds) * clip.ticksPerSecond
-		: 0.0;
-
-	XMVECTOR bindScale = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f);
-	XMVECTOR bindRotation = XMQuaternionIdentity();
-	XMVECTOR bindTranslation = XMVectorZero();
-	XMMatrixDecompose(&bindScale, &bindRotation, &bindTranslation, LoadMatrix(m_modelData.bones[boneAnimation.boneIndex].localBindTransform));
-
-	const XMVECTOR translation = SampleVectorKey(boneAnimation.translations, animationTime, bindTranslation);
-	const XMVECTOR rotation = SampleQuaternionKey(boneAnimation.rotations, animationTime, bindRotation);
-	const XMVECTOR scale = SampleVectorKey(boneAnimation.scales, animationTime, bindScale);
-
-	XMFLOAT3 translationFloat{};
-	XMFLOAT4 rotationFloat{};
-	XMFLOAT3 scaleFloat{};
-	XMStoreFloat3(&translationFloat, translation);
-	XMStoreFloat4(&rotationFloat, rotation);
-	XMStoreFloat3(&scaleFloat, scale);
-	return BuildTransform(translationFloat, rotationFloat, scaleFloat);
 }

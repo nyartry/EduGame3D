@@ -34,23 +34,29 @@ namespace
 	{
 		TexturedVertex vertex
 		{
-			{ mesh->mVertices[vertexIndex].x, mesh->mVertices[vertexIndex].y, mesh->mVertices[vertexIndex].z },
-			{ 0.0f, 1.0f, 0.0f },
-			{ 1.0f, 0.0f, 0.0f },
-			{ 0.0f, 0.0f }
+			XMFLOAT3{ mesh->mVertices[vertexIndex].x, mesh->mVertices[vertexIndex].y, mesh->mVertices[vertexIndex].z },
+			XMFLOAT3{ 0.0f, 1.0f, 0.0f },
+			XMFLOAT3{ 1.0f, 0.0f, 0.0f },
+			XMFLOAT2{ 0.0f, 0.0f }
 		};
 
 		if (mesh->HasNormals())
 		{
-			vertex.normal[0] = mesh->mNormals[vertexIndex].x;
-			vertex.normal[1] = mesh->mNormals[vertexIndex].y;
-			vertex.normal[2] = mesh->mNormals[vertexIndex].z;
+			vertex.normal = XMFLOAT3
+			{
+				mesh->mNormals[vertexIndex].x,
+				mesh->mNormals[vertexIndex].y,
+				mesh->mNormals[vertexIndex].z
+			};
 		}
 
 		if (mesh->HasTextureCoords(0))
 		{
-			vertex.uv[0] = mesh->mTextureCoords[0][vertexIndex].x;
-			vertex.uv[1] = 1.0f - mesh->mTextureCoords[0][vertexIndex].y;
+			vertex.uv = XMFLOAT2
+			{
+				mesh->mTextureCoords[0][vertexIndex].x,
+				1.0f - mesh->mTextureCoords[0][vertexIndex].y
+			};
 		}
 
 		return vertex;
@@ -236,9 +242,7 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 			for (unsigned int index = 0; index < face.mNumIndices; ++index)
 			{
 				SkinnedVertex vertex = sourceVertices[face.mIndices[index]];
-				vertex.vertex.tangent[0] = triangleVertices[index].tangent[0];
-				vertex.vertex.tangent[1] = triangleVertices[index].tangent[1];
-				vertex.vertex.tangent[2] = triangleVertices[index].tangent[2];
+				vertex.vertex.tangent = triangleVertices[index].tangent;
 				meshData.vertices.push_back(vertex);
 			}
 		}

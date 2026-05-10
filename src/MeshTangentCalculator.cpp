@@ -1,5 +1,6 @@
 #include "MeshTangentCalculator.h"
 
+#include <DirectXMath.h>
 #include <cmath>
 
 namespace MeshTangentCalculator
@@ -12,19 +13,19 @@ namespace MeshTangentCalculator
 
 		const float edge1[] =
 		{
-			v1.position[0] - v0.position[0],
-			v1.position[1] - v0.position[1],
-			v1.position[2] - v0.position[2],
+			v1.position.x - v0.position.x,
+			v1.position.y - v0.position.y,
+			v1.position.z - v0.position.z,
 		};
 		const float edge2[] =
 		{
-			v2.position[0] - v0.position[0],
-			v2.position[1] - v0.position[1],
-			v2.position[2] - v0.position[2],
+			v2.position.x - v0.position.x,
+			v2.position.y - v0.position.y,
+			v2.position.z - v0.position.z,
 		};
 
-		const float deltaUv1[] = { v1.uv[0] - v0.uv[0], v1.uv[1] - v0.uv[1] };
-		const float deltaUv2[] = { v2.uv[0] - v0.uv[0], v2.uv[1] - v0.uv[1] };
+		const float deltaUv1[] = { v1.uv.x - v0.uv.x, v1.uv.y - v0.uv.y };
+		const float deltaUv2[] = { v2.uv.x - v0.uv.x, v2.uv.y - v0.uv.y };
 		const float denominator = deltaUv1[0] * deltaUv2[1] - deltaUv2[0] * deltaUv1[1];
 		if (std::abs(denominator) < 0.000001f)
 		{
@@ -41,9 +42,7 @@ namespace MeshTangentCalculator
 
 		for (TexturedVertex& vertex : vertices)
 		{
-			vertex.tangent[0] = tangent[0];
-			vertex.tangent[1] = tangent[1];
-			vertex.tangent[2] = tangent[2];
+			vertex.tangent = DirectX::XMFLOAT3{ tangent[0], tangent[1], tangent[2] };
 		}
 	}
 }

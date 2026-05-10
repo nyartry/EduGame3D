@@ -1,9 +1,11 @@
 #pragma once
 
+#include <DirectXMath.h>
+
 struct TexturedVertex
 {
-	float position[3];
-	float normal[3];
-	float tangent[3];
-	float uv[2];
+	DirectX::XMFLOAT3 position{};
+	DirectX::XMFLOAT3 normal{};
+	DirectX::XMFLOAT3 tangent{};
+	DirectX::XMFLOAT2 uv{};
 };

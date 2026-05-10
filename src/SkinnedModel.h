@@ -37,7 +37,6 @@ private:
 	void SkinMeshes();
 
 	DirectX::XMMATRIX GetLocalTransform(const BoneData& bone) const;
-	DirectX::XMMATRIX GetAnimatedLocalTransform(const AnimationClip& clip, const BoneAnimation& boneAnimation) const;
 
 	SkinnedModelData m_modelData;
 	std::vector<MeshPart> m_meshParts;

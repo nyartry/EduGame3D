@@ -14,7 +14,7 @@
 class Dx12Renderer;
 struct ID3D12Device;
 
-class Player
+class StaticModel
 {
 public:
 	void Initialize(ID3D12Device* device, const std::string& modelPath);
@@ -30,7 +30,7 @@ private:
 		std::shared_ptr<TexturedMaterial> material;
 	};
 
-	void FitModelToPlayerSize(ModelData& modelData) const;
+	void FitModelToHeight(ModelData& modelData) const;
 
 	std::vector<MeshPart> m_meshParts;
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };

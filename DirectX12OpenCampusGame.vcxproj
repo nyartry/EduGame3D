@@ -96,6 +96,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\AnimationSampler.cpp" />
     <ClCompile Include="src\BasicColorPipeline.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Cube.cpp" />
@@ -110,10 +111,10 @@
     <ClCompile Include="src\MeshTangentCalculator.cpp" />
     <ClCompile Include="src\ModelLoader.cpp" />
     <ClCompile Include="src\ModelTextureResolver.cpp" />
-    <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\PrimitiveObject.cpp" />
     <ClCompile Include="src\SkinnedModel.cpp" />
     <ClCompile Include="src\SkinnedModelLoader.cpp" />
+    <ClCompile Include="src\StaticModel.cpp" />
     <ClCompile Include="src\Texture2D.cpp" />
     <ClCompile Include="src\TexturedMaterial.cpp" />
     <ClCompile Include="src\TexturedPipeline.cpp" />
@@ -122,6 +123,7 @@
     <ClCompile Include="src\Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AnimationSampler.h" />
     <ClInclude Include="src\BasicColorPipeline.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Common.h" />
@@ -136,11 +138,11 @@
     <ClInclude Include="src\MeshTangentCalculator.h" />
     <ClInclude Include="src\ModelLoader.h" />
     <ClInclude Include="src\ModelTextureResolver.h" />
-    <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\PrimitiveObject.h" />
     <ClInclude Include="src\SkinnedModel.h" />
     <ClInclude Include="src\SkinnedModelData.h" />
     <ClInclude Include="src\SkinnedModelLoader.h" />
+    <ClInclude Include="src\StaticModel.h" />
     <ClInclude Include="src\Texture2D.h" />
     <ClInclude Include="src\TexturedMaterial.h" />
     <ClInclude Include="src\TexturedPipeline.h" />

@@ -11,6 +11,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AnimationSampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\BasicColorPipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,9 +56,6 @@
     <ClCompile Include="src\ModelTextureResolver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Player.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\PrimitiveObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,6 +63,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SkinnedModelLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StaticModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Texture2D.cpp">
@@ -85,6 +88,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AnimationSampler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\BasicColorPipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -127,9 +133,6 @@
     <ClInclude Include="src\ModelTextureResolver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Player.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\PrimitiveObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -140,6 +143,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SkinnedModelLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StaticModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Texture2D.h">
