@@ -4,6 +4,7 @@
 #include "SkinnedModelData.h"
 #include "TexturedMaterial.h"
 #include "TexturedVertexBuffer.h"
+#include "ModelScaleSettings.h"
 
 #include <DirectXMath.h>
 #include <Windows.h>
@@ -18,7 +19,10 @@ struct ID3D12Device;
 class SkinnedModel
 {
 public:
-	void Initialize(ID3D12Device* device, const std::string& modelPath);
+	void Initialize(
+		ID3D12Device* device,
+		const std::string& modelPath,
+		const ModelScaleSettings& scaleSettings = ModelScaleSettings::OriginalSize());
 	void AddAnimation(const std::string& animationName, const std::string& animationPath);
 	void PlayAnimation(const std::string& animationName);
 	RootMotionDelta Update(float deltaTime);
@@ -36,7 +40,7 @@ private:
 		std::shared_ptr<TexturedMaterial> material;
 	};
 
-	void FitModelToHeight();
+	void FitModel(const ModelScaleSettings& scaleSettings);
 	RootMotionDelta ExtractRootMotionDelta(float deltaTime) const;
 	void UpdateBoneMatrices();
 	void SkinMeshes();

@@ -139,6 +139,7 @@
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\MeshTangentCalculator.h" />
     <ClInclude Include="src\ModelLoader.h" />
+    <ClInclude Include="src\ModelScaleSettings.h" />
     <ClInclude Include="src\ModelTextureResolver.h" />
     <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\PrimitiveObject.h" />

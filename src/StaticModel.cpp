@@ -13,11 +13,13 @@ using namespace DirectX;
 
 namespace
 {
-	constexpr float ModelHeight = 1.8f;
 	constexpr const char* FallbackTexturePath = "";
 }
 
-void StaticModel::Initialize(ID3D12Device* device, const std::string& modelPath)
+void StaticModel::Initialize(
+	ID3D12Device* device,
+	const std::string& modelPath,
+	const ModelScaleSettings& scaleSettings)
 {
 	ModelLoader loader;
 	ModelData modelData;
@@ -26,7 +28,7 @@ void StaticModel::Initialize(ID3D12Device* device, const std::string& modelPath)
 		throw std::runtime_error("Failed to load static model: " + loader.GetLastError());
 	}
 
-	FitModelToHeight(modelData);
+	FitModel(modelData, scaleSettings);
 
 	m_meshParts.clear();
 	m_meshParts.reserve(modelData.texturedMeshes.size());
@@ -69,9 +71,9 @@ XMFLOAT3 StaticModel::GetPosition() const
 	return m_position;
 }
 
-void StaticModel::FitModelToHeight(ModelData& modelData) const
+void StaticModel::FitModel(ModelData& modelData, const ModelScaleSettings& scaleSettings) const
 {
-	if (modelData.texturedMeshes.empty())
+	if (modelData.texturedMeshes.empty() || !scaleSettings.normalizeHeight)
 	{
 		return;
 	}
@@ -104,7 +106,7 @@ void StaticModel::FitModelToHeight(ModelData& modelData) const
 
 	const float centerX = (minX + maxX) * 0.5f;
 	const float centerZ = (minZ + maxZ) * 0.5f;
-	const float scale = ModelHeight / height;
+	const float scale = scaleSettings.targetHeight / height;
 
 	for (TexturedMeshData& meshData : modelData.texturedMeshes)
 	{

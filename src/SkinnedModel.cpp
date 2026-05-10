@@ -15,7 +15,6 @@ using namespace DirectX;
 
 namespace
 {
-	constexpr float ModelHeight = 1.8f;
 	constexpr const char* FallbackTexturePath = "";
 
 	XMMATRIX LoadMatrix(const XMFLOAT4X4& matrix)
@@ -35,7 +34,10 @@ namespace
 	}
 }
 
-void SkinnedModel::Initialize(ID3D12Device* device, const std::string& modelPath)
+void SkinnedModel::Initialize(
+	ID3D12Device* device,
+	const std::string& modelPath,
+	const ModelScaleSettings& scaleSettings)
 {
 	SkinnedModelLoader loader;
 	if (!loader.Load(modelPath, m_modelData))
@@ -43,7 +45,7 @@ void SkinnedModel::Initialize(ID3D12Device* device, const std::string& modelPath
 		throw std::runtime_error("Failed to load skinned model: " + loader.GetLastError());
 	}
 
-	FitModelToHeight();
+	FitModel(scaleSettings);
 	m_boneMatrices.resize(m_modelData.bones.size());
 
 	std::unordered_map<std::string, std::shared_ptr<TexturedMaterial>> materialCache;
@@ -131,8 +133,17 @@ void SkinnedModel::SetRotationY(float radians)
 	m_rotationY = radians;
 }
 
-void SkinnedModel::FitModelToHeight()
+void SkinnedModel::FitModel(const ModelScaleSettings& scaleSettings)
 {
+	if (!scaleSettings.normalizeHeight)
+	{
+		m_modelCenterX = 0.0f;
+		m_modelMinY = 0.0f;
+		m_modelCenterZ = 0.0f;
+		m_modelScale = 1.0f;
+		return;
+	}
+
 	float minX = std::numeric_limits<float>::max();
 	float minY = std::numeric_limits<float>::max();
 	float minZ = std::numeric_limits<float>::max();
@@ -163,7 +174,7 @@ void SkinnedModel::FitModelToHeight()
 	m_modelCenterX = (minX + maxX) * 0.5f;
 	m_modelMinY = minY;
 	m_modelCenterZ = (minZ + maxZ) * 0.5f;
-	m_modelScale = ModelHeight / height;
+	m_modelScale = scaleSettings.targetHeight / height;
 }
 
 RootMotionDelta SkinnedModel::ExtractRootMotionDelta(float deltaTime) const

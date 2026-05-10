@@ -136,6 +136,9 @@
     <ClInclude Include="src\ModelLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ModelScaleSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\ModelTextureResolver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
