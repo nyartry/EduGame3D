@@ -11,7 +11,7 @@
 class SkinnedTexturedPipeline
 {
 public:
-	static constexpr size_t MaxBones = 128;
+	static constexpr size_t MaxBones = 512;
 
 	void Initialize(ID3D12Device* device);
 	void UpdateConstants(

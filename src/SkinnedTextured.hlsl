@@ -1,3 +1,5 @@
+#define MAX_BONES 512
+
 struct VSInput
 {
 	float3 position : POSITION;
@@ -24,7 +26,7 @@ cbuffer SceneConstants : register(b0)
 
 cbuffer BoneConstants : register(b1)
 {
-	matrix boneMatrices[128];
+	matrix boneMatrices[MAX_BONES];
 };
 
 Texture2D baseColorTexture : register(t0);
@@ -32,22 +34,18 @@ Texture2D opacityTexture : register(t1);
 Texture2D normalTexture : register(t2);
 SamplerState baseColorSampler : register(s0);
 
-float GetBoneWeightSum(float4 weights)
-{
-	return weights.x + weights.y + weights.z + weights.w;
-}
-
 void AccumulateBone(
 	inout float4 position,
 	inout float3 normal,
 	inout float3 tangent,
+	inout float totalWeight,
 	float3 sourcePosition,
 	float3 sourceNormal,
 	float3 sourceTangent,
 	int boneIndex,
 	float weight)
 {
-	if (boneIndex < 0 || weight == 0.0f)
+	if (boneIndex < 0 || boneIndex >= MAX_BONES || weight == 0.0f)
 	{
 		return;
 	}
@@ -56,31 +54,32 @@ void AccumulateBone(
 	position += mul(float4(sourcePosition, 1.0f), boneMatrix) * weight;
 	normal += mul(float4(sourceNormal, 0.0f), boneMatrix).xyz * weight;
 	tangent += mul(float4(sourceTangent, 0.0f), boneMatrix).xyz * weight;
+	totalWeight += weight;
 }
 
 PSInput VSMain(VSInput input)
 {
-	float weightSum = GetBoneWeightSum(input.boneWeights);
+	float totalWeight = 0.0f;
 	float4 skinnedPosition = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	float3 skinnedNormal = float3(0.0f, 0.0f, 0.0f);
 	float3 skinnedTangent = float3(0.0f, 0.0f, 0.0f);
 
-	AccumulateBone(skinnedPosition, skinnedNormal, skinnedTangent, input.position, input.normal, input.tangent, input.boneIndices.x, input.boneWeights.x);
-	AccumulateBone(skinnedPosition, skinnedNormal, skinnedTangent, input.position, input.normal, input.tangent, input.boneIndices.y, input.boneWeights.y);
-	AccumulateBone(skinnedPosition, skinnedNormal, skinnedTangent, input.position, input.normal, input.tangent, input.boneIndices.z, input.boneWeights.z);
-	AccumulateBone(skinnedPosition, skinnedNormal, skinnedTangent, input.position, input.normal, input.tangent, input.boneIndices.w, input.boneWeights.w);
+	AccumulateBone(skinnedPosition, skinnedNormal, skinnedTangent, totalWeight, input.position, input.normal, input.tangent, input.boneIndices.x, input.boneWeights.x);
+	AccumulateBone(skinnedPosition, skinnedNormal, skinnedTangent, totalWeight, input.position, input.normal, input.tangent, input.boneIndices.y, input.boneWeights.y);
+	AccumulateBone(skinnedPosition, skinnedNormal, skinnedTangent, totalWeight, input.position, input.normal, input.tangent, input.boneIndices.z, input.boneWeights.z);
+	AccumulateBone(skinnedPosition, skinnedNormal, skinnedTangent, totalWeight, input.position, input.normal, input.tangent, input.boneIndices.w, input.boneWeights.w);
 
-	if (weightSum == 0.0f)
+	if (totalWeight == 0.0f)
 	{
 		skinnedPosition = float4(input.position, 1.0f);
 		skinnedNormal = input.normal;
 		skinnedTangent = input.tangent;
 	}
-	else if (weightSum != 1.0f)
+	else if (totalWeight != 1.0f)
 	{
-		skinnedPosition /= weightSum;
-		skinnedNormal /= weightSum;
-		skinnedTangent /= weightSum;
+		skinnedPosition /= totalWeight;
+		skinnedNormal /= totalWeight;
+		skinnedTangent /= totalWeight;
 	}
 
 	float3 fittedPosition = float3(
