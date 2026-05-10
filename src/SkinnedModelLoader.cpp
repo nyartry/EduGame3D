@@ -108,27 +108,46 @@ namespace
 		return boneIndex;
 	}
 
-	AnimationKey BuildKey(const aiNodeAnim* channel, unsigned int keyIndex)
+	void AddPositionKeys(const aiNodeAnim* channel, std::vector<VectorAnimationKey>& keys)
 	{
-		AnimationKey key;
-		key.time = channel->mPositionKeys[keyIndex].mTime;
-
-		const aiVector3D position = channel->mPositionKeys[keyIndex].mValue;
-		key.translation = XMFLOAT3{ position.x, position.y, position.z };
-
-		if (keyIndex < channel->mNumRotationKeys)
+		keys.reserve(channel->mNumPositionKeys);
+		for (unsigned int keyIndex = 0; keyIndex < channel->mNumPositionKeys; ++keyIndex)
 		{
-			const aiQuaternion rotation = channel->mRotationKeys[keyIndex].mValue;
-			key.rotation = XMFLOAT4{ rotation.x, rotation.y, rotation.z, rotation.w };
+			const aiVectorKey& sourceKey = channel->mPositionKeys[keyIndex];
+			keys.push_back(VectorAnimationKey
+				{
+					sourceKey.mTime,
+					XMFLOAT3{ sourceKey.mValue.x, sourceKey.mValue.y, sourceKey.mValue.z }
+				});
 		}
+	}
 
-		if (keyIndex < channel->mNumScalingKeys)
+	void AddRotationKeys(const aiNodeAnim* channel, std::vector<QuaternionAnimationKey>& keys)
+	{
+		keys.reserve(channel->mNumRotationKeys);
+		for (unsigned int keyIndex = 0; keyIndex < channel->mNumRotationKeys; ++keyIndex)
 		{
-			const aiVector3D scale = channel->mScalingKeys[keyIndex].mValue;
-			key.scale = XMFLOAT3{ scale.x, scale.y, scale.z };
+			const aiQuatKey& sourceKey = channel->mRotationKeys[keyIndex];
+			keys.push_back(QuaternionAnimationKey
+				{
+					sourceKey.mTime,
+					XMFLOAT4{ sourceKey.mValue.x, sourceKey.mValue.y, sourceKey.mValue.z, sourceKey.mValue.w }
+				});
 		}
+	}
 
-		return key;
+	void AddScaleKeys(const aiNodeAnim* channel, std::vector<VectorAnimationKey>& keys)
+	{
+		keys.reserve(channel->mNumScalingKeys);
+		for (unsigned int keyIndex = 0; keyIndex < channel->mNumScalingKeys; ++keyIndex)
+		{
+			const aiVectorKey& sourceKey = channel->mScalingKeys[keyIndex];
+			keys.push_back(VectorAnimationKey
+				{
+					sourceKey.mTime,
+					XMFLOAT3{ sourceKey.mValue.x, sourceKey.mValue.y, sourceKey.mValue.z }
+				});
+		}
 	}
 }
 
@@ -244,11 +263,9 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 				continue;
 			}
 
-			const unsigned int keyCount = channel->mNumPositionKeys;
-			for (unsigned int keyIndex = 0; keyIndex < keyCount; ++keyIndex)
-			{
-				boneAnimation.keys.push_back(BuildKey(channel, keyIndex));
-			}
+			AddPositionKeys(channel, boneAnimation.translations);
+			AddRotationKeys(channel, boneAnimation.rotations);
+			AddScaleKeys(channel, boneAnimation.scales);
 
 			clip.boneAnimations.push_back(std::move(boneAnimation));
 		}

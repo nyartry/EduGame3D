@@ -41,25 +41,65 @@ namespace
 		return XMVector3Normalize(vector);
 	}
 
-	const AnimationKey& FindAnimationKey(const std::vector<AnimationKey>& keys, double animationTimeTicks)
+	float GetInterpolationAmount(double fromTime, double toTime, double animationTimeTicks)
+	{
+		const double duration = toTime - fromTime;
+		if (duration <= 0.0)
+		{
+			return 0.0f;
+		}
+
+		return static_cast<float>((animationTimeTicks - fromTime) / duration);
+	}
+
+	XMVECTOR SampleVectorKey(const std::vector<VectorAnimationKey>& keys, double animationTimeTicks, XMVECTOR fallback)
 	{
 		if (keys.empty())
 		{
-			throw std::runtime_error("Animation channel has no keys.");
+			return fallback;
 		}
 
-		const AnimationKey* result = &keys.front();
-		for (const AnimationKey& key : keys)
+		if (keys.size() == 1 || animationTimeTicks <= keys.front().time)
 		{
-			if (key.time > animationTimeTicks)
-			{
-				break;
-			}
-
-			result = &key;
+			return XMLoadFloat3(&keys.front().value);
 		}
 
-		return *result;
+		for (size_t keyIndex = 1; keyIndex < keys.size(); ++keyIndex)
+		{
+			if (animationTimeTicks <= keys[keyIndex].time)
+			{
+				const XMVECTOR from = XMLoadFloat3(&keys[keyIndex - 1].value);
+				const XMVECTOR to = XMLoadFloat3(&keys[keyIndex].value);
+				return XMVectorLerp(from, to, GetInterpolationAmount(keys[keyIndex - 1].time, keys[keyIndex].time, animationTimeTicks));
+			}
+		}
+
+		return XMLoadFloat3(&keys.back().value);
+	}
+
+	XMVECTOR SampleQuaternionKey(const std::vector<QuaternionAnimationKey>& keys, double animationTimeTicks, XMVECTOR fallback)
+	{
+		if (keys.empty())
+		{
+			return fallback;
+		}
+
+		if (keys.size() == 1 || animationTimeTicks <= keys.front().time)
+		{
+			return XMQuaternionNormalize(XMLoadFloat4(&keys.front().value));
+		}
+
+		for (size_t keyIndex = 1; keyIndex < keys.size(); ++keyIndex)
+		{
+			if (animationTimeTicks <= keys[keyIndex].time)
+			{
+				const XMVECTOR from = XMLoadFloat4(&keys[keyIndex - 1].value);
+				const XMVECTOR to = XMLoadFloat4(&keys[keyIndex].value);
+				return XMQuaternionNormalize(XMQuaternionSlerp(from, to, GetInterpolationAmount(keys[keyIndex - 1].time, keys[keyIndex].time, animationTimeTicks)));
+			}
+		}
+
+		return XMQuaternionNormalize(XMLoadFloat4(&keys.back().value));
 	}
 }
 
@@ -274,6 +314,20 @@ XMMATRIX SkinnedModel::GetAnimatedLocalTransform(const AnimationClip& clip, cons
 		? std::fmod(m_animationTimeSeconds, durationSeconds) * clip.ticksPerSecond
 		: 0.0;
 
-	const AnimationKey& key = FindAnimationKey(boneAnimation.keys, animationTime);
-	return BuildTransform(key.translation, key.rotation, key.scale);
+	XMVECTOR bindScale = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f);
+	XMVECTOR bindRotation = XMQuaternionIdentity();
+	XMVECTOR bindTranslation = XMVectorZero();
+	XMMatrixDecompose(&bindScale, &bindRotation, &bindTranslation, LoadMatrix(m_modelData.bones[boneAnimation.boneIndex].localBindTransform));
+
+	const XMVECTOR translation = SampleVectorKey(boneAnimation.translations, animationTime, bindTranslation);
+	const XMVECTOR rotation = SampleQuaternionKey(boneAnimation.rotations, animationTime, bindRotation);
+	const XMVECTOR scale = SampleVectorKey(boneAnimation.scales, animationTime, bindScale);
+
+	XMFLOAT3 translationFloat{};
+	XMFLOAT4 rotationFloat{};
+	XMFLOAT3 scaleFloat{};
+	XMStoreFloat3(&translationFloat, translation);
+	XMStoreFloat4(&rotationFloat, rotation);
+	XMStoreFloat3(&scaleFloat, scale);
+	return BuildTransform(translationFloat, rotationFloat, scaleFloat);
 }

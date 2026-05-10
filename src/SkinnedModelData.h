@@ -29,18 +29,24 @@ struct BoneData
 	DirectX::XMFLOAT4X4 localBindTransform{};
 };
 
-struct AnimationKey
+struct VectorAnimationKey
 {
 	double time{};
-	DirectX::XMFLOAT3 translation{ 0.0f, 0.0f, 0.0f };
-	DirectX::XMFLOAT4 rotation{ 0.0f, 0.0f, 0.0f, 1.0f };
-	DirectX::XMFLOAT3 scale{ 1.0f, 1.0f, 1.0f };
+	DirectX::XMFLOAT3 value{ 0.0f, 0.0f, 0.0f };
+};
+
+struct QuaternionAnimationKey
+{
+	double time{};
+	DirectX::XMFLOAT4 value{ 0.0f, 0.0f, 0.0f, 1.0f };
 };
 
 struct BoneAnimation
 {
 	int boneIndex{ -1 };
-	std::vector<AnimationKey> keys;
+	std::vector<VectorAnimationKey> translations;
+	std::vector<QuaternionAnimationKey> rotations;
+	std::vector<VectorAnimationKey> scales;
 };
 
 struct AnimationClip
