@@ -9,6 +9,12 @@ enum class RootMotionMode
 	Blend,
 };
 
+enum class RootMotionVerticalMode
+{
+	Ignore,
+	Apply,
+};
+
 struct RootMotionDelta
 {
 	DirectX::XMFLOAT3 translation{ 0.0f, 0.0f, 0.0f };

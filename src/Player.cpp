@@ -16,6 +16,7 @@ namespace
 	constexpr float PlayerHeight = 1.8f;
 	constexpr float MoveSpeed = 3.0f;
 	constexpr SkinningMode PlayerSkinningMode = SkinningMode::Gpu;
+	constexpr float GroundHeight = 0.0f;
 
 	XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float amount)
 	{
@@ -83,7 +84,14 @@ void Player::Update(float deltaTime, const Input& input)
 	const XMFLOAT3 rootMotionDisplacement = TransformRootMotionToWorld(rootMotionDelta.translation);
 	const XMFLOAT3 displacement = ChooseDisplacement(inputDisplacement, rootMotionDisplacement);
 	m_position.x += displacement.x;
-	m_position.y += displacement.y;
+	if (m_rootMotionVerticalMode == RootMotionVerticalMode::Apply)
+	{
+		m_position.y += displacement.y;
+	}
+	else
+	{
+		m_position.y = GroundHeight;
+	}
 	m_position.z += displacement.z;
 
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
@@ -118,6 +126,11 @@ void Player::SetRootMotionMode(RootMotionMode mode)
 	m_rootMotionMode = mode;
 }
 
+void Player::SetRootMotionVerticalMode(RootMotionVerticalMode mode)
+{
+	m_rootMotionVerticalMode = mode;
+}
+
 void Player::SetRootMotionBlendWeight(float weight)
 {
 	m_rootMotionBlendWeight = std::clamp(weight, 0.0f, 1.0f);
@@ -146,5 +159,9 @@ XMFLOAT3 Player::TransformRootMotionToWorld(const XMFLOAT3& localRootMotion) con
 
 	XMFLOAT3 result{};
 	XMStoreFloat3(&result, world);
+	if (m_rootMotionVerticalMode == RootMotionVerticalMode::Ignore)
+	{
+		result.y = 0.0f;
+	}
 	return result;
 }
