@@ -113,6 +113,7 @@
     <ClCompile Include="src\ModelTextureResolver.cpp" />
     <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\PrimitiveObject.cpp" />
+    <ClCompile Include="src\RootMotionPolicy.cpp" />
     <ClCompile Include="src\SkinnedModel.cpp" />
     <ClCompile Include="src\SkinnedModelLoader.cpp" />
     <ClCompile Include="src\StaticModel.cpp" />
@@ -141,6 +142,7 @@
     <ClInclude Include="src\ModelTextureResolver.h" />
     <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\PrimitiveObject.h" />
+    <ClInclude Include="src\RootMotionPolicy.h" />
     <ClInclude Include="src\SkinnedModel.h" />
     <ClInclude Include="src\SkinnedModelData.h" />
     <ClInclude Include="src\SkinnedModelLoader.h" />

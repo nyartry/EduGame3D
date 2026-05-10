@@ -2,6 +2,7 @@
 
 #include "MeshTangentCalculator.h"
 #include "ModelTextureResolver.h"
+#include "RootMotionPolicy.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/anim.h>
@@ -168,38 +169,6 @@ namespace
 		return boneMap;
 	}
 
-	bool IsNamedRootMotionBone(const std::string& boneName)
-	{
-		return boneName == "Root" ||
-			boneName == "RootNode" ||
-			boneName == "Armature" ||
-			boneName == "Hips" ||
-			boneName.ends_with(":Root") ||
-			boneName.ends_with("_Root") ||
-			boneName.ends_with(":Hips") ||
-			boneName.ends_with("_Hips");
-	}
-
-	bool IsAssimpFbxTranslationNode(const std::string& boneName)
-	{
-		return boneName.find("_$AssimpFbx$_Translation") != std::string::npos;
-	}
-
-	bool ShouldLockTranslationToBindPose(
-		const std::string& boneName,
-		int boneIndex,
-		const std::vector<BoneData>& bones)
-	{
-		if (IsNamedRootMotionBone(boneName) || IsAssimpFbxTranslationNode(boneName))
-		{
-			return true;
-		}
-
-		return boneIndex >= 0 &&
-			boneIndex < static_cast<int>(bones.size()) &&
-			bones[boneIndex].parentIndex < 0;
-	}
-
 	AnimationClip BuildAnimationClip(
 		const aiAnimation* aiAnimation,
 		const std::string& fallbackName,
@@ -214,6 +183,7 @@ namespace
 		}
 		clip.durationTicks = aiAnimation->mDuration;
 		clip.ticksPerSecond = aiAnimation->mTicksPerSecond == 0.0 ? 30.0 : aiAnimation->mTicksPerSecond;
+		clip.boneAnimationIndicesByBone.assign(bones.size(), -1);
 
 		for (unsigned int channelIndex = 0; channelIndex < aiAnimation->mNumChannels; ++channelIndex)
 		{
@@ -230,11 +200,12 @@ namespace
 			AddPositionKeys(channel, boneAnimation.translations);
 			AddRotationKeys(channel, boneAnimation.rotations);
 			AddScaleKeys(channel, boneAnimation.scales);
-			boneAnimation.lockTranslationToBindPose = ShouldLockTranslationToBindPose(
+			boneAnimation.lockTranslationToBindPose = RootMotionPolicy::ShouldLockTranslationToBindPose(
 				boneName,
 				boneAnimation.boneIndex,
 				bones);
 
+			clip.boneAnimationIndicesByBone[boneAnimation.boneIndex] = static_cast<int>(clip.boneAnimations.size());
 			clip.boneAnimations.push_back(std::move(boneAnimation));
 		}
 

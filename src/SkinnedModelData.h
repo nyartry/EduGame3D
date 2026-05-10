@@ -57,6 +57,7 @@ struct AnimationClip
 	double durationTicks{};
 	double ticksPerSecond{ 30.0 };
 	std::vector<BoneAnimation> boneAnimations;
+	std::vector<int> boneAnimationIndicesByBone;
 };
 
 struct SkinnedModelData

@@ -176,16 +176,17 @@ void SkinnedModel::UpdateBoneMatrices()
 		if (!m_modelData.animations.empty() && m_currentAnimationIndex < m_modelData.animations.size())
 		{
 			const AnimationClip& clip = m_modelData.animations[m_currentAnimationIndex];
-			for (const BoneAnimation& boneAnimation : clip.boneAnimations)
+			if (boneIndex < clip.boneAnimationIndicesByBone.size())
 			{
-				if (boneAnimation.boneIndex == static_cast<int>(boneIndex))
+				const int boneAnimationIndex = clip.boneAnimationIndicesByBone[boneIndex];
+				if (boneAnimationIndex >= 0 && boneAnimationIndex < static_cast<int>(clip.boneAnimations.size()))
 				{
+					const BoneAnimation& boneAnimation = clip.boneAnimations[boneAnimationIndex];
 					localTransform = animationSampler.SampleLocalTransform(
 						clip,
 						boneAnimation,
 						m_modelData.bones[boneAnimation.boneIndex],
 						m_animationTimeSeconds);
-					break;
 				}
 			}
 		}
