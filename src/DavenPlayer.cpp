@@ -8,7 +8,8 @@ const StaticMeshActorDefinition& DavenPlayer::GetStaticMeshDefinition() const
 	{
 		"Content\\Models\\Daven\\t-pose.fbx",
 		1.8f,
-		XMFLOAT3{ 0.0f, 0.0f, 0.0f }
+		XMFLOAT3{ -3.0f, 0.0f, 0.0f },
+		XM_PI
 	};
 	return definition;
 }

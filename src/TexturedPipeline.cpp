@@ -13,6 +13,7 @@ namespace
 {
 	constexpr DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 	constexpr const wchar_t* ShaderFileName = L"src\\Textured.hlsl";
+	constexpr UINT MaxDrawConstants = 4096;
 }
 
 void TexturedPipeline::Initialize(ID3D12Device* device)
@@ -22,16 +23,21 @@ void TexturedPipeline::Initialize(ID3D12Device* device)
 	CreateConstantBuffer(device);
 }
 
-void TexturedPipeline::UpdateWorldViewProjection(const XMMATRIX& worldViewProjection)
+D3D12_GPU_VIRTUAL_ADDRESS TexturedPipeline::UpdateWorldViewProjection(const XMMATRIX& worldViewProjection)
 {
 	XMStoreFloat4x4(&m_constantBufferData.worldViewProjection, XMMatrixTranspose(worldViewProjection));
-	memcpy(m_constantBufferMappedData, &m_constantBufferData, sizeof(m_constantBufferData));
+
+	const UINT constantBufferIndex = m_nextConstantBufferIndex;
+	m_nextConstantBufferIndex = (m_nextConstantBufferIndex + 1) % MaxDrawConstants;
+
+	UINT8* destination = m_constantBufferMappedData + static_cast<SIZE_T>(constantBufferIndex) * m_constantBufferSize;
+	memcpy(destination, &m_constantBufferData, sizeof(m_constantBufferData));
+	return m_constantBuffer->GetGPUVirtualAddress() + static_cast<UINT64>(constantBufferIndex) * m_constantBufferSize;
 }
 
 void TexturedPipeline::Bind(ID3D12GraphicsCommandList* commandList) const
 {
 	commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-	commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer->GetGPUVirtualAddress());
 }
 
 ID3D12PipelineState* TexturedPipeline::GetPipelineState() const
@@ -119,8 +125,8 @@ void TexturedPipeline::CreatePipelineState(ID3D12Device* device)
 
 void TexturedPipeline::CreateConstantBuffer(ID3D12Device* device)
 {
-	const UINT constantBufferSize = Dx12BufferHelper::AlignConstantBufferSize(sizeof(SceneConstants));
-	m_constantBuffer = Dx12BufferHelper::CreateUploadBuffer(device, constantBufferSize);
+	m_constantBufferSize = Dx12BufferHelper::AlignConstantBufferSize(sizeof(SceneConstants));
+	m_constantBuffer = Dx12BufferHelper::CreateUploadBuffer(device, static_cast<UINT64>(m_constantBufferSize) * MaxDrawConstants);
 
 	D3D12_RANGE readRange{};
 	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_constantBufferMappedData)));

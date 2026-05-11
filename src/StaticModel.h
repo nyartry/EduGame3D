@@ -26,6 +26,7 @@ public:
 
 	void SetPosition(float x, float y, float z);
 	DirectX::XMFLOAT3 GetPosition() const;
+	void SetRotationY(float radians);
 
 private:
 	struct MeshPart
@@ -38,4 +39,5 @@ private:
 
 	std::vector<MeshPart> m_meshParts;
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
+	float m_rotationY{};
 };

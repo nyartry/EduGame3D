@@ -94,11 +94,12 @@ void Dx12Renderer::DrawTextured(const TexturedVertexBuffer& vertexBuffer, const 
 {
 	m_commandList->SetPipelineState(m_texturedPipeline.GetPipelineState());
 	m_texturedPipeline.Bind(m_commandList.Get());
-	material.Bind(m_commandList.Get(), 1);
 
 	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
 	const XMMATRIX worldViewProjection = world * viewProjection;
-	m_texturedPipeline.UpdateWorldViewProjection(worldViewProjection);
+	const D3D12_GPU_VIRTUAL_ADDRESS sceneConstantsAddress = m_texturedPipeline.UpdateWorldViewProjection(worldViewProjection);
+	m_commandList->SetGraphicsRootConstantBufferView(0, sceneConstantsAddress);
+	material.Bind(m_commandList.Get(), 1);
 	vertexBuffer.Bind(m_commandList.Get());
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }

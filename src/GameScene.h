@@ -10,6 +10,7 @@
 
 #include <DirectXMath.h>
 #include <memory>
+#include <vector>
 
 class Dx12Renderer;
 struct ID3D12Device;
@@ -27,5 +28,5 @@ private:
 	Camera m_camera;
 	Ground m_ground;
 	Cube m_originCube;
-	std::unique_ptr<Actor> m_actor;
+	std::vector<std::unique_ptr<Actor>> m_actors;
 };

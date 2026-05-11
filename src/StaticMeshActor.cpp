@@ -13,10 +13,12 @@ void StaticMeshActor::Initialize(ID3D12Device* device)
 		std::string(definition.modelPath),
 		ModelScaleSettings::NormalizeToHeight(definition.height));
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
+	m_model.SetRotationY(definition.initialRotationY);
 }
 
 void StaticMeshActor::Update(float, const Input&)
 {
+	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
 }
 
 void StaticMeshActor::Draw(Dx12Renderer& renderer) const

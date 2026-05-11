@@ -54,7 +54,7 @@ void StaticModel::Initialize(
 
 void StaticModel::Draw(Dx12Renderer& renderer) const
 {
-	const XMMATRIX world = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
+	const XMMATRIX world = XMMatrixRotationY(m_rotationY) * XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	for (const MeshPart& meshPart : m_meshParts)
 	{
 		renderer.DrawTextured(meshPart.vertexBuffer, *meshPart.material, world);
@@ -69,6 +69,11 @@ void StaticModel::SetPosition(float x, float y, float z)
 XMFLOAT3 StaticModel::GetPosition() const
 {
 	return m_position;
+}
+
+void StaticModel::SetRotationY(float radians)
+{
+	m_rotationY = radians;
 }
 
 void StaticModel::FitModel(ModelData& modelData, const ModelScaleSettings& scaleSettings) const

@@ -1,7 +1,9 @@
 #include "GameScene.h"
 
+#include "DavenPlayer.h"
 #include "Dx12Renderer.h"
 #include "ForestGoddessPlayer.h"
+#include "OrcPlayer.h"
 
 #include <memory>
 
@@ -25,16 +27,22 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_originCube.SetPosition(0.0f, 0.0f, 0.0f);
 	m_originCube.Initialize(device);
 
-	m_actor = std::make_unique<ForestGoddessPlayer>();
-	m_actor->Initialize(device);
+	m_actors.clear();
+	m_actors.push_back(std::make_unique<OrcPlayer>());
+	m_actors.push_back(std::make_unique<DavenPlayer>());
+	m_actors.push_back(std::make_unique<ForestGoddessPlayer>());
+	for (const std::unique_ptr<Actor>& actor : m_actors)
+	{
+		actor->Initialize(device);
+	}
 }
 
 void GameScene::Update(float deltaTime, const Input& input)
 {
 	m_camera.Update(deltaTime, input);
-	if (m_actor != nullptr)
+	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
-		m_actor->Update(deltaTime, input);
+		actor->Update(deltaTime, input);
 	}
 }
 
@@ -42,9 +50,9 @@ void GameScene::Render(Dx12Renderer& renderer) const
 {
 	m_ground.Draw(renderer);
 	m_originCube.Draw(renderer);
-	if (m_actor != nullptr)
+	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
-		m_actor->Draw(renderer);
+		actor->Draw(renderer);
 	}
 }
 

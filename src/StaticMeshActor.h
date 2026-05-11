@@ -12,6 +12,7 @@ struct StaticMeshActorDefinition
 	std::string_view modelPath;
 	float height{ 1.8f };
 	DirectX::XMFLOAT3 initialPosition{ 0.0f, 0.0f, 0.0f };
+	float initialRotationY{};
 };
 
 class StaticMeshActor : public Actor
