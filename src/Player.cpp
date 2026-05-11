@@ -9,13 +9,9 @@ using namespace DirectX;
 
 namespace
 {
-	constexpr const char* IdleModelPath = "Content\\Models\\Player\\Orc Idle\\Orc Idle.fbx";
-	constexpr const char* JoggingAnimationPath = "Content\\Models\\Player\\Jogging\\Jogging.fbx";
 	constexpr const char* IdleAnimationName = "Idle";
 	constexpr const char* JoggingAnimationName = "Jogging";
-	constexpr float PlayerHeight = 1.8f;
 	constexpr float MoveSpeed = 3.0f;
-	constexpr SkinningMode PlayerSkinningMode = SkinningMode::Gpu;
 	constexpr float GroundHeight = 0.0f;
 
 	XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float amount)
@@ -31,15 +27,32 @@ namespace
 
 void Player::Initialize(ID3D12Device* device)
 {
+	const PlayerModelDefinition& definition = GetModelDefinition();
+	m_position = definition.initialPosition;
+	m_rotationY = definition.initialRotationY;
+	m_rootMotionMode = definition.rootMotionMode;
+	m_hasIdleAnimation = !definition.idleAnimationPath.empty();
+	m_hasJoggingAnimation = !definition.joggingAnimationPath.empty();
+
 	m_model.Initialize(
 		device,
-		IdleModelPath,
-		ModelScaleSettings::NormalizeToHeight(PlayerHeight),
-		PlayerSkinningMode);
-	m_model.AddAnimation(IdleAnimationName, IdleModelPath);
-	m_model.AddAnimation(JoggingAnimationName, JoggingAnimationPath);
+		std::string(definition.modelPath),
+		ModelScaleSettings::NormalizeToHeight(definition.height),
+		definition.skinningMode);
+	if (m_hasIdleAnimation)
+	{
+		m_model.AddAnimation(IdleAnimationName, std::string(definition.idleAnimationPath));
+	}
+	if (m_hasJoggingAnimation)
+	{
+		m_model.AddAnimation(JoggingAnimationName, std::string(definition.joggingAnimationPath));
+	}
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
-	m_model.PlayAnimation(IdleAnimationName);
+	m_model.SetRotationY(m_rotationY);
+	if (m_hasIdleAnimation)
+	{
+		m_model.PlayAnimation(IdleAnimationName);
+	}
 }
 
 void Player::Update(float deltaTime, const Input& input)
@@ -64,7 +77,7 @@ void Player::Update(float deltaTime, const Input& input)
 
 	const float length = std::sqrt(movement.x * movement.x + movement.z * movement.z);
 	XMFLOAT3 inputDisplacement{};
-	if (length > 0.0f)
+	if (length > 0.0f && m_hasJoggingAnimation)
 	{
 		movement.x /= length;
 		movement.z /= length;
@@ -78,6 +91,15 @@ void Player::Update(float deltaTime, const Input& input)
 	else
 	{
 		SetAnimationState(AnimationState::Idle);
+		if (length > 0.0f)
+		{
+			movement.x /= length;
+			movement.z /= length;
+			inputDisplacement.x = movement.x * MoveSpeed * deltaTime;
+			inputDisplacement.z = movement.z * MoveSpeed * deltaTime;
+			m_rotationY = std::atan2(movement.x, movement.z) + XM_PI;
+			m_model.SetRotationY(m_rotationY);
+		}
 	}
 
 	const RootMotionDelta rootMotionDelta = m_model.Update(deltaTime);
@@ -97,6 +119,12 @@ void Player::Update(float deltaTime, const Input& input)
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
 }
 
+void Player::UpdateIdle(float deltaTime)
+{
+	m_model.Update(deltaTime);
+	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
+}
+
 void Player::Draw(Dx12Renderer& renderer) const
 {
 	m_model.Draw(renderer);
@@ -113,11 +141,17 @@ void Player::SetAnimationState(AnimationState state)
 	switch (m_animationState)
 	{
 	case AnimationState::Idle:
-		m_model.PlayAnimation(IdleAnimationName);
+		if (m_hasIdleAnimation)
+		{
+			m_model.PlayAnimation(IdleAnimationName);
+		}
 		m_position.y = GroundHeight;
 		break;
 	case AnimationState::Jogging:
-		m_model.PlayAnimation(JoggingAnimationName);
+		if (m_hasJoggingAnimation)
+		{
+			m_model.PlayAnimation(JoggingAnimationName);
+		}
 		break;
 	}
 }
@@ -166,3 +200,4 @@ XMFLOAT3 Player::TransformRootMotionToWorld(const XMFLOAT3& localRootMotion) con
 	}
 	return result;
 }
+

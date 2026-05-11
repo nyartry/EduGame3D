@@ -1,6 +1,9 @@
 #include "GameScene.h"
 
 #include "Dx12Renderer.h"
+#include "OrcPlayer.h"
+
+#include <memory>
 
 using namespace DirectX;
 
@@ -22,20 +25,27 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_originCube.SetPosition(0.0f, 0.0f, 0.0f);
 	m_originCube.Initialize(device);
 
-	m_player.Initialize(device);
+	m_player = std::make_unique<OrcPlayer>();
+	m_player->Initialize(device);
 }
 
 void GameScene::Update(float deltaTime, const Input& input)
 {
 	m_camera.Update(deltaTime, input);
-	m_player.Update(deltaTime, input);
+	if (m_player != nullptr)
+	{
+		m_player->Update(deltaTime, input);
+	}
 }
 
 void GameScene::Render(Dx12Renderer& renderer) const
 {
 	m_ground.Draw(renderer);
 	m_originCube.Draw(renderer);
-	m_player.Draw(renderer);
+	if (m_player != nullptr)
+	{
+		m_player->Draw(renderer);
+	}
 }
 
 XMMATRIX GameScene::GetViewProjectionMatrix() const

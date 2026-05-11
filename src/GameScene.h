@@ -9,6 +9,7 @@
 #include <Windows.h>
 
 #include <DirectXMath.h>
+#include <memory>
 
 class Dx12Renderer;
 struct ID3D12Device;
@@ -26,5 +27,5 @@ private:
 	Camera m_camera;
 	Ground m_ground;
 	Cube m_originCube;
-	Player m_player;
+	std::unique_ptr<Player> m_player;
 };
