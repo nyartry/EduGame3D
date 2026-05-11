@@ -15,7 +15,7 @@ void StaticMeshActor::Initialize(ID3D12Device* device)
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
 }
 
-void StaticMeshActor::Update(float)
+void StaticMeshActor::Update(float, const Input&)
 {
 }
 

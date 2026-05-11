@@ -34,7 +34,7 @@ void GameScene::Update(float deltaTime, const Input& input)
 	m_camera.Update(deltaTime, input);
 	if (m_actor != nullptr)
 	{
-		m_actor->Update(deltaTime);
+		m_actor->Update(deltaTime, input);
 	}
 }
 

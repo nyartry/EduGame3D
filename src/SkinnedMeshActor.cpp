@@ -31,7 +31,7 @@ void SkinnedMeshActor::Initialize(ID3D12Device* device)
 	m_model.SetRotationY(m_rotationY);
 }
 
-void SkinnedMeshActor::Update(float deltaTime)
+void SkinnedMeshActor::Update(float deltaTime, const Input&)
 {
 	m_model.Update(deltaTime);
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);

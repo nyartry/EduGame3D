@@ -18,7 +18,8 @@ struct PlayerDefinition
 class Player : public SkinnedMeshActor
 {
 public:
-	void Update(float deltaTime, const Input& input);
+	void Initialize(ID3D12Device* device) override;
+	void Update(float deltaTime, const Input& input) override;
 	void SetRootMotionMode(RootMotionMode mode);
 	void SetRootMotionVerticalMode(RootMotionVerticalMode mode);
 	void SetRootMotionBlendWeight(float weight);
@@ -45,5 +46,4 @@ private:
 	RootMotionVerticalMode m_rootMotionVerticalMode{ RootMotionVerticalMode::Apply };
 	float m_rootMotionBlendWeight{ 0.5f };
 	bool m_hasJoggingAnimation{};
-	bool m_joggingAnimationLoaded{};
 };

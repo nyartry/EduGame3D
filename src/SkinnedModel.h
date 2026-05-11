@@ -45,7 +45,6 @@ private:
 	std::vector<std::unique_ptr<ISkinnedMeshProcessor>> m_meshProcessors;
 	std::vector<DirectX::XMFLOAT4X4> m_boneMatrices;
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
-	bool m_skinningEnabled{ true };
 	float m_animationTimeSeconds{};
 	size_t m_currentAnimationIndex{};
 	float m_modelScale{ 1.0f };

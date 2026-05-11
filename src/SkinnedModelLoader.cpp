@@ -16,7 +16,6 @@
 #include <filesystem>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 using namespace DirectX;
 
@@ -115,27 +114,6 @@ namespace
 		}
 
 		return boneIndex;
-	}
-
-	void CollectMeshNodeTransforms(
-		const aiNode* node,
-		const aiMatrix4x4& parentTransform,
-		std::vector<XMFLOAT4X4>& meshTransforms)
-	{
-		const aiMatrix4x4 globalTransform = node->mTransformation * parentTransform;
-		for (unsigned int meshSlot = 0; meshSlot < node->mNumMeshes; ++meshSlot)
-		{
-			const unsigned int meshIndex = node->mMeshes[meshSlot];
-			if (meshIndex < meshTransforms.size())
-			{
-				meshTransforms[meshIndex] = ToFloat4x4(globalTransform);
-			}
-		}
-
-		for (unsigned int childIndex = 0; childIndex < node->mNumChildren; ++childIndex)
-		{
-			CollectMeshNodeTransforms(node->mChildren[childIndex], globalTransform, meshTransforms);
-		}
 	}
 
 	void AddPositionKeys(const aiNodeAnim* channel, std::vector<VectorAnimationKey>& keys)
@@ -269,8 +247,6 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 
 	const std::filesystem::path modelDirectory = std::filesystem::path(filePath).parent_path();
 	const ModelTextureResolver textureResolver(modelDirectory);
-	std::vector<XMFLOAT4X4> meshNodeTransforms(scene->mNumMeshes);
-	CollectMeshNodeTransforms(scene->mRootNode, aiMatrix4x4{}, meshNodeTransforms);
 
 	for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
 	{
@@ -283,7 +259,6 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 		meshData.baseColorTexturePath = textureResolver.FindTexture(material, { aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE });
 		meshData.opacityTexturePath = textureResolver.FindTexture(material, { aiTextureType_OPACITY });
 		meshData.normalTexturePath = textureResolver.FindTexture(material, { aiTextureType_NORMALS, aiTextureType_NORMAL_CAMERA, aiTextureType_HEIGHT });
-		meshData.meshTransform = meshNodeTransforms[meshIndex];
 
 		std::vector<SkinnedVertex> sourceVertices(mesh->mNumVertices);
 		for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)

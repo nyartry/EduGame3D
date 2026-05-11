@@ -31,12 +31,20 @@ const SkinnedMeshActorDefinition& Player::GetSkinnedMeshDefinition() const
 	return GetPlayerDefinition().mesh;
 }
 
-void Player::Update(float deltaTime, const Input& input)
+void Player::Initialize(ID3D12Device* device)
 {
 	const PlayerDefinition& definition = GetPlayerDefinition();
+	SkinnedMeshActor::Initialize(device);
 	m_rootMotionMode = definition.rootMotionMode;
 	m_hasJoggingAnimation = !definition.joggingAnimationPath.empty();
+	if (m_hasJoggingAnimation)
+	{
+		GetModel().AddAnimation(JoggingAnimationName, std::string(definition.joggingAnimationPath));
+	}
+}
 
+void Player::Update(float deltaTime, const Input& input)
+{
 	XMFLOAT3 movement{};
 	if (input.IsDown(InputKey::W))
 	{
@@ -114,11 +122,6 @@ void Player::SetAnimationState(AnimationState state)
 	case AnimationState::Jogging:
 		if (m_hasJoggingAnimation)
 		{
-			if (!m_joggingAnimationLoaded)
-			{
-				GetModel().AddAnimation(JoggingAnimationName, std::string(GetPlayerDefinition().joggingAnimationPath));
-				m_joggingAnimationLoaded = true;
-			}
 			GetModel().PlayAnimation(JoggingAnimationName);
 		}
 		break;

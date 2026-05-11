@@ -23,28 +23,6 @@ namespace
 	{
 		return XMLoadFloat4x4(&matrix);
 	}
-
-	void ApplyStaticMeshTransforms(SkinnedModelData& modelData)
-	{
-		for (SkinnedMeshData& meshData : modelData.meshes)
-		{
-			const XMMATRIX meshTransform = LoadMatrix(meshData.meshTransform);
-			for (SkinnedVertex& vertex : meshData.vertices)
-			{
-				XMVECTOR position = XMLoadFloat3(&vertex.vertex.position);
-				XMVECTOR normal = XMLoadFloat3(&vertex.vertex.normal);
-				XMVECTOR tangent = XMLoadFloat3(&vertex.vertex.tangent);
-
-				position = XMVector3TransformCoord(position, meshTransform);
-				normal = XMVector3Normalize(XMVector3TransformNormal(normal, meshTransform));
-				tangent = XMVector3Normalize(XMVector3TransformNormal(tangent, meshTransform));
-
-				XMStoreFloat3(&vertex.vertex.position, position);
-				XMStoreFloat3(&vertex.vertex.normal, normal);
-				XMStoreFloat3(&vertex.vertex.tangent, tangent);
-			}
-		}
-	}
 }
 
 void SkinnedModel::Initialize(
@@ -59,11 +37,6 @@ void SkinnedModel::Initialize(
 		throw std::runtime_error("Failed to load skinned model: " + loader.GetLastError());
 	}
 
-	m_skinningEnabled = skinningMode != SkinningMode::None;
-	if (!m_skinningEnabled)
-	{
-		ApplyStaticMeshTransforms(m_modelData);
-	}
 	FitModel(scaleSettings);
 	m_boneMatrices.resize(m_modelData.bones.size());
 
@@ -87,21 +60,10 @@ void SkinnedModel::Initialize(
 		m_meshProcessors.push_back(std::move(meshProcessor));
 	}
 
-	if (m_skinningEnabled)
+	UpdateBoneMatrices();
+	for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
 	{
-		UpdateBoneMatrices();
-		for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
-		{
-			meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
-		}
-	}
-	else
-	{
-		const std::vector<XMFLOAT4X4> noBoneMatrices;
-		for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
-		{
-			meshProcessor->Update(noBoneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
-		}
+		meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
 	}
 }
 
@@ -132,11 +94,6 @@ void SkinnedModel::PlayAnimation(const std::string& animationName)
 
 RootMotionDelta SkinnedModel::Update(float deltaTime)
 {
-	if (!m_skinningEnabled)
-	{
-		return {};
-	}
-
 	const RootMotionDelta rootMotionDelta = ExtractRootMotionDelta(deltaTime);
 	m_animationTimeSeconds += deltaTime;
 	UpdateBoneMatrices();
@@ -216,7 +173,6 @@ std::unique_ptr<ISkinnedMeshProcessor> SkinnedModel::CreateMeshProcessor(Skinnin
 	{
 	case SkinningMode::Gpu:
 		return std::make_unique<GpuSkinnedMeshProcessor>();
-	case SkinningMode::None:
 	case SkinningMode::Cpu:
 	default:
 		return std::make_unique<CpuSkinnedMeshProcessor>();
