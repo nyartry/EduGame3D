@@ -2,17 +2,15 @@
 
 using namespace DirectX;
 
-const PlayerModelDefinition& ForestGoddessPlayer::GetModelDefinition() const
+const SkinnedMeshActorDefinition& ForestGoddessPlayer::GetSkinnedMeshDefinition() const
 {
-	static const PlayerModelDefinition definition
+	static const SkinnedMeshActorDefinition definition
 	{
 		"Content\\Models\\forest_goddess\\forest_goddess.fbx",
-		{},
 		{},
 		1.8f,
 		XMFLOAT3{ 0.0f, 0.0f, 0.0f },
 		0.0f,
-		RootMotionMode::Ignore,
 		SkinningMode::Gpu
 	};
 	return definition;

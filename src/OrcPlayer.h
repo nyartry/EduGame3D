@@ -5,5 +5,5 @@
 class OrcPlayer : public Player
 {
 protected:
-	const PlayerModelDefinition& GetModelDefinition() const override;
+	const PlayerDefinition& GetPlayerDefinition() const override;
 };

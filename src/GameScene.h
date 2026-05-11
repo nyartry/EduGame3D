@@ -4,7 +4,7 @@
 #include "Cube.h"
 #include "Ground.h"
 #include "Input.h"
-#include "Player.h"
+#include "SkinnedMeshActor.h"
 
 #include <Windows.h>
 
@@ -27,5 +27,5 @@ private:
 	Camera m_camera;
 	Ground m_ground;
 	Cube m_originCube;
-	std::unique_ptr<Player> m_player;
+	std::unique_ptr<SkinnedMeshActor> m_actor;
 };

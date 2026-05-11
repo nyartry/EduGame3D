@@ -2,17 +2,15 @@
 
 using namespace DirectX;
 
-const PlayerModelDefinition& DavenPlayer::GetModelDefinition() const
+const SkinnedMeshActorDefinition& DavenPlayer::GetSkinnedMeshDefinition() const
 {
-	static const PlayerModelDefinition definition
+	static const SkinnedMeshActorDefinition definition
 	{
 		"Content\\Models\\Daven\\t-pose.fbx",
-		{},
 		{},
 		1.8f,
 		XMFLOAT3{ 0.0f, 0.0f, 0.0f },
 		0.0f,
-		RootMotionMode::Ignore,
 		SkinningMode::Gpu
 	};
 	return definition;

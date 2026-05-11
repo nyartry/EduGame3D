@@ -78,9 +78,9 @@ std::string ModelTextureResolver::ResolveTexturePath(const std::string& textureP
 	}
 
 	const std::string lowerFileName = ToLower(fileName.string());
-	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(textureDirectory))
+	for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(textureDirectory))
 	{
-		if (ToLower(entry.path().filename().string()) == lowerFileName)
+		if (entry.is_regular_file() && ToLower(entry.path().filename().string()) == lowerFileName)
 		{
 			return entry.path().string();
 		}

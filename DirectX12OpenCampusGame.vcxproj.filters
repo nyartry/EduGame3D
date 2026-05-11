@@ -80,6 +80,9 @@
     <ClCompile Include="src\RootMotionPolicy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\SkinnedMeshActor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\SkinnedModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -194,6 +197,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SkinningMode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SkinnedMeshActor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SkinnedModel.h">

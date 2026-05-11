@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 using namespace DirectX;
 
@@ -25,38 +26,17 @@ namespace
 	}
 }
 
-void Player::Initialize(ID3D12Device* device)
+const SkinnedMeshActorDefinition& Player::GetSkinnedMeshDefinition() const
 {
-	const PlayerModelDefinition& definition = GetModelDefinition();
-	m_position = definition.initialPosition;
-	m_rotationY = definition.initialRotationY;
-	m_rootMotionMode = definition.rootMotionMode;
-	m_hasIdleAnimation = !definition.idleAnimationPath.empty();
-	m_hasJoggingAnimation = !definition.joggingAnimationPath.empty();
-
-	m_model.Initialize(
-		device,
-		std::string(definition.modelPath),
-		ModelScaleSettings::NormalizeToHeight(definition.height),
-		definition.skinningMode);
-	if (m_hasIdleAnimation)
-	{
-		m_model.AddAnimation(IdleAnimationName, std::string(definition.idleAnimationPath));
-	}
-	if (m_hasJoggingAnimation)
-	{
-		m_model.AddAnimation(JoggingAnimationName, std::string(definition.joggingAnimationPath));
-	}
-	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
-	m_model.SetRotationY(m_rotationY);
-	if (m_hasIdleAnimation)
-	{
-		m_model.PlayAnimation(IdleAnimationName);
-	}
+	return GetPlayerDefinition().mesh;
 }
 
 void Player::Update(float deltaTime, const Input& input)
 {
+	const PlayerDefinition& definition = GetPlayerDefinition();
+	m_rootMotionMode = definition.rootMotionMode;
+	m_hasJoggingAnimation = !definition.joggingAnimationPath.empty();
+
 	XMFLOAT3 movement{};
 	if (input.IsDown(InputKey::W))
 	{
@@ -84,8 +64,7 @@ void Player::Update(float deltaTime, const Input& input)
 		inputDisplacement.x = movement.x * MoveSpeed * deltaTime;
 		inputDisplacement.z = movement.z * MoveSpeed * deltaTime;
 
-		m_rotationY = std::atan2(movement.x, movement.z) + XM_PI;
-		m_model.SetRotationY(m_rotationY);
+		SetRotationY(std::atan2(movement.x, movement.z) + XM_PI);
 		SetAnimationState(AnimationState::Jogging);
 	}
 	else
@@ -97,37 +76,26 @@ void Player::Update(float deltaTime, const Input& input)
 			movement.z /= length;
 			inputDisplacement.x = movement.x * MoveSpeed * deltaTime;
 			inputDisplacement.z = movement.z * MoveSpeed * deltaTime;
-			m_rotationY = std::atan2(movement.x, movement.z) + XM_PI;
-			m_model.SetRotationY(m_rotationY);
+			SetRotationY(std::atan2(movement.x, movement.z) + XM_PI);
 		}
 	}
 
-	const RootMotionDelta rootMotionDelta = m_model.Update(deltaTime);
+	const RootMotionDelta rootMotionDelta = GetModel().Update(deltaTime);
 	const XMFLOAT3 rootMotionDisplacement = TransformRootMotionToWorld(rootMotionDelta.translation);
 	const XMFLOAT3 displacement = ChooseDisplacement(inputDisplacement, rootMotionDisplacement);
-	m_position.x += displacement.x;
+	XMFLOAT3 position = GetPosition();
+	position.x += displacement.x;
 	if (m_rootMotionVerticalMode == RootMotionVerticalMode::Apply)
 	{
-		m_position.y += displacement.y;
+		position.y += displacement.y;
 	}
 	else
 	{
-		m_position.y = GroundHeight;
+		position.y = GroundHeight;
 	}
-	m_position.z += displacement.z;
+	position.z += displacement.z;
 
-	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
-}
-
-void Player::UpdateIdle(float deltaTime)
-{
-	m_model.Update(deltaTime);
-	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
-}
-
-void Player::Draw(Dx12Renderer& renderer) const
-{
-	m_model.Draw(renderer);
+	SetPosition(position);
 }
 
 void Player::SetAnimationState(AnimationState state)
@@ -141,16 +109,17 @@ void Player::SetAnimationState(AnimationState state)
 	switch (m_animationState)
 	{
 	case AnimationState::Idle:
-		if (m_hasIdleAnimation)
-		{
-			m_model.PlayAnimation(IdleAnimationName);
-		}
-		m_position.y = GroundHeight;
+		GetModel().PlayAnimation(IdleAnimationName);
 		break;
 	case AnimationState::Jogging:
 		if (m_hasJoggingAnimation)
 		{
-			m_model.PlayAnimation(JoggingAnimationName);
+			if (!m_joggingAnimationLoaded)
+			{
+				GetModel().AddAnimation(JoggingAnimationName, std::string(GetPlayerDefinition().joggingAnimationPath));
+				m_joggingAnimationLoaded = true;
+			}
+			GetModel().PlayAnimation(JoggingAnimationName);
 		}
 		break;
 	}
@@ -190,7 +159,7 @@ XMFLOAT3 Player::ChooseDisplacement(
 XMFLOAT3 Player::TransformRootMotionToWorld(const XMFLOAT3& localRootMotion) const
 {
 	const XMVECTOR local = XMLoadFloat3(&localRootMotion);
-	const XMVECTOR world = XMVector3TransformNormal(local, XMMatrixRotationY(m_rotationY));
+	const XMVECTOR world = XMVector3TransformNormal(local, XMMatrixRotationY(GetRotationY()));
 
 	XMFLOAT3 result{};
 	XMStoreFloat3(&result, world);

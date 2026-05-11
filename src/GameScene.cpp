@@ -1,7 +1,7 @@
 #include "GameScene.h"
 
+#include "DavenPlayer.h"
 #include "Dx12Renderer.h"
-#include "OrcPlayer.h"
 
 #include <memory>
 
@@ -25,16 +25,16 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_originCube.SetPosition(0.0f, 0.0f, 0.0f);
 	m_originCube.Initialize(device);
 
-	m_player = std::make_unique<OrcPlayer>();
-	m_player->Initialize(device);
+	m_actor = std::make_unique<DavenPlayer>();
+	m_actor->Initialize(device);
 }
 
 void GameScene::Update(float deltaTime, const Input& input)
 {
 	m_camera.Update(deltaTime, input);
-	if (m_player != nullptr)
+	if (m_actor != nullptr)
 	{
-		m_player->Update(deltaTime, input);
+		m_actor->Update(deltaTime);
 	}
 }
 
@@ -42,9 +42,9 @@ void GameScene::Render(Dx12Renderer& renderer) const
 {
 	m_ground.Draw(renderer);
 	m_originCube.Draw(renderer);
-	if (m_player != nullptr)
+	if (m_actor != nullptr)
 	{
-		m_player->Draw(renderer);
+		m_actor->Draw(renderer);
 	}
 }
 

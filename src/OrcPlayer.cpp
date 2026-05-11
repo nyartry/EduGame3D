@@ -2,18 +2,21 @@
 
 using namespace DirectX;
 
-const PlayerModelDefinition& OrcPlayer::GetModelDefinition() const
+const PlayerDefinition& OrcPlayer::GetPlayerDefinition() const
 {
-	static const PlayerModelDefinition definition
+	static const PlayerDefinition definition
 	{
-		"Content\\Models\\Player\\Orc Idle\\Orc Idle.fbx",
-		"Content\\Models\\Player\\Orc Idle\\Orc Idle.fbx",
+		SkinnedMeshActorDefinition
+		{
+			"Content\\Models\\Player\\Orc Idle\\Orc Idle.fbx",
+			"Content\\Models\\Player\\Orc Idle\\Orc Idle.fbx",
+			1.8f,
+			XMFLOAT3{ 0.0f, 0.0f, 0.0f },
+			0.0f,
+			SkinningMode::Gpu
+		},
 		"Content\\Models\\Player\\Jogging\\Jogging.fbx",
-		1.8f,
-		XMFLOAT3{ 0.0f, 0.0f, 0.0f },
-		0.0f,
-		RootMotionMode::Apply,
-		SkinningMode::Gpu
+		RootMotionMode::Apply
 	};
 	return definition;
 }

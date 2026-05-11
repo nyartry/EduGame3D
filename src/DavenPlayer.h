@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Player.h"
+#include "SkinnedMeshActor.h"
 
-class DavenPlayer : public Player
+class DavenPlayer : public SkinnedMeshActor
 {
 protected:
-	const PlayerModelDefinition& GetModelDefinition() const override;
+	const SkinnedMeshActorDefinition& GetSkinnedMeshDefinition() const override;
 };
