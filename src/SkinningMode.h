@@ -2,6 +2,7 @@
 
 enum class SkinningMode
 {
+	None,
 	Cpu,
 	Gpu,
 };

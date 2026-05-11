@@ -1,14 +1,11 @@
 #pragma once
 
+#include "Actor.h"
 #include "SkinnedModel.h"
 
 #include <DirectXMath.h>
-#include <Windows.h>
 
 #include <string_view>
-
-class Dx12Renderer;
-struct ID3D12Device;
 
 struct SkinnedMeshActorDefinition
 {
@@ -20,14 +17,12 @@ struct SkinnedMeshActorDefinition
 	SkinningMode skinningMode{ SkinningMode::Gpu };
 };
 
-class SkinnedMeshActor
+class SkinnedMeshActor : public Actor
 {
 public:
-	virtual ~SkinnedMeshActor() = default;
-
-	void Initialize(ID3D12Device* device);
-	virtual void Update(float deltaTime);
-	void Draw(Dx12Renderer& renderer) const;
+	void Initialize(ID3D12Device* device) override;
+	void Update(float deltaTime) override;
+	void Draw(Dx12Renderer& renderer) const override;
 
 protected:
 	virtual const SkinnedMeshActorDefinition& GetSkinnedMeshDefinition() const = 0;

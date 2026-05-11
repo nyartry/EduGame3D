@@ -19,6 +19,13 @@ struct SkinnedMeshData
 	std::string baseColorTexturePath;
 	std::string opacityTexturePath;
 	std::string normalTexturePath;
+	DirectX::XMFLOAT4X4 meshTransform
+	{
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
 };
 
 struct BoneData

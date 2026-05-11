@@ -1,7 +1,7 @@
 #include "GameScene.h"
 
-#include "DavenPlayer.h"
 #include "Dx12Renderer.h"
+#include "ForestGoddessPlayer.h"
 
 #include <memory>
 
@@ -25,7 +25,7 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_originCube.SetPosition(0.0f, 0.0f, 0.0f);
 	m_originCube.Initialize(device);
 
-	m_actor = std::make_unique<DavenPlayer>();
+	m_actor = std::make_unique<ForestGoddessPlayer>();
 	m_actor->Initialize(device);
 }
 

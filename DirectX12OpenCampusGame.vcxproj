@@ -96,6 +96,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\StaticMeshActor.cpp" />
     <ClCompile Include="src\AnimationSampler.cpp" />
     <ClCompile Include="src\BasicColorPipeline.cpp" />
     <ClCompile Include="src\Camera.cpp" />
@@ -133,6 +134,8 @@
     <ClCompile Include="src\Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Actor.h" />
+    <ClInclude Include="src\StaticMeshActor.h" />
     <ClInclude Include="src\AnimationSampler.h" />
     <ClInclude Include="src\BasicColorPipeline.h" />
     <ClInclude Include="src\Camera.h" />

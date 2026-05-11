@@ -1,0 +1,30 @@
+#pragma once
+
+#include "Actor.h"
+#include "StaticModel.h"
+
+#include <DirectXMath.h>
+
+#include <string_view>
+
+struct StaticMeshActorDefinition
+{
+	std::string_view modelPath;
+	float height{ 1.8f };
+	DirectX::XMFLOAT3 initialPosition{ 0.0f, 0.0f, 0.0f };
+};
+
+class StaticMeshActor : public Actor
+{
+public:
+	void Initialize(ID3D12Device* device) override;
+	void Update(float deltaTime) override;
+	void Draw(Dx12Renderer& renderer) const override;
+
+protected:
+	virtual const StaticMeshActorDefinition& GetStaticMeshDefinition() const = 0;
+
+private:
+	StaticModel m_model;
+	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
+};

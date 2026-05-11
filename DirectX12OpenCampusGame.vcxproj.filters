@@ -11,6 +11,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\StaticMeshActor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\AnimationSampler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -118,6 +121,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Actor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StaticMeshActor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\AnimationSampler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
