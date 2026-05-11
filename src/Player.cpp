@@ -93,7 +93,7 @@ void Player::Update(float deltaTime, const Input& input)
 	const XMFLOAT3 displacement = ChooseDisplacement(inputDisplacement, rootMotionDisplacement);
 	XMFLOAT3 position = GetPosition();
 	position.x += displacement.x;
-	if (m_rootMotionVerticalMode == RootMotionVerticalMode::Apply)
+	if (length > 0.0f && m_rootMotionVerticalMode == RootMotionVerticalMode::Apply)
 	{
 		position.y += displacement.y;
 	}
