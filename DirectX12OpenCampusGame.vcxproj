@@ -58,7 +58,7 @@
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -79,7 +79,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -96,93 +96,93 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\StaticMeshActor.cpp" />
-    <ClCompile Include="src\AnimationSampler.cpp" />
-    <ClCompile Include="src\BasicColorPipeline.cpp" />
-    <ClCompile Include="src\Camera.cpp" />
-    <ClCompile Include="src\CpuSkinnedMeshProcessor.cpp" />
-    <ClCompile Include="src\Cube.cpp" />
-    <ClCompile Include="src\DavenPlayer.cpp" />
-    <ClCompile Include="src\Dx12BufferHelper.cpp" />
-    <ClCompile Include="src\Dx12PipelineHelper.cpp" />
-    <ClCompile Include="src\Dx12Renderer.cpp" />
-    <ClCompile Include="src\Game.cpp" />
-    <ClCompile Include="src\GameScene.cpp" />
-    <ClCompile Include="src\Ground.cpp" />
-    <ClCompile Include="src\GpuSkinnedMeshProcessor.cpp" />
-    <ClCompile Include="src\Input.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\MeshTangentCalculator.cpp" />
-    <ClCompile Include="src\ModelLoader.cpp" />
-    <ClCompile Include="src\ModelTextureResolver.cpp" />
-    <ClCompile Include="src\ForestGoddessPlayer.cpp" />
-    <ClCompile Include="src\OrcPlayer.cpp" />
-    <ClCompile Include="src\Player.cpp" />
-    <ClCompile Include="src\PrimitiveObject.cpp" />
-    <ClCompile Include="src\RootMotionPolicy.cpp" />
-    <ClCompile Include="src\SkinnedMeshActor.cpp" />
-    <ClCompile Include="src\SkinnedModel.cpp" />
-    <ClCompile Include="src\SkinnedModelLoader.cpp" />
-    <ClCompile Include="src\SkinnedTexturedPipeline.cpp" />
-    <ClCompile Include="src\SkinnedVertexBuffer.cpp" />
-    <ClCompile Include="src\StaticModel.cpp" />
-    <ClCompile Include="src\Texture2D.cpp" />
-    <ClCompile Include="src\TexturedMaterial.cpp" />
-    <ClCompile Include="src\TexturedPipeline.cpp" />
-    <ClCompile Include="src\TexturedVertexBuffer.cpp" />
-    <ClCompile Include="src\VertexBuffer.cpp" />
-    <ClCompile Include="src\Win32Application.cpp" />
+    <ClCompile Include="src\Models\StaticMeshActor.cpp" />
+    <ClCompile Include="src\Animation\AnimationSampler.cpp" />
+    <ClCompile Include="src\Rendering\BasicColorPipeline.cpp" />
+    <ClCompile Include="src\Scene\Camera.cpp" />
+    <ClCompile Include="src\Animation\CpuSkinnedMeshProcessor.cpp" />
+    <ClCompile Include="src\Gameplay\Cube.cpp" />
+    <ClCompile Include="src\Gameplay\DavenPlayer.cpp" />
+    <ClCompile Include="src\Rendering\Dx12BufferHelper.cpp" />
+    <ClCompile Include="src\Rendering\Dx12PipelineHelper.cpp" />
+    <ClCompile Include="src\Rendering\Dx12Renderer.cpp" />
+    <ClCompile Include="src\App\Game.cpp" />
+    <ClCompile Include="src\Scene\GameScene.cpp" />
+    <ClCompile Include="src\Gameplay\Ground.cpp" />
+    <ClCompile Include="src\Animation\GpuSkinnedMeshProcessor.cpp" />
+    <ClCompile Include="src\Scene\Input.cpp" />
+    <ClCompile Include="src\App\main.cpp" />
+    <ClCompile Include="src\Animation\MeshTangentCalculator.cpp" />
+    <ClCompile Include="src\Models\ModelLoader.cpp" />
+    <ClCompile Include="src\Models\ModelTextureResolver.cpp" />
+    <ClCompile Include="src\Gameplay\ForestGoddessPlayer.cpp" />
+    <ClCompile Include="src\Gameplay\OrcPlayer.cpp" />
+    <ClCompile Include="src\Gameplay\Player.cpp" />
+    <ClCompile Include="src\Gameplay\PrimitiveObject.cpp" />
+    <ClCompile Include="src\Animation\RootMotionPolicy.cpp" />
+    <ClCompile Include="src\Models\SkinnedMeshActor.cpp" />
+    <ClCompile Include="src\Models\SkinnedModel.cpp" />
+    <ClCompile Include="src\Models\SkinnedModelLoader.cpp" />
+    <ClCompile Include="src\Rendering\SkinnedTexturedPipeline.cpp" />
+    <ClCompile Include="src\Rendering\SkinnedVertexBuffer.cpp" />
+    <ClCompile Include="src\Models\StaticModel.cpp" />
+    <ClCompile Include="src\Rendering\Texture2D.cpp" />
+    <ClCompile Include="src\Rendering\TexturedMaterial.cpp" />
+    <ClCompile Include="src\Rendering\TexturedPipeline.cpp" />
+    <ClCompile Include="src\Rendering\TexturedVertexBuffer.cpp" />
+    <ClCompile Include="src\Rendering\VertexBuffer.cpp" />
+    <ClCompile Include="src\App\Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Actor.h" />
-    <ClInclude Include="src\StaticMeshActor.h" />
-    <ClInclude Include="src\AnimationSampler.h" />
-    <ClInclude Include="src\BasicColorPipeline.h" />
-    <ClInclude Include="src\Camera.h" />
-    <ClInclude Include="src\Common.h" />
-    <ClInclude Include="src\CpuSkinnedMeshProcessor.h" />
-    <ClInclude Include="src\Cube.h" />
-    <ClInclude Include="src\DavenPlayer.h" />
-    <ClInclude Include="src\Dx12BufferHelper.h" />
-    <ClInclude Include="src\Dx12PipelineHelper.h" />
-    <ClInclude Include="src\Dx12Renderer.h" />
-    <ClInclude Include="src\Game.h" />
-    <ClInclude Include="src\GameScene.h" />
-    <ClInclude Include="src\Ground.h" />
-    <ClInclude Include="src\GpuSkinnedMeshProcessor.h" />
-    <ClInclude Include="src\Input.h" />
-    <ClInclude Include="src\ISkinnedMeshProcessor.h" />
-    <ClInclude Include="src\MeshTangentCalculator.h" />
-    <ClInclude Include="src\ModelLoader.h" />
-    <ClInclude Include="src\ModelScaleSettings.h" />
-    <ClInclude Include="src\ModelTextureResolver.h" />
-    <ClInclude Include="src\ForestGoddessPlayer.h" />
-    <ClInclude Include="src\OrcPlayer.h" />
-    <ClInclude Include="src\Player.h" />
-    <ClInclude Include="src\PrimitiveObject.h" />
-    <ClInclude Include="src\RootMotion.h" />
-    <ClInclude Include="src\RootMotionPolicy.h" />
-    <ClInclude Include="src\SkinningMode.h" />
-    <ClInclude Include="src\SkinnedMeshActor.h" />
-    <ClInclude Include="src\SkinnedModel.h" />
-    <ClInclude Include="src\SkinnedModelData.h" />
-    <ClInclude Include="src\SkinnedModelLoader.h" />
-    <ClInclude Include="src\SkinnedTexturedPipeline.h" />
-    <ClInclude Include="src\SkinnedVertexBuffer.h" />
-    <ClInclude Include="src\StaticModel.h" />
-    <ClInclude Include="src\Texture2D.h" />
-    <ClInclude Include="src\TexturedMaterial.h" />
-    <ClInclude Include="src\TexturedPipeline.h" />
-    <ClInclude Include="src\TexturedVertex.h" />
-    <ClInclude Include="src\TexturedVertexBuffer.h" />
-    <ClInclude Include="src\Vertex.h" />
-    <ClInclude Include="src\VertexBuffer.h" />
-    <ClInclude Include="src\Win32Application.h" />
+    <ClInclude Include="src\Gameplay\Actor.h" />
+    <ClInclude Include="src\Models\StaticMeshActor.h" />
+    <ClInclude Include="src\Animation\AnimationSampler.h" />
+    <ClInclude Include="src\Rendering\BasicColorPipeline.h" />
+    <ClInclude Include="src\Scene\Camera.h" />
+    <ClInclude Include="src\Common\Common.h" />
+    <ClInclude Include="src\Animation\CpuSkinnedMeshProcessor.h" />
+    <ClInclude Include="src\Gameplay\Cube.h" />
+    <ClInclude Include="src\Gameplay\DavenPlayer.h" />
+    <ClInclude Include="src\Rendering\Dx12BufferHelper.h" />
+    <ClInclude Include="src\Rendering\Dx12PipelineHelper.h" />
+    <ClInclude Include="src\Rendering\Dx12Renderer.h" />
+    <ClInclude Include="src\App\Game.h" />
+    <ClInclude Include="src\Scene\GameScene.h" />
+    <ClInclude Include="src\Gameplay\Ground.h" />
+    <ClInclude Include="src\Animation\GpuSkinnedMeshProcessor.h" />
+    <ClInclude Include="src\Scene\Input.h" />
+    <ClInclude Include="src\Animation\ISkinnedMeshProcessor.h" />
+    <ClInclude Include="src\Animation\MeshTangentCalculator.h" />
+    <ClInclude Include="src\Models\ModelLoader.h" />
+    <ClInclude Include="src\Common\ModelScaleSettings.h" />
+    <ClInclude Include="src\Models\ModelTextureResolver.h" />
+    <ClInclude Include="src\Gameplay\ForestGoddessPlayer.h" />
+    <ClInclude Include="src\Gameplay\OrcPlayer.h" />
+    <ClInclude Include="src\Gameplay\Player.h" />
+    <ClInclude Include="src\Gameplay\PrimitiveObject.h" />
+    <ClInclude Include="src\Animation\RootMotion.h" />
+    <ClInclude Include="src\Animation\RootMotionPolicy.h" />
+    <ClInclude Include="src\Animation\SkinningMode.h" />
+    <ClInclude Include="src\Models\SkinnedMeshActor.h" />
+    <ClInclude Include="src\Models\SkinnedModel.h" />
+    <ClInclude Include="src\Models\SkinnedModelData.h" />
+    <ClInclude Include="src\Models\SkinnedModelLoader.h" />
+    <ClInclude Include="src\Rendering\SkinnedTexturedPipeline.h" />
+    <ClInclude Include="src\Rendering\SkinnedVertexBuffer.h" />
+    <ClInclude Include="src\Models\StaticModel.h" />
+    <ClInclude Include="src\Rendering\Texture2D.h" />
+    <ClInclude Include="src\Rendering\TexturedMaterial.h" />
+    <ClInclude Include="src\Rendering\TexturedPipeline.h" />
+    <ClInclude Include="src\Rendering\TexturedVertex.h" />
+    <ClInclude Include="src\Rendering\TexturedVertexBuffer.h" />
+    <ClInclude Include="src\Rendering\Vertex.h" />
+    <ClInclude Include="src\Rendering\VertexBuffer.h" />
+    <ClInclude Include="src\App\Win32Application.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\BasicColor.hlsl" />
-    <None Include="src\SkinnedTextured.hlsl" />
-    <None Include="src\Textured.hlsl" />
+    <None Include="src\Rendering\Shaders\BasicColor.hlsl" />
+    <None Include="src\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Rendering\Shaders\Textured.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
