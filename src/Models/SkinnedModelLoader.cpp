@@ -32,14 +32,32 @@ namespace
 		};
 	}
 
-	TexturedVertex MakeTexturedVertex(const aiMesh* mesh, unsigned int vertexIndex)
+	XMFLOAT4 GetMaterialColor(const aiMaterial* material)
+	{
+		if (material == nullptr)
+		{
+			return XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+		}
+
+		aiColor4D color;
+		if (AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_BASE_COLOR, &color) ||
+			AI_SUCCESS == aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &color))
+		{
+			return XMFLOAT4{ color.r, color.g, color.b, color.a };
+		}
+
+		return XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+	}
+
+	TexturedVertex MakeTexturedVertex(const aiMesh* mesh, unsigned int vertexIndex, const XMFLOAT4& materialColor)
 	{
 		TexturedVertex vertex
 		{
 			XMFLOAT3{ mesh->mVertices[vertexIndex].x, mesh->mVertices[vertexIndex].y, mesh->mVertices[vertexIndex].z },
 			XMFLOAT3{ 0.0f, 1.0f, 0.0f },
 			XMFLOAT3{ 1.0f, 0.0f, 0.0f },
-			XMFLOAT2{ 0.0f, 0.0f }
+			XMFLOAT2{ 0.0f, 0.0f },
+			materialColor
 		};
 
 		if (mesh->HasNormals())
@@ -58,6 +76,17 @@ namespace
 			{
 				mesh->mTextureCoords[0][vertexIndex].x,
 				mesh->mTextureCoords[0][vertexIndex].y
+			};
+		}
+
+		if (mesh->HasVertexColors(0))
+		{
+			vertex.color = XMFLOAT4
+			{
+				materialColor.x * mesh->mColors[0][vertexIndex].r,
+				materialColor.y * mesh->mColors[0][vertexIndex].g,
+				materialColor.z * mesh->mColors[0][vertexIndex].b,
+				materialColor.w * mesh->mColors[0][vertexIndex].a
 			};
 		}
 
@@ -259,11 +288,12 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 		meshData.baseColorTexturePath = textureResolver.FindTexture(material, { aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE });
 		meshData.opacityTexturePath = textureResolver.FindTexture(material, { aiTextureType_OPACITY });
 		meshData.normalTexturePath = textureResolver.FindTexture(material, { aiTextureType_NORMALS, aiTextureType_NORMAL_CAMERA, aiTextureType_HEIGHT });
+		const XMFLOAT4 materialColor = GetMaterialColor(material);
 
 		std::vector<SkinnedVertex> sourceVertices(mesh->mNumVertices);
 		for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
 		{
-			sourceVertices[vertexIndex].vertex = MakeTexturedVertex(mesh, vertexIndex);
+			sourceVertices[vertexIndex].vertex = MakeTexturedVertex(mesh, vertexIndex, materialColor);
 		}
 
 		for (unsigned int meshBoneIndex = 0; meshBoneIndex < mesh->mNumBones; ++meshBoneIndex)

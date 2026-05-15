@@ -4,6 +4,7 @@ struct VSInput
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
 	float2 uv : TEXCOORD;
+	float4 color : COLOR;
 };
 
 struct PSInput
@@ -12,6 +13,7 @@ struct PSInput
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
 	float2 uv : TEXCOORD;
+	float4 color : COLOR;
 };
 
 cbuffer SceneConstants : register(b0)
@@ -31,12 +33,14 @@ PSInput VSMain(VSInput input)
 	output.normal = normalize(input.normal);
 	output.tangent = normalize(input.tangent);
 	output.uv = input.uv;
+	output.color = input.color;
 	return output;
 }
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
 	float4 baseColor = baseColorTexture.Sample(baseColorSampler, input.uv);
+	baseColor *= input.color;
 	float opacity = opacityTexture.Sample(baseColorSampler, input.uv).r * baseColor.a;
 	clip(opacity - 0.35f);
 
