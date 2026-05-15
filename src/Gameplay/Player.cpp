@@ -12,8 +12,10 @@ namespace
 {
 	constexpr const char* IdleAnimationName = "Idle";
 	constexpr const char* JoggingAnimationName = "Jogging";
+	constexpr const char* AttackAnimationName = "Attack";
 	constexpr float MoveSpeed = 3.0f;
 	constexpr float GroundHeight = 0.0f;
+	constexpr float DefaultAttackDurationSeconds = 1.0f;
 
 	XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float amount)
 	{
@@ -41,10 +43,26 @@ void Player::Initialize(ID3D12Device* device)
 	{
 		GetModel().AddAnimation(JoggingAnimationName, std::string(definition.joggingAnimationPath));
 	}
+
+	m_hasAttackAnimation = !definition.attackAnimationPath.empty();
+	if (m_hasAttackAnimation)
+	{
+		GetModel().AddAnimation(AttackAnimationName, std::string(definition.attackAnimationPath));
+		m_attackDurationSeconds = GetModel().GetAnimationDurationSeconds(AttackAnimationName);
+		if (m_attackDurationSeconds <= 0.0f)
+		{
+			m_attackDurationSeconds = DefaultAttackDurationSeconds;
+		}
+	}
 }
 
 void Player::Update(float deltaTime, const Input& input)
 {
+	if (input.WasPressed(InputKey::X) && m_hasAttackAnimation)
+	{
+		StartAttack();
+	}
+
 	XMFLOAT3 movement{};
 	if (input.IsDown(InputKey::W))
 	{
@@ -65,7 +83,8 @@ void Player::Update(float deltaTime, const Input& input)
 
 	const float length = std::sqrt(movement.x * movement.x + movement.z * movement.z);
 	XMFLOAT3 inputDisplacement{};
-	if (length > 0.0f && m_hasJoggingAnimation)
+	const bool isAttacking = m_animationState == AnimationState::Attack;
+	if (!isAttacking && length > 0.0f && m_hasJoggingAnimation)
 	{
 		movement.x /= length;
 		movement.z /= length;
@@ -76,7 +95,7 @@ void Player::Update(float deltaTime, const Input& input)
 		SetRotationY(std::atan2(worldMovement.x, worldMovement.z) + XM_PI);
 		SetAnimationState(AnimationState::Jogging);
 	}
-	else
+	else if (!isAttacking)
 	{
 		SetAnimationState(AnimationState::Idle);
 		if (length > 0.0f)
@@ -106,6 +125,15 @@ void Player::Update(float deltaTime, const Input& input)
 	position.z += displacement.z;
 
 	SetPosition(position);
+
+	if (isAttacking)
+	{
+		m_attackTimeRemaining -= deltaTime;
+		if (m_attackTimeRemaining <= 0.0f)
+		{
+			SetAnimationState(length > 0.0f && m_hasJoggingAnimation ? AnimationState::Jogging : AnimationState::Idle);
+		}
+	}
 }
 
 void Player::SetMovementForward(const XMFLOAT3& forward)
@@ -120,6 +148,12 @@ void Player::SetMovementForward(const XMFLOAT3& forward)
 	normalized.x /= length;
 	normalized.z /= length;
 	m_movementForward = normalized;
+}
+
+void Player::StartAttack()
+{
+	m_attackTimeRemaining = m_attackDurationSeconds;
+	SetAnimationState(AnimationState::Attack);
 }
 
 void Player::SetAnimationState(AnimationState state)
@@ -139,6 +173,12 @@ void Player::SetAnimationState(AnimationState state)
 		if (m_hasJoggingAnimation)
 		{
 			GetModel().PlayAnimation(JoggingAnimationName);
+		}
+		break;
+	case AnimationState::Attack:
+		if (m_hasAttackAnimation)
+		{
+			GetModel().PlayAnimation(AttackAnimationName);
 		}
 		break;
 	}

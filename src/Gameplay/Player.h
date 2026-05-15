@@ -12,6 +12,7 @@ struct PlayerDefinition
 {
 	SkinnedMeshActorDefinition mesh;
 	std::string_view joggingAnimationPath;
+	std::string_view attackAnimationPath;
 	RootMotionMode rootMotionMode{ RootMotionMode::Apply };
 };
 
@@ -34,8 +35,10 @@ private:
 	{
 		Idle,
 		Jogging,
+		Attack,
 	};
 
+	void StartAttack();
 	void SetAnimationState(AnimationState state);
 	DirectX::XMFLOAT3 ChooseDisplacement(
 		const DirectX::XMFLOAT3& inputDisplacement,
@@ -48,5 +51,8 @@ private:
 	RootMotionMode m_rootMotionMode{ RootMotionMode::Apply };
 	RootMotionVerticalMode m_rootMotionVerticalMode{ RootMotionVerticalMode::Apply };
 	float m_rootMotionBlendWeight{ 0.5f };
+	float m_attackTimeRemaining{};
+	float m_attackDurationSeconds{};
 	bool m_hasJoggingAnimation{};
+	bool m_hasAttackAnimation{};
 };

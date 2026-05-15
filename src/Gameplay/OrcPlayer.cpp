@@ -16,6 +16,7 @@ const PlayerDefinition& OrcPlayer::GetPlayerDefinition() const
 			SkinningMode::Gpu
 		},
 		"Content\\Models\\Player\\Jogging\\Jogging.fbx",
+		"Content\\Models\\Player\\Mma Kick\\Mma Kick.fbx",
 		RootMotionMode::Apply
 	};
 	return definition;

@@ -27,6 +27,7 @@ public:
 		SkinningMode skinningMode = SkinningMode::Cpu);
 	void AddAnimation(const std::string& animationName, const std::string& animationPath);
 	void PlayAnimation(const std::string& animationName);
+	float GetAnimationDurationSeconds(const std::string& animationName) const;
 	RootMotionDelta Update(float deltaTime);
 	void Draw(Dx12Renderer& renderer) const;
 

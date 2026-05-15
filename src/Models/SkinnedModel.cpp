@@ -92,6 +92,18 @@ void SkinnedModel::PlayAnimation(const std::string& animationName)
 	}
 }
 
+float SkinnedModel::GetAnimationDurationSeconds(const std::string& animationName) const
+{
+	for (const AnimationClip& clip : m_modelData.animations)
+	{
+		if (clip.name == animationName && clip.ticksPerSecond > 0.0)
+		{
+			return static_cast<float>(clip.durationTicks / clip.ticksPerSecond);
+		}
+	}
+	return 0.0f;
+}
+
 RootMotionDelta SkinnedModel::Update(float deltaTime)
 {
 	const RootMotionDelta rootMotionDelta = ExtractRootMotionDelta(deltaTime);
