@@ -12,6 +12,7 @@ enum class InputKey
 	A,
 	S,
 	D,
+	Z,
 	Space,
 	Escape,
 };

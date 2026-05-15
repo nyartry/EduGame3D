@@ -49,6 +49,8 @@ int Input::ToVirtualKey(InputKey key)
 		return 'S';
 	case InputKey::D:
 		return 'D';
+	case InputKey::Z:
+		return 'Z';
 	case InputKey::Space:
 		return VK_SPACE;
 	case InputKey::Escape:

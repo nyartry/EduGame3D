@@ -23,10 +23,12 @@ private:
 	DirectX::XMFLOAT3 m_up{ 0.0f, 1.0f, 0.0f };
 
 	float m_targetRotationY{};
+	float m_cameraYaw{};
 	float m_distance{ 7.0f };
 	float m_height{ 4.5f };
 	float m_lookAtHeight{ 1.2f };
 	float m_followSharpness{ 8.0f };
+	float m_zFocusSharpness{ 10.0f };
 	float m_fovYRadians{ DirectX::XMConvertToRadians(55.0f) };
 	float m_aspectRatio{ 16.0f / 9.0f };
 	float m_nearZ{ 0.1f };

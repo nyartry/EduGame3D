@@ -16,13 +16,37 @@ namespace
 			from.z * (1.0f - amount) + to.z * amount
 		};
 	}
+
+	float NormalizeAngle(float angle)
+	{
+		while (angle > XM_PI)
+		{
+			angle -= XM_2PI;
+		}
+		while (angle < -XM_PI)
+		{
+			angle += XM_2PI;
+		}
+		return angle;
+	}
+
+	float LerpAngle(float from, float to, float amount)
+	{
+		return from + NormalizeAngle(to - from) * amount;
+	}
 }
 
-void FollowCamera::Update(float deltaTime, const Input&)
+void FollowCamera::Update(float deltaTime, const Input& input)
 {
 	if (!m_hasTarget)
 	{
 		return;
+	}
+
+	if (input.IsDown(InputKey::Z))
+	{
+		const float zFocusAmount = std::clamp(1.0f - std::exp(-m_zFocusSharpness * deltaTime), 0.0f, 1.0f);
+		m_cameraYaw = LerpAngle(m_cameraYaw, m_targetRotationY, zFocusAmount);
 	}
 
 	const XMFLOAT3 desiredLookAt
@@ -34,9 +58,9 @@ void FollowCamera::Update(float deltaTime, const Input&)
 
 	const XMFLOAT3 desiredPosition
 	{
-		m_targetPosition.x + std::sin(m_targetRotationY) * m_distance,
+		m_targetPosition.x + std::sin(m_cameraYaw) * m_distance,
 		m_targetPosition.y + m_height,
-		m_targetPosition.z + std::cos(m_targetRotationY) * m_distance
+		m_targetPosition.z + std::cos(m_cameraYaw) * m_distance
 	};
 
 	const float amount = std::clamp(1.0f - std::exp(-m_followSharpness * deltaTime), 0.0f, 1.0f);
@@ -59,12 +83,13 @@ void FollowCamera::SetFollowTarget(const XMFLOAT3& position, float rotationY)
 	if (!m_hasTarget)
 	{
 		m_hasTarget = true;
+		m_cameraYaw = rotationY;
 		m_lookAt = XMFLOAT3{ position.x, position.y + m_lookAtHeight, position.z };
 		m_position = XMFLOAT3
 		{
-			position.x + std::sin(rotationY) * m_distance,
+			position.x + std::sin(m_cameraYaw) * m_distance,
 			position.y + m_height,
-			position.z + std::cos(rotationY) * m_distance
+			position.z + std::cos(m_cameraYaw) * m_distance
 		};
 	}
 }
