@@ -36,6 +36,7 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 
 	m_actors.clear();
 	auto player = std::make_unique<OrcPlayer>();
+	player->SetGround(&m_ground);
 	m_player = player.get();
 	m_followTarget = player.get();
 	m_actors.push_back(std::move(player));

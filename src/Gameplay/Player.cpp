@@ -1,5 +1,6 @@
 #include "Gameplay/Player.h"
 
+#include "Gameplay/Ground.h"
 #include "Rendering/Dx12Renderer.h"
 
 #include <algorithm>
@@ -14,7 +15,9 @@ namespace
 	constexpr const char* JoggingAnimationName = "Jogging";
 	constexpr const char* AttackAnimationName = "Attack";
 	constexpr float MoveSpeed = 3.0f;
-	constexpr float GroundHeight = 0.0f;
+	constexpr float Gravity = -18.0f;
+	constexpr float JumpSpeed = 7.0f;
+	constexpr float PlayerCollisionRadius = 0.35f;
 	constexpr float DefaultAttackDurationSeconds = 1.0f;
 
 	XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float amount)
@@ -114,15 +117,8 @@ void Player::Update(float deltaTime, const Input& input)
 	const XMFLOAT3 displacement = ChooseDisplacement(inputDisplacement, rootMotionDisplacement);
 	XMFLOAT3 position = GetPosition();
 	position.x += displacement.x;
-	if (length > 0.0f && m_rootMotionVerticalMode == RootMotionVerticalMode::Apply)
-	{
-		position.y += displacement.y;
-	}
-	else
-	{
-		position.y = GroundHeight;
-	}
 	position.z += displacement.z;
+	ApplyVerticalPhysics(deltaTime, input, position);
 
 	SetPosition(position);
 
@@ -148,6 +144,11 @@ void Player::SetMovementForward(const XMFLOAT3& forward)
 	normalized.x /= length;
 	normalized.z /= length;
 	m_movementForward = normalized;
+}
+
+void Player::SetGround(const Ground* ground)
+{
+	m_ground = ground;
 }
 
 void Player::StartAttack()
@@ -212,6 +213,41 @@ XMFLOAT3 Player::ChooseDisplacement(
 	case RootMotionMode::Ignore:
 	default:
 		return inputDisplacement;
+	}
+}
+
+void Player::ApplyVerticalPhysics(float deltaTime, const Input& input, XMFLOAT3& position)
+{
+	if (input.WasPressed(InputKey::Space) && m_isGrounded)
+	{
+		m_verticalVelocity = JumpSpeed;
+		m_isGrounded = false;
+	}
+
+	m_verticalVelocity += Gravity * deltaTime;
+	position.y += m_verticalVelocity * deltaTime;
+
+	if (m_ground == nullptr)
+	{
+		return;
+	}
+
+	float groundHeight = 0.0f;
+	if (!m_ground->TryGetHeightAt(position, PlayerCollisionRadius, groundHeight))
+	{
+		m_isGrounded = false;
+		return;
+	}
+
+	if (position.y <= groundHeight)
+	{
+		position.y = groundHeight;
+		m_verticalVelocity = 0.0f;
+		m_isGrounded = true;
+	}
+	else
+	{
+		m_isGrounded = false;
 	}
 }
 

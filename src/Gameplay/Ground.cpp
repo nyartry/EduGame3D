@@ -15,10 +15,23 @@ void Ground::Draw(Dx12Renderer& renderer) const
 	renderer.Draw(m_vertexBuffer, XMMatrixIdentity());
 }
 
+bool Ground::TryGetHeightAt(const XMFLOAT3& position, float radius, float& height) const
+{
+	if (position.x + radius < -HalfExtent ||
+		position.x - radius > HalfExtent ||
+		position.z + radius < -HalfExtent ||
+		position.z - radius > HalfExtent)
+	{
+		return false;
+	}
+
+	height = GroundHeight;
+	return true;
+}
+
 void Ground::BuildMesh()
 {
 	constexpr int TileCount = 16;
-	constexpr float HalfExtent = 8.0f;
 	constexpr float TileSize = (HalfExtent * 2.0f) / static_cast<float>(TileCount);
 
 	m_vertices.clear();
