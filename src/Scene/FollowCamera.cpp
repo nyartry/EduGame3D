@@ -94,6 +94,25 @@ void FollowCamera::SetFollowTarget(const XMFLOAT3& position, float rotationY)
 	}
 }
 
+XMFLOAT3 FollowCamera::GetForwardXZ() const
+{
+	XMFLOAT3 forward
+	{
+		m_lookAt.x - m_position.x,
+		0.0f,
+		m_lookAt.z - m_position.z
+	};
+	const float length = std::sqrt(forward.x * forward.x + forward.z * forward.z);
+	if (length == 0.0f)
+	{
+		return XMFLOAT3{ 0.0f, 0.0f, 1.0f };
+	}
+
+	forward.x /= length;
+	forward.z /= length;
+	return forward;
+}
+
 XMMATRIX FollowCamera::GetViewProjectionMatrix() const
 {
 	return GetViewMatrix() * GetProjectionMatrix();

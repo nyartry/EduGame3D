@@ -22,6 +22,7 @@ public:
 
 	DirectX::XMMATRIX GetViewMatrix() const;
 	DirectX::XMMATRIX GetProjectionMatrix() const;
+	DirectX::XMFLOAT3 GetForwardXZ() const override;
 	DirectX::XMMATRIX GetViewProjectionMatrix() const override;
 
 private:

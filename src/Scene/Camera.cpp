@@ -1,5 +1,7 @@
 #include "Scene/Camera.h"
 
+#include <cmath>
+
 using namespace DirectX;
 
 namespace
@@ -89,6 +91,25 @@ XMMATRIX Camera::GetViewMatrix() const
 XMMATRIX Camera::GetProjectionMatrix() const
 {
 	return XMMatrixPerspectiveFovLH(m_fovYRadians, m_aspectRatio, m_nearZ, m_farZ);
+}
+
+XMFLOAT3 Camera::GetForwardXZ() const
+{
+	XMFLOAT3 forward
+	{
+		m_target.x - m_position.x,
+		0.0f,
+		m_target.z - m_position.z
+	};
+	const float length = std::sqrt(forward.x * forward.x + forward.z * forward.z);
+	if (length == 0.0f)
+	{
+		return XMFLOAT3{ 0.0f, 0.0f, 1.0f };
+	}
+
+	forward.x /= length;
+	forward.z /= length;
+	return forward;
 }
 
 XMMATRIX Camera::GetViewProjectionMatrix() const

@@ -5,6 +5,7 @@
 #include "Gameplay/ForestGoddessPlayer.h"
 #include "Gameplay/NathanWalker.h"
 #include "Gameplay/OrcPlayer.h"
+#include "Gameplay/Player.h"
 #include "Models/SkinnedMeshActor.h"
 
 #include <memory>
@@ -35,6 +36,7 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 
 	m_actors.clear();
 	auto player = std::make_unique<OrcPlayer>();
+	m_player = player.get();
 	m_followTarget = player.get();
 	m_actors.push_back(std::move(player));
 	m_actors.push_back(std::make_unique<DavenPlayer>());
@@ -48,6 +50,11 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 
 void GameScene::Update(float deltaTime, const Input& input)
 {
+	if (m_player != nullptr)
+	{
+		m_player->SetMovementForward(m_camera->GetForwardXZ());
+	}
+
 	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
 		actor->Update(deltaTime, input);

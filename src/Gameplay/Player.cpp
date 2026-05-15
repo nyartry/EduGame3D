@@ -69,10 +69,11 @@ void Player::Update(float deltaTime, const Input& input)
 	{
 		movement.x /= length;
 		movement.z /= length;
-		inputDisplacement.x = movement.x * MoveSpeed * deltaTime;
-		inputDisplacement.z = movement.z * MoveSpeed * deltaTime;
+		const XMFLOAT3 worldMovement = TransformInputToWorld(movement);
+		inputDisplacement.x = worldMovement.x * MoveSpeed * deltaTime;
+		inputDisplacement.z = worldMovement.z * MoveSpeed * deltaTime;
 
-		SetRotationY(std::atan2(movement.x, movement.z) + XM_PI);
+		SetRotationY(std::atan2(worldMovement.x, worldMovement.z) + XM_PI);
 		SetAnimationState(AnimationState::Jogging);
 	}
 	else
@@ -82,9 +83,10 @@ void Player::Update(float deltaTime, const Input& input)
 		{
 			movement.x /= length;
 			movement.z /= length;
-			inputDisplacement.x = movement.x * MoveSpeed * deltaTime;
-			inputDisplacement.z = movement.z * MoveSpeed * deltaTime;
-			SetRotationY(std::atan2(movement.x, movement.z) + XM_PI);
+			const XMFLOAT3 worldMovement = TransformInputToWorld(movement);
+			inputDisplacement.x = worldMovement.x * MoveSpeed * deltaTime;
+			inputDisplacement.z = worldMovement.z * MoveSpeed * deltaTime;
+			SetRotationY(std::atan2(worldMovement.x, worldMovement.z) + XM_PI);
 		}
 	}
 
@@ -104,6 +106,20 @@ void Player::Update(float deltaTime, const Input& input)
 	position.z += displacement.z;
 
 	SetPosition(position);
+}
+
+void Player::SetMovementForward(const XMFLOAT3& forward)
+{
+	XMFLOAT3 normalized{ forward.x, 0.0f, forward.z };
+	const float length = std::sqrt(normalized.x * normalized.x + normalized.z * normalized.z);
+	if (length == 0.0f)
+	{
+		return;
+	}
+
+	normalized.x /= length;
+	normalized.z /= length;
+	m_movementForward = normalized;
 }
 
 void Player::SetAnimationState(AnimationState state)
@@ -157,6 +173,23 @@ XMFLOAT3 Player::ChooseDisplacement(
 	default:
 		return inputDisplacement;
 	}
+}
+
+XMFLOAT3 Player::TransformInputToWorld(const XMFLOAT3& movement) const
+{
+	const XMFLOAT3 right
+	{
+		m_movementForward.z,
+		0.0f,
+		-m_movementForward.x
+	};
+
+	return XMFLOAT3
+	{
+		right.x * movement.x + m_movementForward.x * movement.z,
+		0.0f,
+		right.z * movement.x + m_movementForward.z * movement.z
+	};
 }
 
 XMFLOAT3 Player::TransformRootMotionToWorld(const XMFLOAT3& localRootMotion) const

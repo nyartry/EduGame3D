@@ -14,6 +14,7 @@
 #include <vector>
 
 class Dx12Renderer;
+class Player;
 class SkinnedMeshActor;
 struct ID3D12Device;
 
@@ -29,6 +30,7 @@ public:
 private:
 	std::unique_ptr<ICamera> m_camera;
 	FollowCamera* m_followCamera{};
+	Player* m_player{};
 	const SkinnedMeshActor* m_followTarget{};
 	Ground m_ground;
 	Cube m_originCube;

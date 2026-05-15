@@ -11,6 +11,7 @@ public:
 	void SetLens(float fovYRadians, float aspectRatio, float nearZ, float farZ) override;
 	void SetFollowTarget(const DirectX::XMFLOAT3& position, float rotationY);
 
+	DirectX::XMFLOAT3 GetForwardXZ() const override;
 	DirectX::XMMATRIX GetViewProjectionMatrix() const override;
 
 private:
