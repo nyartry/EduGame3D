@@ -57,7 +57,7 @@ namespace
 			vertex.uv = XMFLOAT2
 			{
 				mesh->mTextureCoords[0][vertexIndex].x,
-				1.0f - mesh->mTextureCoords[0][vertexIndex].y
+				mesh->mTextureCoords[0][vertexIndex].y
 			};
 		}
 
