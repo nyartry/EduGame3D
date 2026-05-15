@@ -1,14 +1,15 @@
 #pragma once
 
+#include "Scene/ICamera.h"
 #include "Scene/Input.h"
 
 #include <DirectXMath.h>
 
-class Camera
+class Camera : public ICamera
 {
 public:
-	void Update(float deltaTime, const Input& input);
-	void SetLens(float fovYRadians, float aspectRatio, float nearZ, float farZ);
+	void Update(float deltaTime, const Input& input) override;
+	void SetLens(float fovYRadians, float aspectRatio, float nearZ, float farZ) override;
 	void SetPosition(float x, float y, float z);
 	void SetTarget(float x, float y, float z);
 	void LookAt(
@@ -21,7 +22,7 @@ public:
 
 	DirectX::XMMATRIX GetViewMatrix() const;
 	DirectX::XMMATRIX GetProjectionMatrix() const;
-	DirectX::XMMATRIX GetViewProjectionMatrix() const;
+	DirectX::XMMATRIX GetViewProjectionMatrix() const override;
 
 private:
 	DirectX::XMFLOAT3 m_position{ 0.0f, 9.0f, -9.0f };

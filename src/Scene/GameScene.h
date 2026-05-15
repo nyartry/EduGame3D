@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Scene/Camera.h"
 #include "Gameplay/Cube.h"
 #include "Gameplay/Ground.h"
 #include "Scene/Input.h"
 #include "Gameplay/Actor.h"
+#include "Scene/FollowCamera.h"
+#include "Scene/ICamera.h"
 
 #include <Windows.h>
 
@@ -13,6 +14,7 @@
 #include <vector>
 
 class Dx12Renderer;
+class SkinnedMeshActor;
 struct ID3D12Device;
 
 class GameScene
@@ -25,7 +27,9 @@ public:
 	DirectX::XMMATRIX GetViewProjectionMatrix() const;
 
 private:
-	Camera m_camera;
+	std::unique_ptr<ICamera> m_camera;
+	FollowCamera* m_followCamera{};
+	const SkinnedMeshActor* m_followTarget{};
 	Ground m_ground;
 	Cube m_originCube;
 	std::vector<std::unique_ptr<Actor>> m_actors;

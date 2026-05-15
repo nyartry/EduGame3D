@@ -5,6 +5,7 @@
 #include "Gameplay/ForestGoddessPlayer.h"
 #include "Gameplay/NathanWalker.h"
 #include "Gameplay/OrcPlayer.h"
+#include "Models/SkinnedMeshActor.h"
 
 #include <memory>
 
@@ -22,16 +23,20 @@ namespace
 void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 {
 	const float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-	m_camera.SetLens(XMConvertToRadians(CameraFovYDegrees), aspectRatio, CameraNearZ, CameraFarZ);
-	m_camera.SetPosition(0.0f, 9.0f, -1.0f);
-	m_camera.SetTarget(0.0f, 0.0f, 1.5f);
+
+	auto followCamera = std::make_unique<FollowCamera>();
+	followCamera->SetLens(XMConvertToRadians(CameraFovYDegrees), aspectRatio, CameraNearZ, CameraFarZ);
+	m_followCamera = followCamera.get();
+	m_camera = std::move(followCamera);
 
 	m_ground.Initialize(device);
 	m_originCube.SetPosition(0.0f, 0.0f, 0.0f);
 	m_originCube.Initialize(device);
 
 	m_actors.clear();
-	m_actors.push_back(std::make_unique<OrcPlayer>());
+	auto player = std::make_unique<OrcPlayer>();
+	m_followTarget = player.get();
+	m_actors.push_back(std::move(player));
 	m_actors.push_back(std::make_unique<DavenPlayer>());
 	m_actors.push_back(std::make_unique<NathanWalker>());
 	//m_actors.push_back(std::make_unique<ForestGoddessPlayer>());
@@ -43,11 +48,16 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 
 void GameScene::Update(float deltaTime, const Input& input)
 {
-	m_camera.Update(deltaTime, input);
 	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
 		actor->Update(deltaTime, input);
 	}
+
+	if (m_followCamera != nullptr && m_followTarget != nullptr)
+	{
+		m_followCamera->SetFollowTarget(m_followTarget->GetPosition(), m_followTarget->GetRotationY());
+	}
+	m_camera->Update(deltaTime, input);
 }
 
 void GameScene::Render(Dx12Renderer& renderer) const
@@ -62,5 +72,5 @@ void GameScene::Render(Dx12Renderer& renderer) const
 
 XMMATRIX GameScene::GetViewProjectionMatrix() const
 {
-	return m_camera.GetViewProjectionMatrix();
+	return m_camera->GetViewProjectionMatrix();
 }

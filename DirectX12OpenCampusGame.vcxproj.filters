@@ -44,6 +44,9 @@
     <ClCompile Include="src\App\Game.cpp">
       <Filter>App</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\FollowCamera.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
     <ClCompile Include="src\Scene\GameScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -163,6 +166,9 @@
     <ClInclude Include="src\App\Game.h">
       <Filter>App</Filter>
     </ClInclude>
+    <ClInclude Include="src\Scene\FollowCamera.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
     <ClInclude Include="src\Scene\GameScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
@@ -171,6 +177,9 @@
     </ClInclude>
     <ClInclude Include="src\Animation\GpuSkinnedMeshProcessor.h">
       <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\ICamera.h">
+      <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\Input.h">
       <Filter>Scene</Filter>

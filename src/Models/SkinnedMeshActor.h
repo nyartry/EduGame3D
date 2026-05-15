@@ -24,14 +24,15 @@ public:
 	void Update(float deltaTime, const Input& input) override;
 	void Draw(Dx12Renderer& renderer) const override;
 
+	const DirectX::XMFLOAT3& GetPosition() const;
+	float GetRotationY() const;
+
 protected:
 	virtual const SkinnedMeshActorDefinition& GetSkinnedMeshDefinition() const = 0;
 
 	SkinnedModel& GetModel();
 	const SkinnedModel& GetModel() const;
-	const DirectX::XMFLOAT3& GetPosition() const;
 	void SetPosition(const DirectX::XMFLOAT3& position);
-	float GetRotationY() const;
 	void SetRotationY(float radians);
 
 private:
