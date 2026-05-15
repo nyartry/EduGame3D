@@ -26,11 +26,14 @@ private:
 	float m_targetRotationY{};
 	float m_cameraYaw{};
 	float m_distance{ 7.0f };
+	float m_minDistance{ 3.0f };
+	float m_maxDistance{ 12.0f };
 	float m_height{ 4.5f };
 	float m_minHeight{ 2.0f };
 	float m_maxHeight{ 8.0f };
 	float m_orbitSpeed{ DirectX::XMConvertToRadians(120.0f) };
 	float m_heightMoveSpeed{ 4.0f };
+	float m_distanceMoveSpeed{ 4.0f };
 	float m_lookAtHeight{ 1.2f };
 	float m_followSharpness{ 8.0f };
 	float m_zFocusSharpness{ 10.0f };

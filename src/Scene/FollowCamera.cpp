@@ -57,18 +57,26 @@ void FollowCamera::Update(float deltaTime, const Input& input)
 		m_cameraYaw = NormalizeAngle(m_cameraYaw + yawInput * m_orbitSpeed * deltaTime);
 	}
 
-	float heightInput = 0.0f;
+	const bool isShiftDown = input.IsDown(InputKey::Shift);
+	float verticalInput = 0.0f;
 	if (input.IsDown(InputKey::Up))
 	{
-		heightInput += 1.0f;
+		verticalInput += 1.0f;
 	}
 	if (input.IsDown(InputKey::Down))
 	{
-		heightInput -= 1.0f;
+		verticalInput -= 1.0f;
 	}
-	if (heightInput != 0.0f)
+	if (verticalInput != 0.0f)
 	{
-		m_height = std::clamp(m_height + heightInput * m_heightMoveSpeed * deltaTime, m_minHeight, m_maxHeight);
+		if (isShiftDown)
+		{
+			m_distance = std::clamp(m_distance - verticalInput * m_distanceMoveSpeed * deltaTime, m_minDistance, m_maxDistance);
+		}
+		else
+		{
+			m_height = std::clamp(m_height + verticalInput * m_heightMoveSpeed * deltaTime, m_minHeight, m_maxHeight);
+		}
 	}
 
 	if (input.IsDown(InputKey::Z))

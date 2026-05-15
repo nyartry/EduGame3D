@@ -14,6 +14,7 @@ enum class InputKey
 	D,
 	X,
 	Z,
+	Shift,
 	Space,
 	Escape,
 };
