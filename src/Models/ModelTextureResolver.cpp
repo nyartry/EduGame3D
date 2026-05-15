@@ -64,25 +64,33 @@ std::string ModelTextureResolver::ResolveTexturePath(const std::string& textureP
 		return directPath.string();
 	}
 
-	const std::filesystem::path textureDirectory = m_modelDirectory / "textures";
 	const std::filesystem::path fileName = sourcePath.filename();
-	const std::filesystem::path siblingPath = textureDirectory / fileName;
-	if (std::filesystem::exists(siblingPath))
-	{
-		return siblingPath.string();
-	}
-
-	if (!std::filesystem::exists(textureDirectory))
-	{
-		return {};
-	}
-
 	const std::string lowerFileName = ToLower(fileName.string());
-	for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(textureDirectory))
+	const std::filesystem::path textureDirectories[] =
 	{
-		if (entry.is_regular_file() && ToLower(entry.path().filename().string()) == lowerFileName)
+		m_modelDirectory / "textures",
+		m_modelDirectory / "tex"
+	};
+
+	for (const std::filesystem::path& textureDirectory : textureDirectories)
+	{
+		const std::filesystem::path siblingPath = textureDirectory / fileName;
+		if (std::filesystem::exists(siblingPath))
 		{
-			return entry.path().string();
+			return siblingPath.string();
+		}
+
+		if (!std::filesystem::exists(textureDirectory))
+		{
+			continue;
+		}
+
+		for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(textureDirectory))
+		{
+			if (entry.is_regular_file() && ToLower(entry.path().filename().string()) == lowerFileName)
+			{
+				return entry.path().string();
+			}
 		}
 	}
 

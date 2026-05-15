@@ -118,6 +118,10 @@ void Texture2D::Initialize(ID3D12Device* device, const std::string& filePath, bo
 		UINT width = 0;
 		UINT height = 0;
 		const std::vector<UINT8> pixels = LoadPixelsWithWic(filePath, width, height);
+		if (width == 0 || height == 0)
+		{
+			throw std::runtime_error("Texture has invalid dimensions: " + filePath);
+		}
 		CreateTextureResource(device, pixels.data(), width, height, useSrgb);
 	}
 	catch (...)

@@ -26,7 +26,15 @@ void TexturedMaterial::LoadTextures(
 	const std::string& opacityTexturePath,
 	const std::string& normalTexturePath)
 {
-	m_baseColorTexture.Initialize(device, baseColorTexturePath, true);
+	if (baseColorTexturePath.empty())
+	{
+		m_baseColorTexture.InitializeSolidColor(device, 255, 255, 255, 255, true);
+	}
+	else
+	{
+		m_baseColorTexture.Initialize(device, baseColorTexturePath, true);
+	}
+
 	if (opacityTexturePath.empty())
 	{
 		m_opacityTexture.InitializeSolidColor(device, 255, 255, 255, 255, false);

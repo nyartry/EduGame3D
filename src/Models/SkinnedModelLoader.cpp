@@ -310,7 +310,10 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 			}
 		}
 
-		modelData.meshes.push_back(std::move(meshData));
+		if (!meshData.vertices.empty())
+		{
+			modelData.meshes.push_back(std::move(meshData));
+		}
 	}
 
 	for (unsigned int animationIndex = 0; animationIndex < scene->mNumAnimations; ++animationIndex)

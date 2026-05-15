@@ -3,6 +3,7 @@
 #include "Gameplay/DavenPlayer.h"
 #include "Rendering/Dx12Renderer.h"
 #include "Gameplay/ForestGoddessPlayer.h"
+#include "Gameplay/NathanWalker.h"
 #include "Gameplay/OrcPlayer.h"
 
 #include <memory>
@@ -32,6 +33,7 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_actors.clear();
 	m_actors.push_back(std::make_unique<OrcPlayer>());
 	m_actors.push_back(std::make_unique<DavenPlayer>());
+	m_actors.push_back(std::make_unique<NathanWalker>());
 	//m_actors.push_back(std::make_unique<ForestGoddessPlayer>());
 	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{

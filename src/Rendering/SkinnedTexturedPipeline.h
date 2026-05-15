@@ -14,7 +14,13 @@ public:
 	static constexpr size_t MaxBones = 512;
 
 	void Initialize(ID3D12Device* device);
-	void UpdateConstants(
+	struct ConstantBufferViews
+	{
+		D3D12_GPU_VIRTUAL_ADDRESS sceneConstants{};
+		D3D12_GPU_VIRTUAL_ADDRESS boneConstants{};
+	};
+
+	ConstantBufferViews UpdateConstants(
 		const DirectX::XMMATRIX& worldViewProjection,
 		const std::vector<DirectX::XMFLOAT4X4>& boneMatrices,
 		float modelCenterX,
@@ -49,4 +55,7 @@ private:
 	BoneConstants m_boneConstants{};
 	UINT8* m_sceneConstantBufferMappedData{};
 	UINT8* m_boneConstantBufferMappedData{};
+	UINT m_sceneConstantBufferSize{};
+	UINT m_boneConstantBufferSize{};
+	UINT m_nextConstantBufferIndex{};
 };

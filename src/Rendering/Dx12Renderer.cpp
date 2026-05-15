@@ -120,13 +120,15 @@ void Dx12Renderer::DrawSkinnedTextured(
 
 	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
 	const XMMATRIX worldViewProjection = world * viewProjection;
-	m_skinnedTexturedPipeline.UpdateConstants(
+	const SkinnedTexturedPipeline::ConstantBufferViews constantBufferViews = m_skinnedTexturedPipeline.UpdateConstants(
 		worldViewProjection,
 		boneMatrices,
 		modelCenterX,
 		modelMinY,
 		modelCenterZ,
 		modelScale);
+	m_commandList->SetGraphicsRootConstantBufferView(0, constantBufferViews.sceneConstants);
+	m_commandList->SetGraphicsRootConstantBufferView(1, constantBufferViews.boneConstants);
 	vertexBuffer.Bind(m_commandList.Get());
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }

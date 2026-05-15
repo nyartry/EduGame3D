@@ -71,6 +71,9 @@
     <ClCompile Include="src\Gameplay\ForestGoddessPlayer.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="src\Gameplay\NathanWalker.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
     <ClCompile Include="src\Gameplay\OrcPlayer.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
@@ -188,6 +191,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="src\Gameplay\ForestGoddessPlayer.h">
+      <Filter>Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gameplay\NathanWalker.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="src\Gameplay\OrcPlayer.h">

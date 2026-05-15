@@ -116,6 +116,7 @@
     <ClCompile Include="src\Models\ModelLoader.cpp" />
     <ClCompile Include="src\Models\ModelTextureResolver.cpp" />
     <ClCompile Include="src\Gameplay\ForestGoddessPlayer.cpp" />
+    <ClCompile Include="src\Gameplay\NathanWalker.cpp" />
     <ClCompile Include="src\Gameplay\OrcPlayer.cpp" />
     <ClCompile Include="src\Gameplay\Player.cpp" />
     <ClCompile Include="src\Gameplay\PrimitiveObject.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="src\Common\ModelScaleSettings.h" />
     <ClInclude Include="src\Models\ModelTextureResolver.h" />
     <ClInclude Include="src\Gameplay\ForestGoddessPlayer.h" />
+    <ClInclude Include="src\Gameplay\NathanWalker.h" />
     <ClInclude Include="src\Gameplay\OrcPlayer.h" />
     <ClInclude Include="src\Gameplay\Player.h" />
     <ClInclude Include="src\Gameplay\PrimitiveObject.h" />
