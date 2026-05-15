@@ -7,8 +7,10 @@
 #include <Windows.h>
 
 #include <string_view>
+#include <vector>
 
 class Ground;
+class PrimitiveObject;
 
 struct PlayerDefinition
 {
@@ -25,6 +27,7 @@ public:
 	void Update(float deltaTime, const Input& input) override;
 	void SetMovementForward(const DirectX::XMFLOAT3& forward);
 	void SetGround(const Ground* ground);
+	void AddLandingSurface(const PrimitiveObject* surface);
 	void SetRootMotionMode(RootMotionMode mode);
 	void SetRootMotionVerticalMode(RootMotionVerticalMode mode);
 	void SetRootMotionBlendWeight(float weight);
@@ -52,6 +55,7 @@ private:
 
 	AnimationState m_animationState{ AnimationState::Idle };
 	const Ground* m_ground{};
+	std::vector<const PrimitiveObject*> m_landingSurfaces;
 	DirectX::XMFLOAT3 m_movementForward{ 0.0f, 0.0f, 1.0f };
 	RootMotionMode m_rootMotionMode{ RootMotionMode::Apply };
 	RootMotionVerticalMode m_rootMotionVerticalMode{ RootMotionVerticalMode::Apply };

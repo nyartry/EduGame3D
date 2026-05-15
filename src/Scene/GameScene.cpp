@@ -32,11 +32,13 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 
 	m_ground.Initialize(device);
 	m_originCube.SetPosition(0.0f, 0.0f, 0.0f);
+	m_originCube.SetGround(&m_ground);
 	m_originCube.Initialize(device);
 
 	m_actors.clear();
 	auto player = std::make_unique<OrcPlayer>();
 	player->SetGround(&m_ground);
+	player->AddLandingSurface(&m_originCube);
 	m_player = player.get();
 	m_followTarget = player.get();
 	m_actors.push_back(std::move(player));
@@ -56,6 +58,7 @@ void GameScene::Update(float deltaTime, const Input& input)
 		m_player->SetMovementForward(m_camera->GetForwardXZ());
 	}
 
+	m_originCube.Update(deltaTime);
 	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
 		actor->Update(deltaTime, input);

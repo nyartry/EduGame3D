@@ -1,6 +1,7 @@
 #include "Gameplay/Player.h"
 
 #include "Gameplay/Ground.h"
+#include "Gameplay/PrimitiveObject.h"
 #include "Rendering/Dx12Renderer.h"
 
 #include <algorithm>
@@ -18,6 +19,7 @@ namespace
 	constexpr float Gravity = -18.0f;
 	constexpr float JumpSpeed = 7.0f;
 	constexpr float PlayerCollisionRadius = 0.35f;
+	constexpr float LandingTolerance = 0.05f;
 	constexpr float DefaultAttackDurationSeconds = 1.0f;
 
 	XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float amount)
@@ -151,6 +153,14 @@ void Player::SetGround(const Ground* ground)
 	m_ground = ground;
 }
 
+void Player::AddLandingSurface(const PrimitiveObject* surface)
+{
+	if (surface != nullptr)
+	{
+		m_landingSurfaces.push_back(surface);
+	}
+}
+
 void Player::StartAttack()
 {
 	m_attackTimeRemaining = m_attackDurationSeconds;
@@ -218,6 +228,8 @@ XMFLOAT3 Player::ChooseDisplacement(
 
 void Player::ApplyVerticalPhysics(float deltaTime, const Input& input, XMFLOAT3& position)
 {
+	const float previousBottomY = position.y;
+
 	if (input.WasPressed(InputKey::Space) && m_isGrounded)
 	{
 		m_verticalVelocity = JumpSpeed;
@@ -226,29 +238,47 @@ void Player::ApplyVerticalPhysics(float deltaTime, const Input& input, XMFLOAT3&
 
 	m_verticalVelocity += Gravity * deltaTime;
 	position.y += m_verticalVelocity * deltaTime;
+	const float bottomY = position.y;
 
-	if (m_ground == nullptr)
+	bool hasFloor = false;
+	float floorHeight = 0.0f;
+
+	if (m_ground != nullptr && m_ground->TryGetHeightAt(position, PlayerCollisionRadius, floorHeight))
 	{
-		return;
+		hasFloor = true;
 	}
 
-	float groundHeight = 0.0f;
-	if (!m_ground->TryGetHeightAt(position, PlayerCollisionRadius, groundHeight))
+	for (const PrimitiveObject* surface : m_landingSurfaces)
+	{
+		float surfaceHeight = 0.0f;
+		if (surface != nullptr &&
+			surface->TryGetTopSurfaceAt(position, PlayerCollisionRadius, surfaceHeight))
+		{
+			if (previousBottomY >= surfaceHeight - LandingTolerance &&
+				bottomY <= surfaceHeight &&
+				(!hasFloor || surfaceHeight > floorHeight))
+			{
+				floorHeight = surfaceHeight;
+				hasFloor = true;
+			}
+		}
+	}
+
+	if (!hasFloor)
 	{
 		m_isGrounded = false;
 		return;
 	}
 
-	if (position.y <= groundHeight)
+	if (bottomY <= floorHeight)
 	{
-		position.y = groundHeight;
+		position.y = floorHeight;
 		m_verticalVelocity = 0.0f;
 		m_isGrounded = true;
+		return;
 	}
-	else
-	{
-		m_isGrounded = false;
-	}
+
+	m_isGrounded = false;
 }
 
 XMFLOAT3 Player::TransformInputToWorld(const XMFLOAT3& movement) const
