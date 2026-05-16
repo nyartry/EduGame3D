@@ -137,6 +137,7 @@
     <ClCompile Include="src\App\Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Common\MathUtils.h" />
     <ClInclude Include="src\Gameplay\CharacterGrounding.h" />
     <ClInclude Include="src\Gameplay\Actor.h" />
     <ClInclude Include="src\Models\StaticMeshActor.h" />

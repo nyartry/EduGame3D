@@ -1,5 +1,7 @@
 #include "Scene/FollowCamera.h"
 
+#include "Common/MathUtils.h"
+
 #include <algorithm>
 #include <cmath>
 
@@ -7,16 +9,6 @@ using namespace DirectX;
 
 namespace
 {
-	XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float amount)
-	{
-		return XMFLOAT3
-		{
-			from.x * (1.0f - amount) + to.x * amount,
-			from.y * (1.0f - amount) + to.y * amount,
-			from.z * (1.0f - amount) + to.z * amount
-		};
-	}
-
 	float NormalizeAngle(float angle)
 	{
 		while (angle > XM_PI)
@@ -81,7 +73,7 @@ void FollowCamera::Update(float deltaTime, const Input& input)
 
 	if (input.IsDown(InputKey::Z))
 	{
-		const float zFocusAmount = std::clamp(1.0f - std::exp(-m_zFocusSharpness * deltaTime), 0.0f, 1.0f);
+		const float zFocusAmount = MathUtils::SmoothAmount(m_zFocusSharpness, deltaTime);
 		m_cameraYaw = LerpAngle(m_cameraYaw, m_targetRotationY, zFocusAmount);
 	}
 
@@ -99,9 +91,9 @@ void FollowCamera::Update(float deltaTime, const Input& input)
 		m_targetPosition.z + std::cos(m_cameraYaw) * m_distance
 	};
 
-	const float amount = std::clamp(1.0f - std::exp(-m_followSharpness * deltaTime), 0.0f, 1.0f);
-	m_position = LerpFloat3(m_position, desiredPosition, amount);
-	m_lookAt = LerpFloat3(m_lookAt, desiredLookAt, amount);
+	const float amount = MathUtils::SmoothAmount(m_followSharpness, deltaTime);
+	m_position = MathUtils::Lerp(m_position, desiredPosition, amount);
+	m_lookAt = MathUtils::Lerp(m_lookAt, desiredLookAt, amount);
 }
 
 void FollowCamera::SetLens(float fovYRadians, float aspectRatio, float nearZ, float farZ)
@@ -132,21 +124,13 @@ void FollowCamera::SetFollowTarget(const XMFLOAT3& position, float rotationY)
 
 XMFLOAT3 FollowCamera::GetForwardXZ() const
 {
-	XMFLOAT3 forward
+	const XMFLOAT3 forward
 	{
 		m_lookAt.x - m_position.x,
 		0.0f,
 		m_lookAt.z - m_position.z
 	};
-	const float length = std::sqrt(forward.x * forward.x + forward.z * forward.z);
-	if (length == 0.0f)
-	{
-		return XMFLOAT3{ 0.0f, 0.0f, 1.0f };
-	}
-
-	forward.x /= length;
-	forward.z /= length;
-	return forward;
+	return MathUtils::NormalizeXZOrDefault(forward);
 }
 
 XMMATRIX FollowCamera::GetViewProjectionMatrix() const

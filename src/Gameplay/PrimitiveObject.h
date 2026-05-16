@@ -31,18 +31,28 @@ protected:
 	virtual std::vector<Vertex> BuildVertices() const = 0;
 
 private:
+	struct LocalBounds
+	{
+		float minX{};
+		float minY{};
+		float minZ{};
+		float maxX{};
+		float maxY{};
+		float maxZ{};
+		float collisionRadius{};
+	};
+
 	void UpdateLocalBounds(const std::vector<Vertex>& vertices);
+	void ApplyGravity(float deltaTime);
+	void ResolveGroundCollision();
+	bool ContainsXZ(const DirectX::XMFLOAT3& position, float radius) const;
+	float GetBottomY() const;
+	float GetTopY() const;
 
 	const Ground* m_ground{};
 	VertexBuffer m_vertexBuffer;
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
-	float m_localMinX{};
-	float m_localMinY{};
-	float m_localMinZ{};
-	float m_localMaxX{};
-	float m_localMaxY{};
-	float m_localMaxZ{};
-	float m_collisionRadius{};
+	LocalBounds m_localBounds;
 	float m_verticalVelocity{};
 	bool m_isGrounded{};
 };

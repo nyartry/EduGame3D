@@ -1,6 +1,6 @@
 #include "Scene/Camera.h"
 
-#include <cmath>
+#include "Common/MathUtils.h"
 
 using namespace DirectX;
 
@@ -95,21 +95,13 @@ XMMATRIX Camera::GetProjectionMatrix() const
 
 XMFLOAT3 Camera::GetForwardXZ() const
 {
-	XMFLOAT3 forward
+	const XMFLOAT3 forward
 	{
 		m_target.x - m_position.x,
 		0.0f,
 		m_target.z - m_position.z
 	};
-	const float length = std::sqrt(forward.x * forward.x + forward.z * forward.z);
-	if (length == 0.0f)
-	{
-		return XMFLOAT3{ 0.0f, 0.0f, 1.0f };
-	}
-
-	forward.x /= length;
-	forward.z /= length;
-	return forward;
+	return MathUtils::NormalizeXZOrDefault(forward);
 }
 
 XMMATRIX Camera::GetViewProjectionMatrix() const

@@ -18,6 +18,7 @@ struct PlayerDefinition
 	std::string_view joggingAnimationPath;
 	std::string_view attackAnimationPath;
 	RootMotionMode rootMotionMode{ RootMotionMode::Apply };
+	float moveSpeed{ 3.0f };
 	CharacterGroundingSettings grounding;
 	CharacterVerticalMotionSettings verticalMotion;
 };
@@ -46,8 +47,26 @@ private:
 		Attack,
 	};
 
+	struct MovementInput
+	{
+		DirectX::XMFLOAT3 localDirection{};
+		bool hasDirection{};
+	};
+
 	void StartAttack();
 	void SetAnimationState(AnimationState state);
+	MovementInput ReadMovementInput(const Input& input) const;
+	DirectX::XMFLOAT3 BuildInputDisplacement(
+		const MovementInput& movementInput,
+		float deltaTime,
+		bool isAttacking);
+	void ApplyMovement(
+		float deltaTime,
+		bool wantsJump,
+		const DirectX::XMFLOAT3& inputDisplacement);
+	void UpdateAttackTimer(float deltaTime, bool hasMovementInput);
+	AnimationState GetLocomotionState(bool hasMovementInput) const;
+	bool IsAttacking() const;
 	DirectX::XMFLOAT3 ChooseDisplacement(
 		const DirectX::XMFLOAT3& inputDisplacement,
 		const DirectX::XMFLOAT3& rootMotionDisplacement) const;
@@ -61,6 +80,7 @@ private:
 	RootMotionMode m_rootMotionMode{ RootMotionMode::Apply };
 	RootMotionVerticalMode m_rootMotionVerticalMode{ RootMotionVerticalMode::Apply };
 	float m_rootMotionBlendWeight{ 0.5f };
+	float m_moveSpeed{ 3.0f };
 	float m_attackTimeRemaining{};
 	float m_attackDurationSeconds{};
 	bool m_hasJoggingAnimation{};

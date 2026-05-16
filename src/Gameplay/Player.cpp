@@ -1,5 +1,6 @@
 #include "Gameplay/Player.h"
 
+#include "Common/MathUtils.h"
 #include "Rendering/Dx12Renderer.h"
 
 #include <algorithm>
@@ -13,18 +14,7 @@ namespace
 	constexpr const char* IdleAnimationName = "Idle";
 	constexpr const char* JoggingAnimationName = "Jogging";
 	constexpr const char* AttackAnimationName = "Attack";
-	constexpr float MoveSpeed = 3.0f;
 	constexpr float DefaultAttackDurationSeconds = 1.0f;
-
-	XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float amount)
-	{
-		return XMFLOAT3
-		{
-			from.x * (1.0f - amount) + to.x * amount,
-			from.y * (1.0f - amount) + to.y * amount,
-			from.z * (1.0f - amount) + to.z * amount
-		};
-	}
 }
 
 const SkinnedMeshActorDefinition& Player::GetSkinnedMeshDefinition() const
@@ -37,6 +27,7 @@ void Player::Initialize(ID3D12Device* device)
 	const PlayerDefinition& definition = GetPlayerDefinition();
 	SkinnedMeshActor::Initialize(device);
 	m_rootMotionMode = definition.rootMotionMode;
+	m_moveSpeed = definition.moveSpeed;
 	m_groundProbe.SetSettings(definition.grounding);
 	m_verticalMotion.SetSettings(definition.verticalMotion);
 	m_hasJoggingAnimation = !definition.joggingAnimationPath.empty();
@@ -64,83 +55,21 @@ void Player::Update(float deltaTime, const Input& input)
 		StartAttack();
 	}
 
-	XMFLOAT3 movement{};
-	if (input.IsDown(InputKey::W))
-	{
-		movement.z += 1.0f;
-	}
-	if (input.IsDown(InputKey::S))
-	{
-		movement.z -= 1.0f;
-	}
-	if (input.IsDown(InputKey::A))
-	{
-		movement.x -= 1.0f;
-	}
-	if (input.IsDown(InputKey::D))
-	{
-		movement.x += 1.0f;
-	}
-
-	const float length = std::sqrt(movement.x * movement.x + movement.z * movement.z);
-	XMFLOAT3 inputDisplacement{};
-	const bool isAttacking = m_animationState == AnimationState::Attack;
-	if (!isAttacking && length > 0.0f && m_hasJoggingAnimation)
-	{
-		movement.x /= length;
-		movement.z /= length;
-		const XMFLOAT3 worldMovement = TransformInputToWorld(movement);
-		inputDisplacement.x = worldMovement.x * MoveSpeed * deltaTime;
-		inputDisplacement.z = worldMovement.z * MoveSpeed * deltaTime;
-
-		SetRotationY(std::atan2(worldMovement.x, worldMovement.z) + XM_PI);
-		SetAnimationState(AnimationState::Jogging);
-	}
-	else if (!isAttacking)
-	{
-		SetAnimationState(AnimationState::Idle);
-		if (length > 0.0f)
-		{
-			movement.x /= length;
-			movement.z /= length;
-			const XMFLOAT3 worldMovement = TransformInputToWorld(movement);
-			inputDisplacement.x = worldMovement.x * MoveSpeed * deltaTime;
-			inputDisplacement.z = worldMovement.z * MoveSpeed * deltaTime;
-			SetRotationY(std::atan2(worldMovement.x, worldMovement.z) + XM_PI);
-		}
-	}
-
-	const RootMotionDelta rootMotionDelta = GetModel().Update(deltaTime);
-	const XMFLOAT3 rootMotionDisplacement = TransformRootMotionToWorld(rootMotionDelta.translation);
-	const XMFLOAT3 displacement = ChooseDisplacement(inputDisplacement, rootMotionDisplacement);
-	XMFLOAT3 position = GetPosition();
-	position.x += displacement.x;
-	position.z += displacement.z;
-	m_verticalMotion.Update(deltaTime, input.WasPressed(InputKey::Space), position, m_groundProbe);
-
-	SetPosition(position);
-
-	if (isAttacking)
-	{
-		m_attackTimeRemaining -= deltaTime;
-		if (m_attackTimeRemaining <= 0.0f)
-		{
-			SetAnimationState(length > 0.0f && m_hasJoggingAnimation ? AnimationState::Jogging : AnimationState::Idle);
-		}
-	}
+	const MovementInput movementInput = ReadMovementInput(input);
+	const bool isAttacking = IsAttacking();
+	const XMFLOAT3 inputDisplacement = BuildInputDisplacement(movementInput, deltaTime, isAttacking);
+	ApplyMovement(deltaTime, input.WasPressed(InputKey::Space), inputDisplacement);
+	UpdateAttackTimer(deltaTime, movementInput.hasDirection);
 }
 
 void Player::SetMovementForward(const XMFLOAT3& forward)
 {
-	XMFLOAT3 normalized{ forward.x, 0.0f, forward.z };
-	const float length = std::sqrt(normalized.x * normalized.x + normalized.z * normalized.z);
-	if (length == 0.0f)
+	XMFLOAT3 normalized{};
+	if (!MathUtils::TryNormalizeXZ(forward, normalized))
 	{
 		return;
 	}
 
-	normalized.x /= length;
-	normalized.z /= length;
 	m_movementForward = normalized;
 }
 
@@ -188,6 +117,99 @@ void Player::SetAnimationState(AnimationState state)
 	}
 }
 
+Player::MovementInput Player::ReadMovementInput(const Input& input) const
+{
+	XMFLOAT3 movement{};
+	if (input.IsDown(InputKey::W))
+	{
+		movement.z += 1.0f;
+	}
+	if (input.IsDown(InputKey::S))
+	{
+		movement.z -= 1.0f;
+	}
+	if (input.IsDown(InputKey::A))
+	{
+		movement.x -= 1.0f;
+	}
+	if (input.IsDown(InputKey::D))
+	{
+		movement.x += 1.0f;
+	}
+
+	MovementInput result{};
+	result.hasDirection = MathUtils::TryNormalizeXZ(movement, result.localDirection);
+	return result;
+}
+
+XMFLOAT3 Player::BuildInputDisplacement(
+	const MovementInput& movementInput,
+	float deltaTime,
+	bool isAttacking)
+{
+	if (isAttacking)
+	{
+		return XMFLOAT3{};
+	}
+
+	SetAnimationState(GetLocomotionState(movementInput.hasDirection));
+	if (!movementInput.hasDirection)
+	{
+		return XMFLOAT3{};
+	}
+
+	const XMFLOAT3 worldMovement = TransformInputToWorld(movementInput.localDirection);
+	SetRotationY(std::atan2(worldMovement.x, worldMovement.z) + XM_PI);
+	return XMFLOAT3
+	{
+		worldMovement.x * m_moveSpeed * deltaTime,
+		0.0f,
+		worldMovement.z * m_moveSpeed * deltaTime
+	};
+}
+
+void Player::ApplyMovement(
+	float deltaTime,
+	bool wantsJump,
+	const XMFLOAT3& inputDisplacement)
+{
+	const RootMotionDelta rootMotionDelta = GetModel().Update(deltaTime);
+	const XMFLOAT3 rootMotionDisplacement = TransformRootMotionToWorld(rootMotionDelta.translation);
+	const XMFLOAT3 displacement = ChooseDisplacement(inputDisplacement, rootMotionDisplacement);
+
+	XMFLOAT3 position = GetPosition();
+	position.x += displacement.x;
+	position.z += displacement.z;
+	m_verticalMotion.Update(deltaTime, wantsJump, position, m_groundProbe);
+	SetPosition(position);
+}
+
+void Player::UpdateAttackTimer(float deltaTime, bool hasMovementInput)
+{
+	if (!IsAttacking())
+	{
+		return;
+	}
+
+	m_attackTimeRemaining -= deltaTime;
+	if (m_attackTimeRemaining <= 0.0f)
+	{
+		SetAnimationState(GetLocomotionState(hasMovementInput));
+	}
+}
+
+Player::AnimationState Player::GetLocomotionState(bool hasMovementInput) const
+{
+	return hasMovementInput && m_hasJoggingAnimation
+		? AnimationState::Jogging
+		: AnimationState::Idle;
+}
+
+bool Player::IsAttacking() const
+{
+	return m_animationState == AnimationState::Attack;
+}
+
 void Player::SetRootMotionMode(RootMotionMode mode)
 {
 	m_rootMotionMode = mode;
@@ -212,7 +234,7 @@ XMFLOAT3 Player::ChooseDisplacement(
 	case RootMotionMode::Apply:
 		return rootMotionDisplacement;
 	case RootMotionMode::Blend:
-		return LerpFloat3(inputDisplacement, rootMotionDisplacement, m_rootMotionBlendWeight);
+		return MathUtils::Lerp(inputDisplacement, rootMotionDisplacement, m_rootMotionBlendWeight);
 	case RootMotionMode::Ignore:
 	default:
 		return inputDisplacement;
