@@ -17,16 +17,17 @@ void Ground::Draw(Dx12Renderer& renderer) const
 
 bool Ground::TryGetHeightAt(const XMFLOAT3& position, float radius, float& height) const
 {
-	if (position.x + radius < -HalfExtent ||
-		position.x - radius > HalfExtent ||
-		position.z + radius < -HalfExtent ||
-		position.z - radius > HalfExtent)
-	{
-		return false;
-	}
+	return m_collider.TryGetHeightAt(position, radius, height);
+}
 
-	height = GroundHeight;
-	return true;
+void Ground::SetCollisionEnabled(bool enabled)
+{
+	m_collider.SetEnabled(enabled);
+}
+
+bool Ground::IsCollisionEnabled() const
+{
+	return m_collider.IsEnabled();
 }
 
 void Ground::BuildMesh()
