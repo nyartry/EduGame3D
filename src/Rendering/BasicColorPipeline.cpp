@@ -1,10 +1,6 @@
 #include "Rendering/BasicColorPipeline.h"
 
-#include "Common/Common.h"
-#include "Rendering/Dx12BufferHelper.h"
 #include "Rendering/Dx12PipelineHelper.h"
-
-#include <cstring>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -19,19 +15,18 @@ void BasicColorPipeline::Initialize(ID3D12Device* device)
 {
 	CreateRootSignature(device);
 	CreatePipelineState(device);
-	CreateConstantBuffer(device);
+	CreateConstantBuffers(device);
 }
 
-void BasicColorPipeline::UpdateWorldViewProjection(const XMMATRIX& worldViewProjection)
+D3D12_GPU_VIRTUAL_ADDRESS BasicColorPipeline::UpdateWorldViewProjection(const XMMATRIX& worldViewProjection)
 {
 	XMStoreFloat4x4(&m_constantBufferData.worldViewProjection, XMMatrixTranspose(worldViewProjection));
-	memcpy(m_constantBufferMappedData, &m_constantBufferData, sizeof(m_constantBufferData));
+	return m_sceneConstantBuffer.Write(m_constantBufferData);
 }
 
 void BasicColorPipeline::Bind(ID3D12GraphicsCommandList* commandList) const
 {
 	commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-	commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer->GetGPUVirtualAddress());
 }
 
 ID3D12PipelineState* BasicColorPipeline::GetPipelineState() const
@@ -88,11 +83,7 @@ void BasicColorPipeline::CreatePipelineState(ID3D12Device* device)
 	ThrowIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
-void BasicColorPipeline::CreateConstantBuffer(ID3D12Device* device)
+void BasicColorPipeline::CreateConstantBuffers(ID3D12Device* device)
 {
-	const UINT constantBufferSize = Dx12BufferHelper::AlignConstantBufferSize(sizeof(SceneConstants));
-	m_constantBuffer = Dx12BufferHelper::CreateUploadBuffer(device, constantBufferSize);
-
-	D3D12_RANGE readRange{};
-	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_constantBufferMappedData)));
+	m_sceneConstantBuffer.Initialize(device);
 }

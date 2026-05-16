@@ -101,6 +101,7 @@
     <ClCompile Include="src\Models\StaticMeshActor.cpp" />
     <ClCompile Include="src\Animation\AnimationSampler.cpp" />
     <ClCompile Include="src\Rendering\BasicColorPipeline.cpp" />
+    <ClCompile Include="src\Scene\CameraFollowHeightLock.cpp" />
     <ClCompile Include="src\Scene\Camera.cpp" />
     <ClCompile Include="src\Animation\CpuSkinnedMeshProcessor.cpp" />
     <ClCompile Include="src\Gameplay\Cube.cpp" />
@@ -141,10 +142,12 @@
     <ClInclude Include="src\Common\MathUtils.h" />
     <ClInclude Include="src\Gameplay\CharacterGrounding.h" />
     <ClInclude Include="src\Gameplay\CollisionComponents.h" />
+    <ClInclude Include="src\Rendering\ConstantBufferRing.h" />
     <ClInclude Include="src\Gameplay\Actor.h" />
     <ClInclude Include="src\Models\StaticMeshActor.h" />
     <ClInclude Include="src\Animation\AnimationSampler.h" />
     <ClInclude Include="src\Rendering\BasicColorPipeline.h" />
+    <ClInclude Include="src\Scene\CameraFollowHeightLock.h" />
     <ClInclude Include="src\Scene\Camera.h" />
     <ClInclude Include="src\Common\Common.h" />
     <ClInclude Include="src\Animation\CpuSkinnedMeshProcessor.h" />

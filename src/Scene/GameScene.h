@@ -4,6 +4,7 @@
 #include "Gameplay/Ground.h"
 #include "Scene/Input.h"
 #include "Gameplay/Actor.h"
+#include "Scene/CameraFollowHeightLock.h"
 #include "Scene/FollowCamera.h"
 #include "Scene/ICamera.h"
 
@@ -34,8 +35,7 @@ private:
 	FollowCamera* m_followCamera{};
 	Player* m_player{};
 	const SkinnedMeshActor* m_followTarget{};
-	float m_cameraFollowTargetY{};
-	bool m_hasCameraFollowTargetY{};
+	CameraFollowHeightLock m_cameraFollowHeightLock;
 	Ground m_ground;
 	Cube m_originCube;
 	std::vector<std::unique_ptr<Actor>> m_actors;

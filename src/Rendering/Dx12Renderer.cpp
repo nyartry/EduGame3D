@@ -85,7 +85,8 @@ void Dx12Renderer::Draw(const VertexBuffer& vertexBuffer, const XMMATRIX& world)
 
 	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
 	const XMMATRIX worldViewProjection = world * viewProjection;
-	m_basicColorPipeline.UpdateWorldViewProjection(worldViewProjection);
+	const D3D12_GPU_VIRTUAL_ADDRESS sceneConstantsAddress = m_basicColorPipeline.UpdateWorldViewProjection(worldViewProjection);
+	m_commandList->SetGraphicsRootConstantBufferView(0, sceneConstantsAddress);
 	vertexBuffer.Bind(m_commandList.Get());
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }

@@ -92,18 +92,6 @@ XMMATRIX GameScene::GetViewProjectionMatrix() const
 
 XMFLOAT3 GameScene::GetCameraFollowPosition()
 {
-	XMFLOAT3 followPosition = m_followTarget->GetPosition();
-	if (!m_hasCameraFollowTargetY)
-	{
-		m_cameraFollowTargetY = followPosition.y;
-		m_hasCameraFollowTargetY = true;
-	}
-
-	if (m_player == nullptr || m_player->IsGrounded())
-	{
-		m_cameraFollowTargetY = followPosition.y;
-	}
-
-	followPosition.y = m_cameraFollowTargetY;
-	return followPosition;
+	const bool shouldUpdateHeight = m_player == nullptr || m_player->IsGrounded();
+	return m_cameraFollowHeightLock.ResolveFollowPosition(m_followTarget->GetPosition(), shouldUpdateHeight);
 }

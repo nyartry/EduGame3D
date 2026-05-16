@@ -26,6 +26,9 @@
     <ClCompile Include="src\Rendering\BasicColorPipeline.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\CameraFollowHeightLock.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
     <ClCompile Include="src\Scene\Camera.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -142,6 +145,9 @@
     <ClInclude Include="src\Gameplay\CollisionComponents.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
+    <ClInclude Include="src\Rendering\ConstantBufferRing.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
     <ClInclude Include="src\Gameplay\Actor.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
@@ -153,6 +159,9 @@
     </ClInclude>
     <ClInclude Include="src\Rendering\BasicColorPipeline.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\CameraFollowHeightLock.h">
+      <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\Camera.h">
       <Filter>Scene</Filter>
