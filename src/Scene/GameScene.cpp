@@ -19,6 +19,7 @@ namespace
 	//constexpr float CameraFarZ = 100.0f;
 	constexpr float CameraNearZ = 0.5f;
 	constexpr float CameraFarZ = 50.0f;
+	constexpr XMFLOAT3 PlatformCubePosition{ 0.0f, 0.5f, 2.0f };
 }
 
 void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
@@ -31,9 +32,9 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_camera = std::move(followCamera);
 
 	m_ground.Initialize(device);
-	m_originCube.SetPosition(0.0f, 0.0f, 0.0f);
+	m_originCube.SetPosition(PlatformCubePosition.x, PlatformCubePosition.y, PlatformCubePosition.z);
 	m_originCube.SetGround(&m_ground);
-	//m_originCube.SetSurfaceCollisionEnabled(false);
+	m_originCube.SetSurfaceCollisionEnabled(true);
 	m_originCube.SetGroundCollisionEnabled(false);
 	m_originCube.SetGravityEnabled(false);
 	m_originCube.Initialize(device);
@@ -69,7 +70,7 @@ void GameScene::Update(float deltaTime, const Input& input)
 
 	if (m_followCamera != nullptr && m_followTarget != nullptr)
 	{
-		m_followCamera->SetFollowTarget(m_followTarget->GetPosition(), m_followTarget->GetRotationY());
+		m_followCamera->SetFollowTarget(GetCameraFollowPosition(), m_followTarget->GetRotationY());
 	}
 	m_camera->Update(deltaTime, input);
 }
@@ -87,4 +88,22 @@ void GameScene::Render(Dx12Renderer& renderer) const
 XMMATRIX GameScene::GetViewProjectionMatrix() const
 {
 	return m_camera->GetViewProjectionMatrix();
+}
+
+XMFLOAT3 GameScene::GetCameraFollowPosition()
+{
+	XMFLOAT3 followPosition = m_followTarget->GetPosition();
+	if (!m_hasCameraFollowTargetY)
+	{
+		m_cameraFollowTargetY = followPosition.y;
+		m_hasCameraFollowTargetY = true;
+	}
+
+	if (m_player == nullptr || m_player->IsGrounded())
+	{
+		m_cameraFollowTargetY = followPosition.y;
+	}
+
+	followPosition.y = m_cameraFollowTargetY;
+	return followPosition;
 }

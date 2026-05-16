@@ -28,10 +28,14 @@ public:
 	DirectX::XMMATRIX GetViewProjectionMatrix() const;
 
 private:
+	DirectX::XMFLOAT3 GetCameraFollowPosition();
+
 	std::unique_ptr<ICamera> m_camera;
 	FollowCamera* m_followCamera{};
 	Player* m_player{};
 	const SkinnedMeshActor* m_followTarget{};
+	float m_cameraFollowTargetY{};
+	bool m_hasCameraFollowTargetY{};
 	Ground m_ground;
 	Cube m_originCube;
 	std::vector<std::unique_ptr<Actor>> m_actors;

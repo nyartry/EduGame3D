@@ -235,6 +235,11 @@ bool Player::IsGravityEnabled() const
 	return m_verticalMotion.IsGravityEnabled();
 }
 
+bool Player::IsGrounded() const
+{
+	return m_verticalMotion.IsGrounded();
+}
+
 XMFLOAT3 Player::ChooseDisplacement(
 	const XMFLOAT3& inputDisplacement,
 	const XMFLOAT3& rootMotionDisplacement) const
