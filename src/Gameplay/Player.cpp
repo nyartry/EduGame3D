@@ -1,7 +1,5 @@
 #include "Gameplay/Player.h"
 
-#include "Gameplay/Ground.h"
-#include "Gameplay/PrimitiveObject.h"
 #include "Rendering/Dx12Renderer.h"
 
 #include <algorithm>
@@ -16,10 +14,6 @@ namespace
 	constexpr const char* JoggingAnimationName = "Jogging";
 	constexpr const char* AttackAnimationName = "Attack";
 	constexpr float MoveSpeed = 3.0f;
-	constexpr float Gravity = -18.0f;
-	constexpr float JumpSpeed = 7.0f;
-	constexpr float PlayerCollisionRadius = 0.35f;
-	constexpr float LandingTolerance = 0.05f;
 	constexpr float DefaultAttackDurationSeconds = 1.0f;
 
 	XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float amount)
@@ -43,6 +37,8 @@ void Player::Initialize(ID3D12Device* device)
 	const PlayerDefinition& definition = GetPlayerDefinition();
 	SkinnedMeshActor::Initialize(device);
 	m_rootMotionMode = definition.rootMotionMode;
+	m_groundProbe.SetSettings(definition.grounding);
+	m_verticalMotion.SetSettings(definition.verticalMotion);
 	m_hasJoggingAnimation = !definition.joggingAnimationPath.empty();
 	if (m_hasJoggingAnimation)
 	{
@@ -120,7 +116,7 @@ void Player::Update(float deltaTime, const Input& input)
 	XMFLOAT3 position = GetPosition();
 	position.x += displacement.x;
 	position.z += displacement.z;
-	ApplyVerticalPhysics(deltaTime, input, position);
+	m_verticalMotion.Update(deltaTime, input.WasPressed(InputKey::Space), position, m_groundProbe);
 
 	SetPosition(position);
 
@@ -150,15 +146,12 @@ void Player::SetMovementForward(const XMFLOAT3& forward)
 
 void Player::SetGround(const Ground* ground)
 {
-	m_ground = ground;
+	m_groundProbe.SetGround(ground);
 }
 
 void Player::AddLandingSurface(const PrimitiveObject* surface)
 {
-	if (surface != nullptr)
-	{
-		m_landingSurfaces.push_back(surface);
-	}
+	m_groundProbe.AddLandingSurface(surface);
 }
 
 void Player::StartAttack()
@@ -224,61 +217,6 @@ XMFLOAT3 Player::ChooseDisplacement(
 	default:
 		return inputDisplacement;
 	}
-}
-
-void Player::ApplyVerticalPhysics(float deltaTime, const Input& input, XMFLOAT3& position)
-{
-	const float previousBottomY = position.y;
-
-	if (input.WasPressed(InputKey::Space) && m_isGrounded)
-	{
-		m_verticalVelocity = JumpSpeed;
-		m_isGrounded = false;
-	}
-
-	m_verticalVelocity += Gravity * deltaTime;
-	position.y += m_verticalVelocity * deltaTime;
-	const float bottomY = position.y;
-
-	bool hasFloor = false;
-	float floorHeight = 0.0f;
-
-	if (m_ground != nullptr && m_ground->TryGetHeightAt(position, PlayerCollisionRadius, floorHeight))
-	{
-		hasFloor = true;
-	}
-
-	for (const PrimitiveObject* surface : m_landingSurfaces)
-	{
-		float surfaceHeight = 0.0f;
-		if (surface != nullptr &&
-			surface->TryGetTopSurfaceAt(position, PlayerCollisionRadius, surfaceHeight))
-		{
-			if (previousBottomY >= surfaceHeight - LandingTolerance &&
-				bottomY <= surfaceHeight &&
-				(!hasFloor || surfaceHeight > floorHeight))
-			{
-				floorHeight = surfaceHeight;
-				hasFloor = true;
-			}
-		}
-	}
-
-	if (!hasFloor)
-	{
-		m_isGrounded = false;
-		return;
-	}
-
-	if (bottomY <= floorHeight)
-	{
-		position.y = floorHeight;
-		m_verticalVelocity = 0.0f;
-		m_isGrounded = true;
-		return;
-	}
-
-	m_isGrounded = false;
 }
 
 XMFLOAT3 Player::TransformInputToWorld(const XMFLOAT3& movement) const
