@@ -1,10 +1,7 @@
 #include "Rendering/TexturedPipeline.h"
 
 #include "Common/Common.h"
-#include "Rendering/Dx12BufferHelper.h"
 #include "Rendering/Dx12PipelineHelper.h"
-
-#include <cstring>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -13,26 +10,19 @@ namespace
 {
 	constexpr DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 	constexpr const wchar_t* ShaderFileName = L"src\\Rendering\\Shaders\\Textured.hlsl";
-	constexpr UINT MaxDrawConstants = 4096;
 }
 
 void TexturedPipeline::Initialize(ID3D12Device* device)
 {
 	CreateRootSignature(device);
 	CreatePipelineState(device);
-	CreateConstantBuffer(device);
+	CreateConstantBuffers(device);
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS TexturedPipeline::UpdateWorldViewProjection(const XMMATRIX& worldViewProjection)
 {
 	XMStoreFloat4x4(&m_constantBufferData.worldViewProjection, XMMatrixTranspose(worldViewProjection));
-
-	const UINT constantBufferIndex = m_nextConstantBufferIndex;
-	m_nextConstantBufferIndex = (m_nextConstantBufferIndex + 1) % MaxDrawConstants;
-
-	UINT8* destination = m_constantBufferMappedData + static_cast<SIZE_T>(constantBufferIndex) * m_constantBufferSize;
-	memcpy(destination, &m_constantBufferData, sizeof(m_constantBufferData));
-	return m_constantBuffer->GetGPUVirtualAddress() + static_cast<UINT64>(constantBufferIndex) * m_constantBufferSize;
+	return m_sceneConstantBuffer.Write(m_constantBufferData);
 }
 
 void TexturedPipeline::Bind(ID3D12GraphicsCommandList* commandList) const
@@ -124,11 +114,7 @@ void TexturedPipeline::CreatePipelineState(ID3D12Device* device)
 	ThrowIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
-void TexturedPipeline::CreateConstantBuffer(ID3D12Device* device)
+void TexturedPipeline::CreateConstantBuffers(ID3D12Device* device)
 {
-	m_constantBufferSize = Dx12BufferHelper::AlignConstantBufferSize(sizeof(SceneConstants));
-	m_constantBuffer = Dx12BufferHelper::CreateUploadBuffer(device, static_cast<UINT64>(m_constantBufferSize) * MaxDrawConstants);
-
-	D3D12_RANGE readRange{};
-	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_constantBufferMappedData)));
+	m_sceneConstantBuffer.Initialize(device);
 }

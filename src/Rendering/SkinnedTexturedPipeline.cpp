@@ -1,11 +1,9 @@
 #include "Rendering/SkinnedTexturedPipeline.h"
 
 #include "Common/Common.h"
-#include "Rendering/Dx12BufferHelper.h"
 #include "Rendering/Dx12PipelineHelper.h"
 
 #include <algorithm>
-#include <cstring>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -14,7 +12,6 @@ namespace
 {
 	constexpr DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 	constexpr const wchar_t* ShaderFileName = L"src\\Rendering\\Shaders\\SkinnedTextured.hlsl";
-	constexpr UINT MaxDrawConstants = 512;
 }
 
 void SkinnedTexturedPipeline::Initialize(ID3D12Device* device)
@@ -36,6 +33,7 @@ SkinnedTexturedPipeline::ConstantBufferViews SkinnedTexturedPipeline::UpdateCons
 	m_sceneConstants.modelFit = XMFLOAT4{ modelCenterX, modelMinY, modelCenterZ, modelScale };
 
 	const size_t boneCount = std::min(boneMatrices.size(), MaxBones);
+	m_sceneConstants.boneCount = static_cast<UINT>(boneCount);
 	for (size_t boneIndex = 0; boneIndex < boneCount; ++boneIndex)
 	{
 		XMStoreFloat4x4(
@@ -43,19 +41,10 @@ SkinnedTexturedPipeline::ConstantBufferViews SkinnedTexturedPipeline::UpdateCons
 			XMMatrixTranspose(XMLoadFloat4x4(&boneMatrices[boneIndex])));
 	}
 
-	const UINT constantBufferIndex = m_nextConstantBufferIndex;
-	m_nextConstantBufferIndex = (m_nextConstantBufferIndex + 1) % MaxDrawConstants;
-
-	UINT8* sceneDestination = m_sceneConstantBufferMappedData + static_cast<SIZE_T>(constantBufferIndex) * m_sceneConstantBufferSize;
-	memcpy(sceneDestination, &m_sceneConstants, sizeof(m_sceneConstants));
-
-	UINT8* boneDestination = m_boneConstantBufferMappedData + static_cast<SIZE_T>(constantBufferIndex) * m_boneConstantBufferSize;
-	memcpy(boneDestination, &m_boneConstants, sizeof(m_boneConstants));
-
 	return ConstantBufferViews
 	{
-		m_sceneConstantBuffer->GetGPUVirtualAddress() + static_cast<UINT64>(constantBufferIndex) * m_sceneConstantBufferSize,
-		m_boneConstantBuffer->GetGPUVirtualAddress() + static_cast<UINT64>(constantBufferIndex) * m_boneConstantBufferSize
+		m_sceneConstantBuffer.Write(m_sceneConstants),
+		m_boneConstantBuffer.Write(m_boneConstants)
 	};
 }
 
@@ -154,16 +143,6 @@ void SkinnedTexturedPipeline::CreatePipelineState(ID3D12Device* device)
 
 void SkinnedTexturedPipeline::CreateConstantBuffers(ID3D12Device* device)
 {
-	m_sceneConstantBufferSize = Dx12BufferHelper::AlignConstantBufferSize(sizeof(SceneConstants));
-	m_sceneConstantBuffer = Dx12BufferHelper::CreateUploadBuffer(
-		device,
-		static_cast<UINT64>(m_sceneConstantBufferSize) * MaxDrawConstants);
-	D3D12_RANGE readRange{};
-	ThrowIfFailed(m_sceneConstantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_sceneConstantBufferMappedData)));
-
-	m_boneConstantBufferSize = Dx12BufferHelper::AlignConstantBufferSize(sizeof(BoneConstants));
-	m_boneConstantBuffer = Dx12BufferHelper::CreateUploadBuffer(
-		device,
-		static_cast<UINT64>(m_boneConstantBufferSize) * MaxDrawConstants);
-	ThrowIfFailed(m_boneConstantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_boneConstantBufferMappedData)));
+	m_sceneConstantBuffer.Initialize(device);
+	m_boneConstantBuffer.Initialize(device);
 }

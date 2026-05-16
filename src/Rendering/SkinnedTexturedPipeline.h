@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Rendering/ConstantBufferRing.h"
+
 #include <Windows.h>
 #include <wrl/client.h>
 
@@ -12,6 +14,7 @@ class SkinnedTexturedPipeline
 {
 public:
 	static constexpr size_t MaxBones = 512;
+	static constexpr UINT MaxDrawConstants = 1024;
 
 	void Initialize(ID3D12Device* device);
 	struct ConstantBufferViews
@@ -36,6 +39,8 @@ private:
 	{
 		DirectX::XMFLOAT4X4 worldViewProjection{};
 		DirectX::XMFLOAT4 modelFit{ 0.0f, 0.0f, 0.0f, 1.0f };
+		UINT boneCount{};
+		DirectX::XMFLOAT3 padding{};
 	};
 
 	struct BoneConstants
@@ -49,13 +54,8 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_sceneConstantBuffer;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_boneConstantBuffer;
+	ConstantBufferRing<SceneConstants, MaxDrawConstants> m_sceneConstantBuffer;
+	ConstantBufferRing<BoneConstants, MaxDrawConstants> m_boneConstantBuffer;
 	SceneConstants m_sceneConstants{};
 	BoneConstants m_boneConstants{};
-	UINT8* m_sceneConstantBufferMappedData{};
-	UINT8* m_boneConstantBufferMappedData{};
-	UINT m_sceneConstantBufferSize{};
-	UINT m_boneConstantBufferSize{};
-	UINT m_nextConstantBufferIndex{};
 };

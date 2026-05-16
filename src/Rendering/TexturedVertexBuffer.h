@@ -18,8 +18,17 @@ public:
 	UINT GetVertexCount() const;
 
 private:
+	void EnsureDynamicResource();
+	void WriteVertices(const std::vector<TexturedVertex>& vertices, UINT bufferOffset);
+
+	static constexpr UINT DynamicBufferCopies = 3;
+
+	ID3D12Device* m_device{};
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_resource;
 	D3D12_VERTEX_BUFFER_VIEW m_view{};
 	UINT m_vertexCount{};
 	UINT m_capacity{};
+	UINT m_dynamicSlotSize{};
+	UINT m_nextDynamicSlot{};
+	bool m_usesDynamicCopies{};
 };

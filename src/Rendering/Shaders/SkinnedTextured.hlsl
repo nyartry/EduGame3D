@@ -24,6 +24,8 @@ cbuffer SceneConstants : register(b0)
 {
 	matrix worldViewProjection;
 	float4 modelFit; // centerX, minY, centerZ, scale
+	uint boneCount;
+	float3 sceneConstantsPadding;
 };
 
 cbuffer BoneConstants : register(b1)
@@ -47,7 +49,7 @@ void AccumulateBone(
 	int boneIndex,
 	float weight)
 {
-	if (boneIndex < 0 || boneIndex >= MAX_BONES || weight == 0.0f)
+	if (boneIndex < 0 || boneIndex >= boneCount || boneIndex >= MAX_BONES || weight == 0.0f)
 	{
 		return;
 	}
