@@ -33,6 +33,9 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_ground.Initialize(device);
 	m_originCube.SetPosition(0.0f, 0.0f, 0.0f);
 	m_originCube.SetGround(&m_ground);
+	//m_originCube.SetSurfaceCollisionEnabled(false);
+	m_originCube.SetGroundCollisionEnabled(false);
+	m_originCube.SetGravityEnabled(false);
 	m_originCube.Initialize(device);
 
 	m_actors.clear();

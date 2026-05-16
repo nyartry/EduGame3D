@@ -100,6 +100,24 @@ CharacterVerticalMotion::CharacterVerticalMotion(CharacterVerticalMotionSettings
 void CharacterVerticalMotion::SetSettings(CharacterVerticalMotionSettings settings)
 {
 	m_settings = settings;
+	if (!m_settings.gravityEnabled)
+	{
+		ResetVerticalVelocity();
+	}
+}
+
+void CharacterVerticalMotion::SetGravityEnabled(bool enabled)
+{
+	m_settings.gravityEnabled = enabled;
+	if (!m_settings.gravityEnabled)
+	{
+		ResetVerticalVelocity();
+	}
+}
+
+bool CharacterVerticalMotion::IsGravityEnabled() const
+{
+	return m_settings.gravityEnabled;
 }
 
 void CharacterVerticalMotion::Update(
@@ -108,6 +126,12 @@ void CharacterVerticalMotion::Update(
 	XMFLOAT3& position,
 	const CharacterGroundProbe& groundProbe)
 {
+	if (!m_settings.gravityEnabled)
+	{
+		ResolveFloorContactWithoutGravity(position, groundProbe);
+		return;
+	}
+
 	const float previousBottomY = position.y;
 
 	if (wantsJump && m_isGrounded)
@@ -150,4 +174,25 @@ float CharacterVerticalMotion::GetVerticalVelocity() const
 void CharacterVerticalMotion::ResetVerticalVelocity(float velocity)
 {
 	m_verticalVelocity = velocity;
+}
+
+void CharacterVerticalMotion::ResolveFloorContactWithoutGravity(
+	XMFLOAT3& position,
+	const CharacterGroundProbe& groundProbe)
+{
+	float floorHeight = 0.0f;
+	if (!groundProbe.TryFindFloor(position, position.y, position.y, floorHeight))
+	{
+		m_isGrounded = false;
+		return;
+	}
+
+	if (position.y <= floorHeight)
+	{
+		position.y = floorHeight;
+		m_isGrounded = true;
+		return;
+	}
+
+	m_isGrounded = false;
 }

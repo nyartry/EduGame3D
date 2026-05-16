@@ -39,6 +39,20 @@ void PrimitiveObject::SetGround(const Ground* ground)
 	m_groundCollision.SetGround(ground);
 }
 
+void PrimitiveObject::SetGravityEnabled(bool enabled)
+{
+	m_gravityEnabled = enabled;
+	if (!m_gravityEnabled)
+	{
+		m_verticalVelocity = 0.0f;
+	}
+}
+
+bool PrimitiveObject::IsGravityEnabled() const
+{
+	return m_gravityEnabled;
+}
+
 void PrimitiveObject::SetGroundCollisionEnabled(bool enabled)
 {
 	m_groundCollision.SetEnabled(enabled);
@@ -80,6 +94,12 @@ bool PrimitiveObject::IsGrounded() const
 
 void PrimitiveObject::ApplyGravity(float deltaTime)
 {
+	if (!m_gravityEnabled)
+	{
+		m_verticalVelocity = 0.0f;
+		return;
+	}
+
 	m_verticalVelocity += PrimitiveGravity * deltaTime;
 	m_position.y += m_verticalVelocity * deltaTime;
 }

@@ -225,6 +225,16 @@ void Player::SetRootMotionBlendWeight(float weight)
 	m_rootMotionBlendWeight = std::clamp(weight, 0.0f, 1.0f);
 }
 
+void Player::SetGravityEnabled(bool enabled)
+{
+	m_verticalMotion.SetGravityEnabled(enabled);
+}
+
+bool Player::IsGravityEnabled() const
+{
+	return m_verticalMotion.IsGravityEnabled();
+}
+
 XMFLOAT3 Player::ChooseDisplacement(
 	const XMFLOAT3& inputDisplacement,
 	const XMFLOAT3& rootMotionDisplacement) const

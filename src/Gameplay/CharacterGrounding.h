@@ -39,6 +39,7 @@ struct CharacterVerticalMotionSettings
 {
 	float gravity{ -18.0f };
 	float jumpSpeed{ 7.0f };
+	bool gravityEnabled{ true };
 };
 
 class CharacterVerticalMotion
@@ -47,6 +48,8 @@ public:
 	explicit CharacterVerticalMotion(CharacterVerticalMotionSettings settings = {});
 
 	void SetSettings(CharacterVerticalMotionSettings settings);
+	void SetGravityEnabled(bool enabled);
+	bool IsGravityEnabled() const;
 	void Update(
 		float deltaTime,
 		bool wantsJump,
@@ -58,6 +61,10 @@ public:
 	void ResetVerticalVelocity(float velocity = 0.0f);
 
 private:
+	void ResolveFloorContactWithoutGravity(
+		DirectX::XMFLOAT3& position,
+		const CharacterGroundProbe& groundProbe);
+
 	CharacterVerticalMotionSettings m_settings;
 	float m_verticalVelocity{};
 	bool m_isGrounded{};

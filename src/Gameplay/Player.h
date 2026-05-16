@@ -34,6 +34,8 @@ public:
 	void SetRootMotionMode(RootMotionMode mode);
 	void SetRootMotionVerticalMode(RootMotionVerticalMode mode);
 	void SetRootMotionBlendWeight(float weight);
+	void SetGravityEnabled(bool enabled);
+	bool IsGravityEnabled() const;
 
 protected:
 	const SkinnedMeshActorDefinition& GetSkinnedMeshDefinition() const final;

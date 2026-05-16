@@ -24,6 +24,8 @@ public:
 
 	void SetPosition(float x, float y, float z);
 	void SetGround(const Ground* ground);
+	void SetGravityEnabled(bool enabled);
+	bool IsGravityEnabled() const;
 	void SetGroundCollisionEnabled(bool enabled);
 	bool IsGroundCollisionEnabled() const;
 	void SetSurfaceCollisionEnabled(bool enabled);
@@ -45,4 +47,5 @@ private:
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
 	float m_verticalVelocity{};
 	bool m_isGrounded{};
+	bool m_gravityEnabled{ true };
 };
