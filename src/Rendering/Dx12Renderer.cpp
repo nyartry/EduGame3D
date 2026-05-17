@@ -91,6 +91,17 @@ void Dx12Renderer::Draw(const VertexBuffer& vertexBuffer, const XMMATRIX& world)
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
+void Dx12Renderer::DrawScreen(const VertexBuffer& vertexBuffer, const XMMATRIX& world)
+{
+	m_commandList->SetPipelineState(m_basicColorPipeline.GetPipelineState());
+	m_basicColorPipeline.Bind(m_commandList.Get());
+
+	const D3D12_GPU_VIRTUAL_ADDRESS sceneConstantsAddress = m_basicColorPipeline.UpdateWorldViewProjection(world);
+	m_commandList->SetGraphicsRootConstantBufferView(0, sceneConstantsAddress);
+	vertexBuffer.Bind(m_commandList.Get());
+	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
+}
+
 void Dx12Renderer::DrawTextured(const TexturedVertexBuffer& vertexBuffer, const TexturedMaterial& material, const XMMATRIX& world)
 {
 	m_commandList->SetPipelineState(m_texturedPipeline.GetPipelineState());

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene/IScene.h"
+#include "Scene/LoadingOverlay.h"
 
 #include <DirectXMath.h>
 
@@ -67,4 +68,5 @@ private:
 	std::unordered_map<std::string, SceneFactory> m_sceneFactories;
 	std::vector<std::unique_ptr<IScene>> m_activeScenes;
 	std::unique_ptr<PendingLoad> m_pendingLoad;
+	LoadingOverlay m_loadingOverlay;
 };

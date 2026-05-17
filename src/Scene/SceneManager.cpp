@@ -12,6 +12,7 @@ void SceneManager::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_context.device = device;
 	m_context.width = width;
 	m_context.height = height;
+	m_loadingOverlay.Initialize(device);
 }
 
 void SceneManager::RegisterScene(const std::string& name, SceneFactory factory)
@@ -62,6 +63,11 @@ bool SceneManager::LoadScene(const std::string& name, SceneLoadType loadType, Sc
 
 void SceneManager::Update(float deltaTime, const Input& input)
 {
+	if (IsLoading())
+	{
+		m_loadingOverlay.Update(deltaTime);
+	}
+
 	PollAsyncLoad();
 
 	for (const std::unique_ptr<IScene>& scene : m_activeScenes)
@@ -75,6 +81,11 @@ void SceneManager::Render(Dx12Renderer& renderer) const
 	for (const std::unique_ptr<IScene>& scene : m_activeScenes)
 	{
 		scene->Render(renderer);
+	}
+
+	if (IsLoading())
+	{
+		m_loadingOverlay.Render(renderer);
 	}
 }
 

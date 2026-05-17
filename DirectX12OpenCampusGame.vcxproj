@@ -112,6 +112,7 @@
     <ClCompile Include="src\App\Game.cpp" />
     <ClCompile Include="src\Scene\FollowCamera.cpp" />
     <ClCompile Include="src\Scene\GameScene.cpp" />
+    <ClCompile Include="src\Scene\LoadingOverlay.cpp" />
     <ClCompile Include="src\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Gameplay\Ground.cpp" />
     <ClCompile Include="src\Animation\GpuSkinnedMeshProcessor.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="src\Scene\ICamera.h" />
     <ClInclude Include="src\Scene\IScene.h" />
     <ClInclude Include="src\Scene\Input.h" />
+    <ClInclude Include="src\Scene\LoadingOverlay.h" />
     <ClInclude Include="src\Scene\SceneManager.h" />
     <ClInclude Include="src\Animation\ISkinnedMeshProcessor.h" />
     <ClInclude Include="src\Animation\MeshTangentCalculator.h" />

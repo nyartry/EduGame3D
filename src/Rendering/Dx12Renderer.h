@@ -33,6 +33,7 @@ public:
 	void Initialize(HWND hwnd, UINT width, UINT height);
 	void BeginFrame(const DirectX::XMMATRIX& viewProjection);
 	void Draw(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world);
+	void DrawScreen(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world);
 	void DrawTextured(const TexturedVertexBuffer& vertexBuffer, const TexturedMaterial& material, const DirectX::XMMATRIX& world);
 	void DrawSkinnedTextured(
 		const SkinnedVertexBuffer& vertexBuffer,

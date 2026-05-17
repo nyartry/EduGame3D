@@ -59,6 +59,9 @@
     <ClCompile Include="src\Scene\GameScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\LoadingOverlay.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
     <ClCompile Include="src\Scene\SceneManager.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -212,6 +215,9 @@
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\Input.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\LoadingOverlay.h">
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\SceneManager.h">
