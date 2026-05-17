@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Rendering/Dx12Renderer.h"
-#include "Scene/GameScene.h"
 #include "Scene/Input.h"
+#include "Scene/SceneManager.h"
 
 #include <Windows.h>
 
@@ -22,7 +22,7 @@ private:
 	HWND m_hwnd{};
 	Input m_input;
 	Dx12Renderer m_renderer;
-	GameScene m_scene;
+	SceneManager m_sceneManager;
 	std::chrono::steady_clock::time_point m_lastTickTime{};
 	std::chrono::steady_clock::time_point m_fpsLastUpdate{};
 	UINT m_fpsFrameCount{};

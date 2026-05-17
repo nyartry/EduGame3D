@@ -22,22 +22,22 @@ namespace
 	constexpr XMFLOAT3 PlatformCubePosition{ 0.0f, 0.5f, 2.0f };
 }
 
-void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
+void GameScene::Load(const SceneLoadContext& context)
 {
-	const float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+	const float aspectRatio = static_cast<float>(context.width) / static_cast<float>(context.height);
 
 	auto followCamera = std::make_unique<FollowCamera>();
 	followCamera->SetLens(XMConvertToRadians(CameraFovYDegrees), aspectRatio, CameraNearZ, CameraFarZ);
 	m_followCamera = followCamera.get();
 	m_camera = std::move(followCamera);
 
-	m_ground.Initialize(device);
+	m_ground.Initialize(context.device);
 	m_originCube.SetPosition(PlatformCubePosition.x, PlatformCubePosition.y, PlatformCubePosition.z);
 	m_originCube.SetGround(&m_ground);
 	m_originCube.SetSurfaceCollisionEnabled(true);
 	m_originCube.SetGroundCollisionEnabled(false);
 	m_originCube.SetGravityEnabled(false);
-	m_originCube.Initialize(device);
+	m_originCube.Initialize(context.device);
 
 	m_actors.clear();
 	auto player = std::make_unique<OrcPlayer>();
@@ -51,8 +51,17 @@ void GameScene::Initialize(ID3D12Device* device, UINT width, UINT height)
 	//m_actors.push_back(std::make_unique<ForestGoddessPlayer>());
 	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
-		actor->Initialize(device);
+		actor->Initialize(context.device);
 	}
+}
+
+void GameScene::Unload()
+{
+	m_actors.clear();
+	m_camera.reset();
+	m_followCamera = nullptr;
+	m_player = nullptr;
+	m_followTarget = nullptr;
 }
 
 void GameScene::Update(float deltaTime, const Input& input)

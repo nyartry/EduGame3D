@@ -1,12 +1,16 @@
 #include "App/Game.h"
 
+#include "Scene/GameScene.h"
+
 #include <cwchar>
 
 void Game::Initialize(HWND hwnd, UINT width, UINT height)
 {
 	m_hwnd = hwnd;
 	m_renderer.Initialize(hwnd, width, height);
-	m_scene.Initialize(m_renderer.GetDevice(), width, height);
+	m_sceneManager.Initialize(m_renderer.GetDevice(), width, height);
+	m_sceneManager.AddScene<GameScene>("Game");
+	m_sceneManager.LoadScene("Game", SceneLoadType::Synchronous, SceneLoadMode::Single);
 	m_lastTickTime = std::chrono::steady_clock::now();
 	m_fpsLastUpdate = std::chrono::steady_clock::now();
 }
@@ -15,9 +19,9 @@ void Game::Tick()
 {
 	m_input.Update();
 	const float deltaTime = CalculateDeltaTime();
-	m_scene.Update(deltaTime, m_input);
-	m_renderer.BeginFrame(m_scene.GetViewProjectionMatrix());
-	m_scene.Render(m_renderer);
+	m_sceneManager.Update(deltaTime, m_input);
+	m_renderer.BeginFrame(m_sceneManager.GetViewProjectionMatrix());
+	m_sceneManager.Render(m_renderer);
 	m_renderer.EndFrame();
 	UpdateDebugTitle();
 }

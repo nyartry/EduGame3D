@@ -2,6 +2,7 @@
 
 #include "Gameplay/Cube.h"
 #include "Gameplay/Ground.h"
+#include "Scene/IScene.h"
 #include "Scene/Input.h"
 #include "Gameplay/Actor.h"
 #include "Scene/CameraFollowHeightLock.h"
@@ -19,14 +20,15 @@ class Player;
 class SkinnedMeshActor;
 struct ID3D12Device;
 
-class GameScene
+class GameScene : public IScene
 {
 public:
-	void Initialize(ID3D12Device* device, UINT width, UINT height);
-	void Update(float deltaTime, const Input& input);
-	void Render(Dx12Renderer& renderer) const;
+	void Load(const SceneLoadContext& context) override;
+	void Unload() override;
+	void Update(float deltaTime, const Input& input) override;
+	void Render(Dx12Renderer& renderer) const override;
 
-	DirectX::XMMATRIX GetViewProjectionMatrix() const;
+	DirectX::XMMATRIX GetViewProjectionMatrix() const override;
 
 private:
 	DirectX::XMFLOAT3 GetCameraFollowPosition();
