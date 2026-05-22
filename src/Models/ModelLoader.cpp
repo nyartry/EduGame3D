@@ -86,7 +86,7 @@ bool ModelLoader::Load(const std::string& filePath, ModelData& modelData)
 		aiProcess_Triangulate |
 			aiProcess_JoinIdenticalVertices |
 			aiProcess_ConvertToLeftHanded |
-			aiProcess_PreTransformVertices |
+			aiProcess_PreTransformVertices |//スキンメッシュでないモデルが変な表示にならないようになるフラグ
 			aiProcess_GenSmoothNormals);
 
 	if (scene == nullptr)
