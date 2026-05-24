@@ -38,6 +38,7 @@ void GameScene::Load(const SceneLoadContext& context)
 	m_originCube.SetGroundCollisionEnabled(false);
 	m_originCube.SetGravityEnabled(false);
 	m_originCube.Initialize(context.device);
+	m_hudOverlay.Initialize(context.device, context.width, context.height);
 
 	m_actors.clear();
 	auto player = std::make_unique<OrcPlayer>();
@@ -76,6 +77,7 @@ void GameScene::Update(float deltaTime, const Input& input)
 	{
 		actor->Update(deltaTime, input);
 	}
+	m_hudOverlay.Update(deltaTime);
 
 	if (m_followCamera != nullptr && m_followTarget != nullptr)
 	{
@@ -92,6 +94,7 @@ void GameScene::Render(Dx12Renderer& renderer) const
 	{
 		actor->Draw(renderer);
 	}
+	m_hudOverlay.Render(renderer);
 }
 
 XMMATRIX GameScene::GetViewProjectionMatrix() const

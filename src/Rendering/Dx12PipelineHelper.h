@@ -15,5 +15,7 @@ namespace Dx12PipelineHelper
 
 	D3D12_RASTERIZER_DESC CreateDefaultRasterizerDesc();
 	D3D12_BLEND_DESC CreateDefaultBlendDesc();
+	D3D12_BLEND_DESC CreateAlphaBlendDesc();
 	D3D12_DEPTH_STENCIL_DESC CreateDefaultDepthStencilDesc();
+	D3D12_DEPTH_STENCIL_DESC CreateDepthDisabledDesc();
 }

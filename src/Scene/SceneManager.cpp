@@ -12,7 +12,7 @@ void SceneManager::Initialize(ID3D12Device* device, UINT width, UINT height)
 	m_context.device = device;
 	m_context.width = width;
 	m_context.height = height;
-	m_loadingOverlay.Initialize(device);
+	m_loadingOverlay.Initialize(device, width, height);
 }
 
 void SceneManager::RegisterScene(const std::string& name, SceneFactory factory)

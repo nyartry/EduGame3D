@@ -112,6 +112,7 @@
     <ClCompile Include="src\App\Game.cpp" />
     <ClCompile Include="src\Scene\FollowCamera.cpp" />
     <ClCompile Include="src\Scene\GameScene.cpp" />
+    <ClCompile Include="src\Scene\HudOverlay.cpp" />
     <ClCompile Include="src\Scene\LoadingOverlay.cpp" />
     <ClCompile Include="src\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Gameplay\Ground.cpp" />
@@ -132,6 +133,10 @@
     <ClCompile Include="src\Models\SkinnedModelLoader.cpp" />
     <ClCompile Include="src\Rendering\SkinnedTexturedPipeline.cpp" />
     <ClCompile Include="src\Rendering\SkinnedVertexBuffer.cpp" />
+    <ClCompile Include="src\Rendering\SpriteBatch.cpp" />
+    <ClCompile Include="src\Rendering\SpriteMaterial.cpp" />
+    <ClCompile Include="src\Rendering\SpritePipeline.cpp" />
+    <ClCompile Include="src\Rendering\SpriteVertexBuffer.cpp" />
     <ClCompile Include="src\Models\StaticModel.cpp" />
     <ClCompile Include="src\Rendering\Texture2D.cpp" />
     <ClCompile Include="src\Rendering\TexturedMaterial.cpp" />
@@ -161,6 +166,7 @@
     <ClInclude Include="src\App\Game.h" />
     <ClInclude Include="src\Scene\FollowCamera.h" />
     <ClInclude Include="src\Scene\GameScene.h" />
+    <ClInclude Include="src\Scene\HudOverlay.h" />
     <ClInclude Include="src\Gameplay\Ground.h" />
     <ClInclude Include="src\Animation\GpuSkinnedMeshProcessor.h" />
     <ClInclude Include="src\Scene\ICamera.h" />
@@ -187,6 +193,11 @@
     <ClInclude Include="src\Models\SkinnedModelLoader.h" />
     <ClInclude Include="src\Rendering\SkinnedTexturedPipeline.h" />
     <ClInclude Include="src\Rendering\SkinnedVertexBuffer.h" />
+    <ClInclude Include="src\Rendering\SpriteBatch.h" />
+    <ClInclude Include="src\Rendering\SpriteMaterial.h" />
+    <ClInclude Include="src\Rendering\SpritePipeline.h" />
+    <ClInclude Include="src\Rendering\SpriteVertex.h" />
+    <ClInclude Include="src\Rendering\SpriteVertexBuffer.h" />
     <ClInclude Include="src\Models\StaticModel.h" />
     <ClInclude Include="src\Rendering\Texture2D.h" />
     <ClInclude Include="src\Rendering\TexturedMaterial.h" />
@@ -200,6 +211,7 @@
   <ItemGroup>
     <None Include="src\Rendering\Shaders\BasicColor.hlsl" />
     <None Include="src\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Rendering\Shaders\Sprite.hlsl" />
     <None Include="src\Rendering\Shaders\Textured.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

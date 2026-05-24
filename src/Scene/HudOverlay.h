@@ -7,7 +7,7 @@
 class Dx12Renderer;
 struct ID3D12Device;
 
-class LoadingOverlay
+class HudOverlay
 {
 public:
 	void Initialize(ID3D12Device* device, UINT width, UINT height);

@@ -2,6 +2,8 @@
 
 #include "Common/Common.h"
 #include "Rendering/SkinnedVertexBuffer.h"
+#include "Rendering/SpriteMaterial.h"
+#include "Rendering/SpriteVertexBuffer.h"
 #include "Rendering/TexturedMaterial.h"
 #include "Rendering/TexturedVertexBuffer.h"
 
@@ -116,6 +118,23 @@ void Dx12Renderer::DrawTextured(const TexturedVertexBuffer& vertexBuffer, const 
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
+void Dx12Renderer::DrawSprites(const SpriteVertexBuffer& vertexBuffer, const SpriteMaterial& material)
+{
+	if (vertexBuffer.GetVertexCount() == 0)
+	{
+		return;
+	}
+
+	m_commandList->SetPipelineState(m_spritePipeline.GetPipelineState());
+	m_spritePipeline.Bind(m_commandList.Get());
+
+	const D3D12_GPU_VIRTUAL_ADDRESS constantsAddress = m_spritePipeline.UpdateScreenSize(m_width, m_height);
+	m_commandList->SetGraphicsRootConstantBufferView(0, constantsAddress);
+	material.Bind(m_commandList.Get(), 1);
+	vertexBuffer.Bind(m_commandList.Get());
+	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
+}
+
 void Dx12Renderer::DrawSkinnedTextured(
 	const SkinnedVertexBuffer& vertexBuffer,
 	const TexturedMaterial& material,
@@ -176,6 +195,16 @@ void Dx12Renderer::WaitForGpu()
 ID3D12Device* Dx12Renderer::GetDevice() const
 {
 	return m_device.Get();
+}
+
+UINT Dx12Renderer::GetWidth() const
+{
+	return m_width;
+}
+
+UINT Dx12Renderer::GetHeight() const
+{
+	return m_height;
 }
 
 void Dx12Renderer::LoadPipeline()
@@ -273,6 +302,7 @@ void Dx12Renderer::LoadAssets()
 	m_basicColorPipeline.Initialize(m_device.Get());
 	m_texturedPipeline.Initialize(m_device.Get());
 	m_skinnedTexturedPipeline.Initialize(m_device.Get());
+	m_spritePipeline.Initialize(m_device.Get());
 
 	ThrowIfFailed(m_device->CreateCommandList(
 		0,

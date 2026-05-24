@@ -59,6 +59,9 @@
     <ClCompile Include="src\Scene\GameScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\HudOverlay.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
     <ClCompile Include="src\Scene\LoadingOverlay.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -117,6 +120,18 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\SkinnedVertexBuffer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\SpriteBatch.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\SpriteMaterial.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\SpritePipeline.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\SpriteVertexBuffer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Models\StaticModel.cpp">
@@ -202,6 +217,9 @@
     <ClInclude Include="src\Scene\GameScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\Scene\HudOverlay.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
     <ClInclude Include="src\Gameplay\Ground.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
@@ -280,6 +298,21 @@
     <ClInclude Include="src\Rendering\SkinnedVertexBuffer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="src\Rendering\SpriteBatch.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\SpriteMaterial.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\SpritePipeline.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\SpriteVertex.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\SpriteVertexBuffer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
     <ClInclude Include="src\Models\StaticModel.h">
       <Filter>Models</Filter>
     </ClInclude>
@@ -313,6 +346,9 @@
       <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="src\Rendering\Shaders\SkinnedTextured.hlsl">
+      <Filter>Rendering\Shaders</Filter>
+    </None>
+    <None Include="src\Rendering\Shaders\Sprite.hlsl">
       <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="src\Rendering\Shaders\Textured.hlsl">

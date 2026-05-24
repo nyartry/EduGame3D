@@ -75,12 +75,36 @@ namespace Dx12PipelineHelper
 		return blendDesc;
 	}
 
+	D3D12_BLEND_DESC CreateAlphaBlendDesc()
+	{
+		D3D12_BLEND_DESC blendDesc = CreateDefaultBlendDesc();
+		D3D12_RENDER_TARGET_BLEND_DESC& target = blendDesc.RenderTarget[0];
+		target.BlendEnable = TRUE;
+		target.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		target.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+		target.BlendOp = D3D12_BLEND_OP_ADD;
+		target.SrcBlendAlpha = D3D12_BLEND_ONE;
+		target.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
+		target.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+		return blendDesc;
+	}
+
 	D3D12_DEPTH_STENCIL_DESC CreateDefaultDepthStencilDesc()
 	{
 		D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
 		depthStencilDesc.DepthEnable = TRUE;
 		depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 		depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		depthStencilDesc.StencilEnable = FALSE;
+		return depthStencilDesc;
+	}
+
+	D3D12_DEPTH_STENCIL_DESC CreateDepthDisabledDesc()
+	{
+		D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
+		depthStencilDesc.DepthEnable = FALSE;
+		depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+		depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 		depthStencilDesc.StencilEnable = FALSE;
 		return depthStencilDesc;
 	}
