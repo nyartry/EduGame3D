@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <string>
+#include <string_view>
 
 using namespace DirectX;
 
@@ -38,20 +39,30 @@ void LoadingOverlay::Render(Dx12Renderer& renderer) const
 void LoadingOverlay::RebuildBatch()
 {
 	const int frameIndex = static_cast<int>(m_elapsedTime * 8.0f) % SegmentCount;
-	const int dotCount = (static_cast<int>(m_elapsedTime * 2.5f) % 4);
-	const float pulse = (std::sin(m_elapsedTime * 5.0f) + 1.0f) * 0.5f;
 
 	m_batch.Clear();
 	m_batch.DrawRectangle(0.0f, 0.0f, static_cast<float>(m_width), static_cast<float>(m_height), DimColor);
 
-	std::string text = "NOW LOADING";
-	text.append(static_cast<size_t>(dotCount), '.');
-
 	constexpr float textPixelSize = 5.0f;
+	constexpr std::string_view text = "NOW LOADING...";
 	const XMFLOAT2 textSize = m_batch.MeasureText(text, textPixelSize);
-	const float textX = (static_cast<float>(m_width) - textSize.x) * 0.5f;
-	const float textY = static_cast<float>(m_height) * 0.5f - 72.0f + 4.0f * pulse;
-	m_batch.DrawText(text, textX, textY, textPixelSize, TextColor);
+	float textX = (static_cast<float>(m_width) - textSize.x) * 0.5f;
+	const float textY = static_cast<float>(m_height) * 0.5f - 72.0f;
+	for (size_t index = 0; index < text.size(); ++index)
+	{
+		const float wave = std::sin(m_elapsedTime * 7.0f + static_cast<float>(index) * 0.58f);
+		const float letterPulse = (wave + 1.0f) * 0.5f;
+		const XMFLOAT4 letterColor
+		{
+			TextColor.x,
+			TextColor.y,
+			TextColor.z,
+			0.58f + 0.42f * letterPulse
+		};
+		const char letter = text[index];
+		m_batch.DrawText(std::string_view(&letter, 1), textX, textY + wave * 9.0f, textPixelSize, letterColor);
+		textX += 6.0f * textPixelSize;
+	}
 
 	constexpr float segmentWidth = 48.0f;
 	constexpr float segmentHeight = 14.0f;

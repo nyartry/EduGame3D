@@ -58,15 +58,25 @@ private:
 	{
 		SceneLoadMode mode{ SceneLoadMode::Single };
 		std::future<std::unique_ptr<IScene>> future;
+		float elapsedTime{};
+	};
+
+	struct RetiredScene
+	{
+		std::unique_ptr<IScene> scene;
+		UINT framesRemaining{};
 	};
 
 	void ClearActiveScenes();
+	void RetireActiveScenes();
+	void ReleaseRetiredScenes();
 	void CommitLoadedScene(std::unique_ptr<IScene> scene, SceneLoadMode mode);
 	void PollAsyncLoad();
 
 	SceneLoadContext m_context{};
 	std::unordered_map<std::string, SceneFactory> m_sceneFactories;
 	std::vector<std::unique_ptr<IScene>> m_activeScenes;
+	std::vector<RetiredScene> m_retiredScenes;
 	std::unique_ptr<PendingLoad> m_pendingLoad;
 	LoadingOverlay m_loadingOverlay;
 };

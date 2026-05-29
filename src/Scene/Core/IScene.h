@@ -29,4 +29,5 @@ public:
 
 	virtual DirectX::XMMATRIX GetViewProjectionMatrix() const = 0;
 	virtual std::string GetRequestedSceneName() const { return {}; }
+	virtual bool ShouldLoadRequestedSceneAsync() const { return false; }
 };

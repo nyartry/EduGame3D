@@ -2,10 +2,17 @@
 
 #include "Rendering/Core/Dx12Renderer.h"
 
+#include <algorithm>
 #include <chrono>
 #include <utility>
 
 using namespace DirectX;
+
+namespace
+{
+	constexpr float MinimumLoadingSeconds = 0.75f;
+	constexpr UINT RetiredSceneKeepAliveFrames = Dx12Renderer::FrameCount + 1;
+}
 
 void SceneManager::Initialize(ID3D12Device* device, UINT width, UINT height)
 {
@@ -33,7 +40,7 @@ bool SceneManager::LoadScene(const std::string& name, SceneLoadType loadType, Sc
 		return false;
 	}
 
-	if (loadMode == SceneLoadMode::Single)
+	if (loadMode == SceneLoadMode::Single && loadType == SceneLoadType::Synchronous)
 	{
 		ClearActiveScenes();
 	}
@@ -48,13 +55,10 @@ bool SceneManager::LoadScene(const std::string& name, SceneLoadType loadType, Sc
 
 	auto pendingLoad = std::make_unique<PendingLoad>();
 	pendingLoad->mode = loadMode;
-	const SceneLoadContext context = m_context;
 	const SceneFactory factory = sceneFactory->second;
-	pendingLoad->future = std::async(std::launch::async, [context, factory]()
+	pendingLoad->future = std::async(std::launch::async, [factory]()
 	{
-		std::unique_ptr<IScene> scene = factory();
-		scene->Load(context);
-		return scene;
+		return factory();
 	});
 
 	m_pendingLoad = std::move(pendingLoad);
@@ -66,23 +70,28 @@ void SceneManager::Update(float deltaTime, const Input& input)
 	if (IsLoading())
 	{
 		m_loadingOverlay.Update(deltaTime);
+		m_pendingLoad->elapsedTime += deltaTime;
 	}
+	ReleaseRetiredScenes();
 
 	PollAsyncLoad();
 
 	std::string requestedSceneName;
+	bool shouldLoadAsync = false;
 	for (const std::unique_ptr<IScene>& scene : m_activeScenes)
 	{
 		scene->Update(deltaTime, input);
 		if (requestedSceneName.empty())
 		{
 			requestedSceneName = scene->GetRequestedSceneName();
+			shouldLoadAsync = scene->ShouldLoadRequestedSceneAsync();
 		}
 	}
 
 	if (!requestedSceneName.empty())
 	{
-		LoadScene(requestedSceneName, SceneLoadType::Synchronous, SceneLoadMode::Single);
+		const SceneLoadType loadType = shouldLoadAsync ? SceneLoadType::Asynchronous : SceneLoadType::Synchronous;
+		LoadScene(requestedSceneName, loadType, SceneLoadMode::Single);
 	}
 }
 
@@ -123,11 +132,46 @@ void SceneManager::ClearActiveScenes()
 	m_activeScenes.clear();
 }
 
+void SceneManager::RetireActiveScenes()
+{
+	for (std::unique_ptr<IScene>& scene : m_activeScenes)
+	{
+		m_retiredScenes.push_back({ std::move(scene), RetiredSceneKeepAliveFrames });
+	}
+	m_activeScenes.clear();
+}
+
+void SceneManager::ReleaseRetiredScenes()
+{
+	for (RetiredScene& retiredScene : m_retiredScenes)
+	{
+		if (retiredScene.framesRemaining > 0)
+		{
+			--retiredScene.framesRemaining;
+		}
+	}
+
+	const auto removeBegin = std::remove_if(
+		m_retiredScenes.begin(),
+		m_retiredScenes.end(),
+		[](RetiredScene& retiredScene)
+		{
+			if (retiredScene.framesRemaining > 0)
+			{
+				return false;
+			}
+
+			retiredScene.scene->Unload();
+			return true;
+		});
+	m_retiredScenes.erase(removeBegin, m_retiredScenes.end());
+}
+
 void SceneManager::CommitLoadedScene(std::unique_ptr<IScene> scene, SceneLoadMode mode)
 {
 	if (mode == SceneLoadMode::Single)
 	{
-		ClearActiveScenes();
+		RetireActiveScenes();
 	}
 
 	m_activeScenes.push_back(std::move(scene));
@@ -140,11 +184,18 @@ void SceneManager::PollAsyncLoad()
 		return;
 	}
 
+	if (m_pendingLoad->elapsedTime < MinimumLoadingSeconds)
+	{
+		return;
+	}
+
 	if (m_pendingLoad->future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
 	{
 		return;
 	}
 
-	CommitLoadedScene(m_pendingLoad->future.get(), m_pendingLoad->mode);
+	std::unique_ptr<IScene> scene = m_pendingLoad->future.get();
+	scene->Load(m_context);
+	CommitLoadedScene(std::move(scene), m_pendingLoad->mode);
 	m_pendingLoad.reset();
 }

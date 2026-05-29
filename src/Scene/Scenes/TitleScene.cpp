@@ -54,6 +54,11 @@ std::string TitleScene::GetRequestedSceneName() const
 	return m_startRequested ? NextSceneName : std::string{};
 }
 
+bool TitleScene::ShouldLoadRequestedSceneAsync() const
+{
+	return m_startRequested;
+}
+
 void TitleScene::RebuildBatch()
 {
 	const float width = static_cast<float>(m_width);

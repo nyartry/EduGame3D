@@ -21,6 +21,7 @@ public:
 
 	DirectX::XMMATRIX GetViewProjectionMatrix() const override;
 	std::string GetRequestedSceneName() const override;
+	bool ShouldLoadRequestedSceneAsync() const override;
 
 private:
 	void RebuildBatch();
