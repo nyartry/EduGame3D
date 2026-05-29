@@ -29,6 +29,19 @@ bool Input::WasReleased(InputKey key) const
 	return !m_currentKeys[virtualKey] && m_previousKeys[virtualKey];
 }
 
+bool Input::WasAnyPressed() const
+{
+	for (size_t key = 0; key < m_currentKeys.size(); ++key)
+	{
+		if (m_currentKeys[key] && !m_previousKeys[key])
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 int Input::ToVirtualKey(InputKey key)
 {
 	switch (key)

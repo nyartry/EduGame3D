@@ -27,6 +27,7 @@ public:
 	bool IsDown(InputKey key) const;
 	bool WasPressed(InputKey key) const;
 	bool WasReleased(InputKey key) const;
+	bool WasAnyPressed() const;
 
 private:
 	static int ToVirtualKey(InputKey key);

@@ -112,6 +112,7 @@
     <ClCompile Include="src\App\Game.cpp" />
     <ClCompile Include="src\Scene\Cameras\FollowCamera.cpp" />
     <ClCompile Include="src\Scene\Scenes\GameScene.cpp" />
+    <ClCompile Include="src\Scene\Scenes\TitleScene.cpp" />
     <ClCompile Include="src\Scene\Overlays\HudOverlay.cpp" />
     <ClCompile Include="src\Scene\Overlays\LoadingOverlay.cpp" />
     <ClCompile Include="src\Scene\Core\SceneManager.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="src\App\Game.h" />
     <ClInclude Include="src\Scene\Cameras\FollowCamera.h" />
     <ClInclude Include="src\Scene\Scenes\GameScene.h" />
+    <ClInclude Include="src\Scene\Scenes\TitleScene.h" />
     <ClInclude Include="src\Scene\Overlays\HudOverlay.h" />
     <ClInclude Include="src\Gameplay\Ground.h" />
     <ClInclude Include="src\Animation\GpuSkinnedMeshProcessor.h" />

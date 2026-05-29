@@ -1,6 +1,7 @@
 #include "App/Game.h"
 
 #include "Scene/Scenes/GameScene.h"
+#include "Scene/Scenes/TitleScene.h"
 
 #include <cwchar>
 
@@ -10,7 +11,8 @@ void Game::Initialize(HWND hwnd, UINT width, UINT height)
 	m_renderer.Initialize(hwnd, width, height);
 	m_sceneManager.Initialize(m_renderer.GetDevice(), width, height);
 	m_sceneManager.AddScene<GameScene>("Game");
-	m_sceneManager.LoadScene("Game", SceneLoadType::Synchronous, SceneLoadMode::Single);
+	m_sceneManager.AddScene<TitleScene>("Title");
+	m_sceneManager.LoadScene("Title", SceneLoadType::Synchronous, SceneLoadMode::Single);
 	m_lastTickTime = std::chrono::steady_clock::now();
 	m_fpsLastUpdate = std::chrono::steady_clock::now();
 }

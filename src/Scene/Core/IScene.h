@@ -5,6 +5,7 @@
 #include <Windows.h>
 
 #include <DirectXMath.h>
+#include <string>
 
 class Dx12Renderer;
 struct ID3D12Device;
@@ -27,4 +28,5 @@ public:
 	virtual void Render(Dx12Renderer& renderer) const = 0;
 
 	virtual DirectX::XMMATRIX GetViewProjectionMatrix() const = 0;
+	virtual std::string GetRequestedSceneName() const { return {}; }
 };

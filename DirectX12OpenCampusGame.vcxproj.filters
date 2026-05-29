@@ -70,6 +70,9 @@
     <ClCompile Include="src\Scene\Scenes\GameScene.cpp">
       <Filter>Scene\Scenes</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\Scenes\TitleScene.cpp">
+      <Filter>Scene\Scenes</Filter>
+    </ClCompile>
     <ClCompile Include="src\Scene\Overlays\HudOverlay.cpp">
       <Filter>Scene\Overlays</Filter>
     </ClCompile>
@@ -241,6 +244,9 @@
       <Filter>Scene\Cameras</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\Scenes\GameScene.h">
+      <Filter>Scene\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\Scenes\TitleScene.h">
       <Filter>Scene\Scenes</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\Overlays\HudOverlay.h">

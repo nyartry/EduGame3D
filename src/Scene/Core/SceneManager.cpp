@@ -70,9 +70,19 @@ void SceneManager::Update(float deltaTime, const Input& input)
 
 	PollAsyncLoad();
 
+	std::string requestedSceneName;
 	for (const std::unique_ptr<IScene>& scene : m_activeScenes)
 	{
 		scene->Update(deltaTime, input);
+		if (requestedSceneName.empty())
+		{
+			requestedSceneName = scene->GetRequestedSceneName();
+		}
+	}
+
+	if (!requestedSceneName.empty())
+	{
+		LoadScene(requestedSceneName, SceneLoadType::Synchronous, SceneLoadMode::Single);
 	}
 }
 
