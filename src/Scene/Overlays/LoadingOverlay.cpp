@@ -21,7 +21,7 @@ void LoadingOverlay::Initialize(ID3D12Device* device, UINT width, UINT height)
 {
 	m_width = width;
 	m_height = height;
-	m_batch.Initialize(device, 512);
+	m_batch.Initialize(device, 1024);
 	RebuildBatch();
 }
 

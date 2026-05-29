@@ -2,6 +2,7 @@
 
 #include "Scene/Core/IScene.h"
 #include "Scene/Overlays/LoadingOverlay.h"
+#include "Rendering/Sprites/SpriteBatch.h"
 
 #include <DirectXMath.h>
 
@@ -54,11 +55,20 @@ public:
 	bool IsLoading() const;
 
 private:
+	enum class PendingLoadPhase
+	{
+		FadeOut,
+		Loading,
+		FadeIn
+	};
+
 	struct PendingLoad
 	{
 		SceneLoadMode mode{ SceneLoadMode::Single };
+		SceneFactory factory;
 		std::future<std::unique_ptr<IScene>> future;
 		float elapsedTime{};
+		PendingLoadPhase phase{ PendingLoadPhase::FadeOut };
 	};
 
 	struct RetiredScene
@@ -71,7 +81,9 @@ private:
 	void RetireActiveScenes();
 	void ReleaseRetiredScenes();
 	void CommitLoadedScene(std::unique_ptr<IScene> scene, SceneLoadMode mode);
+	void StartPendingLoad();
 	void PollAsyncLoad();
+	void UpdateFadeOverlay(float alpha);
 
 	SceneLoadContext m_context{};
 	std::unordered_map<std::string, SceneFactory> m_sceneFactories;
@@ -79,4 +91,5 @@ private:
 	std::vector<RetiredScene> m_retiredScenes;
 	std::unique_ptr<PendingLoad> m_pendingLoad;
 	LoadingOverlay m_loadingOverlay;
+	SpriteBatch m_fadeOverlay;
 };
