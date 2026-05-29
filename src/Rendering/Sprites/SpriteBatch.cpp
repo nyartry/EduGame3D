@@ -107,6 +107,22 @@ void SpriteBatch::DrawRectangle(const SpriteRect& rect, const XMFLOAT4& color)
 	AddQuad(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, color);
 }
 
+void SpriteBatch::DrawTriangle(
+	const XMFLOAT2& a,
+	const XMFLOAT2& b,
+	const XMFLOAT2& c,
+	const XMFLOAT4& color)
+{
+	if (!HasRoomForTriangle())
+	{
+		return;
+	}
+
+	m_vertices.push_back({ a, { 0.0f, 0.0f }, color });
+	m_vertices.push_back({ b, { 0.0f, 0.0f }, color });
+	m_vertices.push_back({ c, { 0.0f, 0.0f }, color });
+}
+
 void SpriteBatch::DrawText(std::string_view text, float x, float y, float pixelSize, const XMFLOAT4& color)
 {
 	float cursorX = x;
@@ -212,4 +228,9 @@ void SpriteBatch::DrawGlyph(char glyph, float x, float y, float pixelSize, const
 bool SpriteBatch::HasRoomForQuad() const
 {
 	return m_vertices.size() + 6 <= m_maxVertexCount;
+}
+
+bool SpriteBatch::HasRoomForTriangle() const
+{
+	return m_vertices.size() + 3 <= m_maxVertexCount;
 }

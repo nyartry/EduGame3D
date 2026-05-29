@@ -2,13 +2,34 @@
 
 #include <Windows.h>
 
-void Input::Update()
+void Input::Update(HWND hwnd)
 {
 	m_previousKeys = m_currentKeys;
+	m_previousLeftMouseDown = m_currentLeftMouseDown;
 
 	for (int key = 0; key < static_cast<int>(m_currentKeys.size()); ++key)
 	{
 		m_currentKeys[static_cast<size_t>(key)] = (GetAsyncKeyState(key) & 0x8000) != 0;
+	}
+
+	m_currentLeftMouseDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+
+	POINT cursorPosition{};
+	if (GetCursorPos(&cursorPosition) && hwnd != nullptr)
+	{
+		ScreenToClient(hwnd, &cursorPosition);
+		m_mouseX = cursorPosition.x;
+		m_mouseY = cursorPosition.y;
+
+		RECT clientRect{};
+		if (GetClientRect(hwnd, &clientRect))
+		{
+			m_mouseInsideClient =
+				cursorPosition.x >= clientRect.left &&
+				cursorPosition.y >= clientRect.top &&
+				cursorPosition.x < clientRect.right &&
+				cursorPosition.y < clientRect.bottom;
+		}
 	}
 }
 
@@ -40,6 +61,36 @@ bool Input::WasAnyPressed() const
 	}
 
 	return false;
+}
+
+bool Input::IsLeftMouseDown() const
+{
+	return m_currentLeftMouseDown;
+}
+
+bool Input::WasLeftMousePressed() const
+{
+	return m_currentLeftMouseDown && !m_previousLeftMouseDown;
+}
+
+bool Input::WasLeftMouseReleased() const
+{
+	return !m_currentLeftMouseDown && m_previousLeftMouseDown;
+}
+
+bool Input::IsMouseInsideClient() const
+{
+	return m_mouseInsideClient;
+}
+
+int Input::GetMouseX() const
+{
+	return m_mouseX;
+}
+
+int Input::GetMouseY() const
+{
+	return m_mouseY;
 }
 
 int Input::ToVirtualKey(InputKey key)

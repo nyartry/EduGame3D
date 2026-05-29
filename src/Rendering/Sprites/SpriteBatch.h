@@ -31,6 +31,11 @@ public:
 
 	void DrawRectangle(float x, float y, float width, float height, const DirectX::XMFLOAT4& color);
 	void DrawRectangle(const SpriteRect& rect, const DirectX::XMFLOAT4& color);
+	void DrawTriangle(
+		const DirectX::XMFLOAT2& a,
+		const DirectX::XMFLOAT2& b,
+		const DirectX::XMFLOAT2& c,
+		const DirectX::XMFLOAT4& color);
 	void DrawText(std::string_view text, float x, float y, float pixelSize, const DirectX::XMFLOAT4& color);
 
 	DirectX::XMFLOAT2 MeasureText(std::string_view text, float pixelSize) const;
@@ -46,6 +51,7 @@ private:
 		const DirectX::XMFLOAT2& uvBottomRight = { 1.0f, 1.0f });
 	void DrawGlyph(char glyph, float x, float y, float pixelSize, const DirectX::XMFLOAT4& color);
 	bool HasRoomForQuad() const;
+	bool HasRoomForTriangle() const;
 
 	std::vector<SpriteVertex> m_vertices;
 	SpriteVertexBuffer m_vertexBuffer;

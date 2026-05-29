@@ -19,7 +19,7 @@ void Game::Initialize(HWND hwnd, UINT width, UINT height)
 
 void Game::Tick()
 {
-	m_input.Update();
+	m_input.Update(m_hwnd);
 	const float deltaTime = CalculateDeltaTime();
 	m_sceneManager.Update(deltaTime, m_input);
 	m_renderer.BeginFrame(m_sceneManager.GetViewProjectionMatrix());
