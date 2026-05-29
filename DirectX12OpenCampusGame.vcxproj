@@ -128,12 +128,14 @@
     <ClCompile Include="src\Gameplay\Player.cpp" />
     <ClCompile Include="src\Gameplay\PrimitiveObject.cpp" />
     <ClCompile Include="src\Animation\RootMotionPolicy.cpp" />
+    <ClCompile Include="src\Rendering\PrimitiveSpriteFactory.cpp" />
     <ClCompile Include="src\Models\SkinnedMeshActor.cpp" />
     <ClCompile Include="src\Models\SkinnedModel.cpp" />
     <ClCompile Include="src\Models\SkinnedModelLoader.cpp" />
     <ClCompile Include="src\Rendering\SkinnedTexturedPipeline.cpp" />
     <ClCompile Include="src\Rendering\SkinnedVertexBuffer.cpp" />
     <ClCompile Include="src\Rendering\SpriteBatch.cpp" />
+    <ClCompile Include="src\Rendering\SpriteImage.cpp" />
     <ClCompile Include="src\Rendering\SpriteMaterial.cpp" />
     <ClCompile Include="src\Rendering\SpritePipeline.cpp" />
     <ClCompile Include="src\Rendering\SpriteVertexBuffer.cpp" />
@@ -184,6 +186,7 @@
     <ClInclude Include="src\Gameplay\OrcPlayer.h" />
     <ClInclude Include="src\Gameplay\Player.h" />
     <ClInclude Include="src\Gameplay\PrimitiveObject.h" />
+    <ClInclude Include="src\Rendering\PrimitiveSpriteFactory.h" />
     <ClInclude Include="src\Animation\RootMotion.h" />
     <ClInclude Include="src\Animation\RootMotionPolicy.h" />
     <ClInclude Include="src\Animation\SkinningMode.h" />
@@ -194,6 +197,7 @@
     <ClInclude Include="src\Rendering\SkinnedTexturedPipeline.h" />
     <ClInclude Include="src\Rendering\SkinnedVertexBuffer.h" />
     <ClInclude Include="src\Rendering\SpriteBatch.h" />
+    <ClInclude Include="src\Rendering\SpriteImage.h" />
     <ClInclude Include="src\Rendering\SpriteMaterial.h" />
     <ClInclude Include="src\Rendering\SpritePipeline.h" />
     <ClInclude Include="src\Rendering\SpriteVertex.h" />

@@ -11,6 +11,7 @@ class Texture2D
 public:
 	void Initialize(ID3D12Device* device, const std::string& filePath, bool useSrgb);
 	void InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha, bool useSrgb);
+	void InitializeFromPixels(ID3D12Device* device, const void* rgbaPixels, UINT width, UINT height, bool useSrgb);
 	void CreateShaderResourceView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE handle) const;
 
 private:

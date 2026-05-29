@@ -107,6 +107,9 @@
     <ClCompile Include="src\Animation\RootMotionPolicy.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
+    <ClCompile Include="src\Rendering\PrimitiveSpriteFactory.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
     <ClCompile Include="src\Models\SkinnedMeshActor.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -123,6 +126,9 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\SpriteBatch.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\SpriteImage.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\SpriteMaterial.cpp">
@@ -271,6 +277,9 @@
     <ClInclude Include="src\Gameplay\PrimitiveObject.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
+    <ClInclude Include="src\Rendering\PrimitiveSpriteFactory.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
     <ClInclude Include="src\Animation\RootMotion.h">
       <Filter>Animation</Filter>
     </ClInclude>
@@ -299,6 +308,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\SpriteBatch.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\SpriteImage.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\SpriteMaterial.h">

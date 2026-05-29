@@ -7,6 +7,7 @@
 #include "Gameplay/OrcPlayer.h"
 #include "Gameplay/Player.h"
 #include "Models/SkinnedMeshActor.h"
+#include "Rendering/PrimitiveSpriteFactory.h"
 
 #include <memory>
 
@@ -38,6 +39,12 @@ void GameScene::Load(const SceneLoadContext& context)
 	m_originCube.SetGroundCollisionEnabled(false);
 	m_originCube.SetGravityEnabled(false);
 	m_originCube.Initialize(context.device);
+	m_primitiveImage = PrimitiveSpriteFactory::CreateDiamondSprite(
+		context.device,
+		310.0f,
+		28.0f,
+		72.0f,
+		72.0f);
 	m_hudOverlay.Initialize(context.device, context.width, context.height);
 
 	m_actors.clear();
@@ -94,6 +101,7 @@ void GameScene::Render(Dx12Renderer& renderer) const
 	{
 		actor->Draw(renderer);
 	}
+	m_primitiveImage.Render(renderer);
 	m_hudOverlay.Render(renderer);
 }
 

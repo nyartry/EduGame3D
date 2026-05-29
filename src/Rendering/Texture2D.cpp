@@ -136,6 +136,16 @@ void Texture2D::InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 gree
 	CreateTextureResource(device, pixels, 1, 1, useSrgb);
 }
 
+void Texture2D::InitializeFromPixels(ID3D12Device* device, const void* rgbaPixels, UINT width, UINT height, bool useSrgb)
+{
+	if (rgbaPixels == nullptr || width == 0 || height == 0)
+	{
+		throw std::runtime_error("Texture pixel data is invalid.");
+	}
+
+	CreateTextureResource(device, rgbaPixels, width, height, useSrgb);
+}
+
 void Texture2D::CreateFallbackTexture(ID3D12Device* device)
 {
 	const UINT8 pixels[] =

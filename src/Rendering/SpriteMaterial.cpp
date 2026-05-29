@@ -2,6 +2,8 @@
 
 #include "Common/Common.h"
 
+#include <stdexcept>
+
 void SpriteMaterial::InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha)
 {
 	m_texture.InitializeSolidColor(device, red, green, blue, alpha, false);
@@ -12,6 +14,19 @@ void SpriteMaterial::InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8
 void SpriteMaterial::InitializeTexture(ID3D12Device* device, const std::string& texturePath, bool useSrgb)
 {
 	m_texture.Initialize(device, texturePath, useSrgb);
+	CreateDescriptorHeap(device);
+	CreateShaderResourceView(device);
+}
+
+void SpriteMaterial::InitializePixels(ID3D12Device* device, const std::vector<UINT8>& rgbaPixels, UINT width, UINT height, bool useSrgb)
+{
+	const size_t minimumByteCount = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
+	if (rgbaPixels.size() < minimumByteCount)
+	{
+		throw std::runtime_error("Sprite pixel data is smaller than the requested texture size.");
+	}
+
+	m_texture.InitializeFromPixels(device, rgbaPixels.data(), width, height, useSrgb);
 	CreateDescriptorHeap(device);
 	CreateShaderResourceView(device);
 }
