@@ -1,13 +1,13 @@
 #include "Scene/GameScene.h"
 
 #include "Gameplay/DavenPlayer.h"
-#include "Rendering/Dx12Renderer.h"
+#include "Rendering/Core/Dx12Renderer.h"
 #include "Gameplay/ForestGoddessPlayer.h"
 #include "Gameplay/NathanWalker.h"
 #include "Gameplay/OrcPlayer.h"
 #include "Gameplay/Player.h"
 #include "Models/SkinnedMeshActor.h"
-#include "Rendering/PrimitiveSpriteFactory.h"
+#include "Rendering/Sprites/PrimitiveSpriteFactory.h"
 
 #include <memory>
 

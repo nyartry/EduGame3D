@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Rendering/Dx12Renderer.h"
+#include "Rendering/Core/Dx12Renderer.h"
 #include "Scene/Input.h"
 #include "Scene/SceneManager.h"
 

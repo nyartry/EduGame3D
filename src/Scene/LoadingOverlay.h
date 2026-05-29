@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Rendering/SpriteBatch.h"
+#include "Rendering/Sprites/SpriteBatch.h"
 
 #include <Windows.h>
 

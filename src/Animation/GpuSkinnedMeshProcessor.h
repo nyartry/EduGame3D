@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Animation/ISkinnedMeshProcessor.h"
-#include "Rendering/SkinnedVertexBuffer.h"
+#include "Rendering/Buffers/SkinnedVertexBuffer.h"
 
 class GpuSkinnedMeshProcessor : public ISkinnedMeshProcessor
 {

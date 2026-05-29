@@ -5,6 +5,12 @@
     <Filter Include="Scene"><UniqueIdentifier>{c8215340-cf31-49c2-a297-38feadf862d3}</UniqueIdentifier></Filter>
     <Filter Include="Gameplay"><UniqueIdentifier>{327ee6d5-7f02-4d64-b9de-1e7324f17f57}</UniqueIdentifier></Filter>
     <Filter Include="Rendering"><UniqueIdentifier>{3d9db80a-90da-44a8-b7c4-2f39c427ab4a}</UniqueIdentifier></Filter>
+    <Filter Include="Rendering\Core"><UniqueIdentifier>{5f4c7814-3867-4cad-8a9a-38bb4e4b5861}</UniqueIdentifier></Filter>
+    <Filter Include="Rendering\Pipelines"><UniqueIdentifier>{92388572-1581-41d9-bb5d-1ea3b82f7f6f}</UniqueIdentifier></Filter>
+    <Filter Include="Rendering\Buffers"><UniqueIdentifier>{90677b3f-6348-403e-83ba-38f16be2f92f}</UniqueIdentifier></Filter>
+    <Filter Include="Rendering\Materials"><UniqueIdentifier>{7dbf1d17-1bf4-4bec-bf67-f60f3a8f0f95}</UniqueIdentifier></Filter>
+    <Filter Include="Rendering\Geometry"><UniqueIdentifier>{a5b0c58a-5ae8-4a98-9620-8c24f9d8af4e}</UniqueIdentifier></Filter>
+    <Filter Include="Rendering\Sprites"><UniqueIdentifier>{ea88a2e0-073a-4832-a843-b7e2b345a91c}</UniqueIdentifier></Filter>
     <Filter Include="Rendering\Shaders"><UniqueIdentifier>{ec2a9d0f-44f2-4ff6-90fa-9f9fd0cd4310}</UniqueIdentifier></Filter>
     <Filter Include="Models"><UniqueIdentifier>{9fce9db4-4d2d-401d-8457-74b364a783a4}</UniqueIdentifier></Filter>
     <Filter Include="Animation"><UniqueIdentifier>{820321f1-35da-4cf7-8c0a-560aa6812b0d}</UniqueIdentifier></Filter>
@@ -23,8 +29,8 @@
     <ClCompile Include="src\Animation\AnimationSampler.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\BasicColorPipeline.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Pipelines\BasicColorPipeline.cpp">
+      <Filter>Rendering\Pipelines</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\CameraFollowHeightLock.cpp">
       <Filter>Scene</Filter>
@@ -41,14 +47,14 @@
     <ClCompile Include="src\Gameplay\DavenPlayer.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Dx12BufferHelper.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Core\Dx12BufferHelper.cpp">
+      <Filter>Rendering\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Dx12PipelineHelper.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Core\Dx12PipelineHelper.cpp">
+      <Filter>Rendering\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Dx12Renderer.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Core\Dx12Renderer.cpp">
+      <Filter>Rendering\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\App\Game.cpp">
       <Filter>App</Filter>
@@ -104,17 +110,17 @@
     <ClCompile Include="src\Gameplay\PrimitiveObject.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\PrimitiveSprite.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Sprites\PrimitiveSprite.cpp">
+      <Filter>Rendering\Sprites</Filter>
     </ClCompile>
     <ClCompile Include="src\Animation\RootMotionPolicy.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\PrimitiveSpriteFactory.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Sprites\PrimitiveSpriteFactory.cpp">
+      <Filter>Rendering\Sprites</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Rect.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Sprites\Rect.cpp">
+      <Filter>Rendering\Sprites</Filter>
     </ClCompile>
     <ClCompile Include="src\Models\SkinnedMeshActor.cpp">
       <Filter>Models</Filter>
@@ -125,47 +131,47 @@
     <ClCompile Include="src\Models\SkinnedModelLoader.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\SkinnedTexturedPipeline.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.cpp">
+      <Filter>Rendering\Pipelines</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\SkinnedVertexBuffer.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Buffers\SkinnedVertexBuffer.cpp">
+      <Filter>Rendering\Buffers</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\SpriteBatch.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Sprites\SpriteBatch.cpp">
+      <Filter>Rendering\Sprites</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\SpriteImage.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Sprites\SpriteImage.cpp">
+      <Filter>Rendering\Sprites</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\SpriteMaterial.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Materials\SpriteMaterial.cpp">
+      <Filter>Rendering\Materials</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\SpritePipeline.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Pipelines\SpritePipeline.cpp">
+      <Filter>Rendering\Pipelines</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\SpriteVertexBuffer.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Buffers\SpriteVertexBuffer.cpp">
+      <Filter>Rendering\Buffers</Filter>
     </ClCompile>
     <ClCompile Include="src\Models\StaticModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Texture2D.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Materials\Texture2D.cpp">
+      <Filter>Rendering\Materials</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\TexturedMaterial.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Materials\TexturedMaterial.cpp">
+      <Filter>Rendering\Materials</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\TexturedPipeline.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Pipelines\TexturedPipeline.cpp">
+      <Filter>Rendering\Pipelines</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\TexturedVertexBuffer.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Buffers\TexturedVertexBuffer.cpp">
+      <Filter>Rendering\Buffers</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Triangle.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Sprites\Triangle.cpp">
+      <Filter>Rendering\Sprites</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\VertexBuffer.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\Rendering\Buffers\VertexBuffer.cpp">
+      <Filter>Rendering\Buffers</Filter>
     </ClCompile>
     <ClCompile Include="src\App\Win32Application.cpp">
       <Filter>App</Filter>
@@ -181,8 +187,8 @@
     <ClInclude Include="src\Gameplay\CollisionComponents.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\ConstantBufferRing.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Core\ConstantBufferRing.h">
+      <Filter>Rendering\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Gameplay\Actor.h">
       <Filter>Gameplay</Filter>
@@ -193,8 +199,8 @@
     <ClInclude Include="src\Animation\AnimationSampler.h">
       <Filter>Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\BasicColorPipeline.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Pipelines\BasicColorPipeline.h">
+      <Filter>Rendering\Pipelines</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\CameraFollowHeightLock.h">
       <Filter>Scene</Filter>
@@ -214,14 +220,14 @@
     <ClInclude Include="src\Gameplay\DavenPlayer.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Dx12BufferHelper.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Core\Dx12BufferHelper.h">
+      <Filter>Rendering\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Dx12PipelineHelper.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Core\Dx12PipelineHelper.h">
+      <Filter>Rendering\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Dx12Renderer.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Core\Dx12Renderer.h">
+      <Filter>Rendering\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\App\Game.h">
       <Filter>App</Filter>
@@ -286,14 +292,14 @@
     <ClInclude Include="src\Gameplay\PrimitiveObject.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\PrimitiveSprite.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Sprites\PrimitiveSprite.h">
+      <Filter>Rendering\Sprites</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\PrimitiveSpriteFactory.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Sprites\PrimitiveSpriteFactory.h">
+      <Filter>Rendering\Sprites</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Rect.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Sprites\Rect.h">
+      <Filter>Rendering\Sprites</Filter>
     </ClInclude>
     <ClInclude Include="src\Animation\RootMotion.h">
       <Filter>Animation</Filter>
@@ -316,56 +322,56 @@
     <ClInclude Include="src\Models\SkinnedModelLoader.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\SkinnedTexturedPipeline.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.h">
+      <Filter>Rendering\Pipelines</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\SkinnedVertexBuffer.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Buffers\SkinnedVertexBuffer.h">
+      <Filter>Rendering\Buffers</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\SpriteBatch.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Sprites\SpriteBatch.h">
+      <Filter>Rendering\Sprites</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\SpriteImage.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Sprites\SpriteImage.h">
+      <Filter>Rendering\Sprites</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\SpriteMaterial.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Materials\SpriteMaterial.h">
+      <Filter>Rendering\Materials</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\SpritePipeline.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Pipelines\SpritePipeline.h">
+      <Filter>Rendering\Pipelines</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\SpriteVertex.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Geometry\SpriteVertex.h">
+      <Filter>Rendering\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\SpriteVertexBuffer.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Buffers\SpriteVertexBuffer.h">
+      <Filter>Rendering\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="src\Models\StaticModel.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Texture2D.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Materials\Texture2D.h">
+      <Filter>Rendering\Materials</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\TexturedMaterial.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Materials\TexturedMaterial.h">
+      <Filter>Rendering\Materials</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\TexturedPipeline.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Pipelines\TexturedPipeline.h">
+      <Filter>Rendering\Pipelines</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\TexturedVertex.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Geometry\TexturedVertex.h">
+      <Filter>Rendering\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\TexturedVertexBuffer.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Buffers\TexturedVertexBuffer.h">
+      <Filter>Rendering\Buffers</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Triangle.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Sprites\Triangle.h">
+      <Filter>Rendering\Sprites</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Vertex.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Geometry\Vertex.h">
+      <Filter>Rendering\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\VertexBuffer.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\Rendering\Buffers\VertexBuffer.h">
+      <Filter>Rendering\Buffers</Filter>
     </ClInclude>
     <ClInclude Include="src\App\Win32Application.h">
       <Filter>App</Filter>

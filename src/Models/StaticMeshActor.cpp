@@ -1,6 +1,6 @@
 #include "Models/StaticMeshActor.h"
 
-#include "Rendering/Dx12Renderer.h"
+#include "Rendering/Core/Dx12Renderer.h"
 
 #include <string>
 

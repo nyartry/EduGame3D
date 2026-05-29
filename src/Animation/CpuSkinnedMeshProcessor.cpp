@@ -1,7 +1,7 @@
 #include "Animation/CpuSkinnedMeshProcessor.h"
 
-#include "Rendering/Dx12Renderer.h"
-#include "Rendering/TexturedMaterial.h"
+#include "Rendering/Core/Dx12Renderer.h"
+#include "Rendering/Materials/TexturedMaterial.h"
 
 using namespace DirectX;
 

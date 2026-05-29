@@ -2,7 +2,7 @@
 
 #include "Animation/AnimationSampler.h"
 #include "Animation/CpuSkinnedMeshProcessor.h"
-#include "Rendering/Dx12Renderer.h"
+#include "Rendering/Core/Dx12Renderer.h"
 #include "Animation/GpuSkinnedMeshProcessor.h"
 #include "Models/SkinnedModelLoader.h"
 

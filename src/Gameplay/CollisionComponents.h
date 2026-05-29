@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Rendering/Vertex.h"
+#include "Rendering/Geometry/Vertex.h"
 
 #include <DirectXMath.h>
 #include <vector>

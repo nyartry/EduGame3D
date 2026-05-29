@@ -4,7 +4,7 @@
 #include "Animation/RootMotion.h"
 #include "Animation/SkinningMode.h"
 #include "Models/SkinnedModelData.h"
-#include "Rendering/TexturedMaterial.h"
+#include "Rendering/Materials/TexturedMaterial.h"
 #include "Common/ModelScaleSettings.h"
 
 #include <DirectXMath.h>

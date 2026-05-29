@@ -2,8 +2,8 @@
 
 #include "Common/ModelScaleSettings.h"
 #include "Models/ModelLoader.h"
-#include "Rendering/TexturedMaterial.h"
-#include "Rendering/TexturedVertexBuffer.h"
+#include "Rendering/Materials/TexturedMaterial.h"
+#include "Rendering/Buffers/TexturedVertexBuffer.h"
 
 #include <Windows.h>
 

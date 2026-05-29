@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Gameplay/CollisionComponents.h"
-#include "Rendering/Vertex.h"
-#include "Rendering/VertexBuffer.h"
+#include "Rendering/Geometry/Vertex.h"
+#include "Rendering/Buffers/VertexBuffer.h"
 
 #include <Windows.h>
 

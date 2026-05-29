@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Rendering/TexturedVertex.h"
+#include "Rendering/Geometry/TexturedVertex.h"
 
 namespace MeshTangentCalculator
 {

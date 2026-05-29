@@ -9,7 +9,7 @@
 #include "Scene/FollowCamera.h"
 #include "Scene/HudOverlay.h"
 #include "Scene/ICamera.h"
-#include "Rendering/SpriteImage.h"
+#include "Rendering/Sprites/SpriteImage.h"
 
 #include <Windows.h>
 
