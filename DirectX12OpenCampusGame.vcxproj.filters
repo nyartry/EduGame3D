@@ -104,10 +104,16 @@
     <ClCompile Include="src\Gameplay\PrimitiveObject.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="src\Rendering\PrimitiveSprite.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
     <ClCompile Include="src\Animation\RootMotionPolicy.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\PrimitiveSpriteFactory.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\Rect.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Models\SkinnedMeshActor.cpp">
@@ -153,6 +159,9 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\TexturedVertexBuffer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\Triangle.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\VertexBuffer.cpp">
@@ -277,7 +286,13 @@
     <ClInclude Include="src\Gameplay\PrimitiveObject.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
+    <ClInclude Include="src\Rendering\PrimitiveSprite.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
     <ClInclude Include="src\Rendering\PrimitiveSpriteFactory.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\Rect.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\Animation\RootMotion.h">
@@ -341,6 +356,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\TexturedVertexBuffer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\Triangle.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\Vertex.h">

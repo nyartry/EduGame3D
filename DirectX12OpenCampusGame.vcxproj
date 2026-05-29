@@ -127,8 +127,10 @@
     <ClCompile Include="src\Gameplay\OrcPlayer.cpp" />
     <ClCompile Include="src\Gameplay\Player.cpp" />
     <ClCompile Include="src\Gameplay\PrimitiveObject.cpp" />
+    <ClCompile Include="src\Rendering\PrimitiveSprite.cpp" />
     <ClCompile Include="src\Animation\RootMotionPolicy.cpp" />
     <ClCompile Include="src\Rendering\PrimitiveSpriteFactory.cpp" />
+    <ClCompile Include="src\Rendering\Rect.cpp" />
     <ClCompile Include="src\Models\SkinnedMeshActor.cpp" />
     <ClCompile Include="src\Models\SkinnedModel.cpp" />
     <ClCompile Include="src\Models\SkinnedModelLoader.cpp" />
@@ -144,6 +146,7 @@
     <ClCompile Include="src\Rendering\TexturedMaterial.cpp" />
     <ClCompile Include="src\Rendering\TexturedPipeline.cpp" />
     <ClCompile Include="src\Rendering\TexturedVertexBuffer.cpp" />
+    <ClCompile Include="src\Rendering\Triangle.cpp" />
     <ClCompile Include="src\Rendering\VertexBuffer.cpp" />
     <ClCompile Include="src\App\Win32Application.cpp" />
   </ItemGroup>
@@ -186,7 +189,9 @@
     <ClInclude Include="src\Gameplay\OrcPlayer.h" />
     <ClInclude Include="src\Gameplay\Player.h" />
     <ClInclude Include="src\Gameplay\PrimitiveObject.h" />
+    <ClInclude Include="src\Rendering\PrimitiveSprite.h" />
     <ClInclude Include="src\Rendering\PrimitiveSpriteFactory.h" />
+    <ClInclude Include="src\Rendering\Rect.h" />
     <ClInclude Include="src\Animation\RootMotion.h" />
     <ClInclude Include="src\Animation\RootMotionPolicy.h" />
     <ClInclude Include="src\Animation\SkinningMode.h" />
@@ -208,6 +213,7 @@
     <ClInclude Include="src\Rendering\TexturedPipeline.h" />
     <ClInclude Include="src\Rendering\TexturedVertex.h" />
     <ClInclude Include="src\Rendering\TexturedVertexBuffer.h" />
+    <ClInclude Include="src\Rendering\Triangle.h" />
     <ClInclude Include="src\Rendering\Vertex.h" />
     <ClInclude Include="src\Rendering\VertexBuffer.h" />
     <ClInclude Include="src\App\Win32Application.h" />

@@ -14,6 +14,7 @@
 #include <Windows.h>
 
 #include <DirectXMath.h>
+#include <array>
 #include <memory>
 #include <vector>
 
@@ -42,7 +43,7 @@ private:
 	CameraFollowHeightLock m_cameraFollowHeightLock;
 	Ground m_ground;
 	Cube m_originCube;
-	SpriteImage m_primitiveImage;
+	std::array<SpriteImage, 3> m_primitiveImages;
 	HudOverlay m_hudOverlay;
 	std::vector<std::unique_ptr<Actor>> m_actors;
 };
