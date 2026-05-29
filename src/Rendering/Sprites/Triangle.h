@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Rendering/Sprites/PrimitiveSprite.h"
+#include "Rendering/Sprites/SpriteShape.h"
 
 enum class TriangleDirection
 {
@@ -10,7 +10,7 @@ enum class TriangleDirection
 	Right
 };
 
-class Triangle : public PrimitiveSprite
+class Triangle : public SpriteShape
 {
 public:
 	Triangle(

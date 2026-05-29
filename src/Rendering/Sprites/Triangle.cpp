@@ -7,7 +7,7 @@ Triangle::Triangle(
 	UINT textureHeight,
 	const DirectX::XMFLOAT4& color,
 	TriangleDirection direction)
-	: PrimitiveSprite(textureWidth, textureHeight, color)
+	: SpriteShape(textureWidth, textureHeight, color)
 	, m_direction(direction)
 {
 }

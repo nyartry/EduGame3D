@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Rendering/Sprites/SpriteImage.h"
+#include "Rendering/Sprites/Sprite.h"
 
 #include <Windows.h>
 
@@ -9,13 +9,13 @@
 
 struct ID3D12Device;
 
-class PrimitiveSprite
+class SpriteShape
 {
 public:
-	PrimitiveSprite(UINT textureWidth, UINT textureHeight, const DirectX::XMFLOAT4& color);
-	virtual ~PrimitiveSprite() = default;
+	SpriteShape(UINT textureWidth, UINT textureHeight, const DirectX::XMFLOAT4& color);
+	virtual ~SpriteShape() = default;
 
-	SpriteImage CreateImage(
+	Sprite CreateSprite(
 		ID3D12Device* device,
 		float x,
 		float y,

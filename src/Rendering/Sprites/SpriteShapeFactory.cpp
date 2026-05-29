@@ -1,4 +1,4 @@
-#include "Rendering/Sprites/PrimitiveSpriteFactory.h"
+#include "Rendering/Sprites/SpriteShapeFactory.h"
 
 #include "Rendering/Sprites/Rect.h"
 
@@ -7,7 +7,7 @@ namespace
 	constexpr UINT DefaultPrimitiveTextureSize = 32;
 }
 
-SpriteImage PrimitiveSpriteFactory::CreateRect(
+Sprite SpriteShapeFactory::CreateRect(
 	ID3D12Device* device,
 	float x,
 	float y,
@@ -16,10 +16,10 @@ SpriteImage PrimitiveSpriteFactory::CreateRect(
 	const DirectX::XMFLOAT4& color)
 {
 	const Rect rect(DefaultPrimitiveTextureSize, DefaultPrimitiveTextureSize, color);
-	return rect.CreateImage(device, x, y, width, height);
+	return rect.CreateSprite(device, x, y, width, height);
 }
 
-SpriteImage PrimitiveSpriteFactory::CreateTriangle(
+Sprite SpriteShapeFactory::CreateTriangle(
 	ID3D12Device* device,
 	float x,
 	float y,
@@ -29,5 +29,5 @@ SpriteImage PrimitiveSpriteFactory::CreateTriangle(
 	TriangleDirection direction)
 {
 	const Triangle triangle(DefaultPrimitiveTextureSize, DefaultPrimitiveTextureSize, color, direction);
-	return triangle.CreateImage(device, x, y, width, height);
+	return triangle.CreateSprite(device, x, y, width, height);
 }

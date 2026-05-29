@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Rendering/Sprites/SpriteImage.h"
+#include "Rendering/Sprites/Sprite.h"
 #include "Rendering/Sprites/Triangle.h"
 
 #include <Windows.h>
@@ -9,10 +9,10 @@
 
 struct ID3D12Device;
 
-class PrimitiveSpriteFactory
+class SpriteShapeFactory
 {
 public:
-	static SpriteImage CreateRect(
+	static Sprite CreateRect(
 		ID3D12Device* device,
 		float x,
 		float y,
@@ -20,7 +20,7 @@ public:
 		float height,
 		const DirectX::XMFLOAT4& color);
 
-	static SpriteImage CreateTriangle(
+	static Sprite CreateTriangle(
 		ID3D12Device* device,
 		float x,
 		float y,

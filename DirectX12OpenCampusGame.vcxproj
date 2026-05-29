@@ -127,9 +127,9 @@
     <ClCompile Include="src\Gameplay\OrcPlayer.cpp" />
     <ClCompile Include="src\Gameplay\Player.cpp" />
     <ClCompile Include="src\Gameplay\PrimitiveObject.cpp" />
-    <ClCompile Include="src\Rendering\Sprites\PrimitiveSprite.cpp" />
+    <ClCompile Include="src\Rendering\Sprites\SpriteShape.cpp" />
     <ClCompile Include="src\Animation\RootMotionPolicy.cpp" />
-    <ClCompile Include="src\Rendering\Sprites\PrimitiveSpriteFactory.cpp" />
+    <ClCompile Include="src\Rendering\Sprites\SpriteShapeFactory.cpp" />
     <ClCompile Include="src\Rendering\Sprites\Rect.cpp" />
     <ClCompile Include="src\Models\SkinnedMeshActor.cpp" />
     <ClCompile Include="src\Models\SkinnedModel.cpp" />
@@ -137,7 +137,7 @@
     <ClCompile Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.cpp" />
     <ClCompile Include="src\Rendering\Buffers\SkinnedVertexBuffer.cpp" />
     <ClCompile Include="src\Rendering\Sprites\SpriteBatch.cpp" />
-    <ClCompile Include="src\Rendering\Sprites\SpriteImage.cpp" />
+    <ClCompile Include="src\Rendering\Sprites\Sprite.cpp" />
     <ClCompile Include="src\Rendering\Materials\SpriteMaterial.cpp" />
     <ClCompile Include="src\Rendering\Pipelines\SpritePipeline.cpp" />
     <ClCompile Include="src\Rendering\Buffers\SpriteVertexBuffer.cpp" />
@@ -189,8 +189,8 @@
     <ClInclude Include="src\Gameplay\OrcPlayer.h" />
     <ClInclude Include="src\Gameplay\Player.h" />
     <ClInclude Include="src\Gameplay\PrimitiveObject.h" />
-    <ClInclude Include="src\Rendering\Sprites\PrimitiveSprite.h" />
-    <ClInclude Include="src\Rendering\Sprites\PrimitiveSpriteFactory.h" />
+    <ClInclude Include="src\Rendering\Sprites\SpriteShape.h" />
+    <ClInclude Include="src\Rendering\Sprites\SpriteShapeFactory.h" />
     <ClInclude Include="src\Rendering\Sprites\Rect.h" />
     <ClInclude Include="src\Animation\RootMotion.h" />
     <ClInclude Include="src\Animation\RootMotionPolicy.h" />
@@ -202,7 +202,7 @@
     <ClInclude Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.h" />
     <ClInclude Include="src\Rendering\Buffers\SkinnedVertexBuffer.h" />
     <ClInclude Include="src\Rendering\Sprites\SpriteBatch.h" />
-    <ClInclude Include="src\Rendering\Sprites\SpriteImage.h" />
+    <ClInclude Include="src\Rendering\Sprites\Sprite.h" />
     <ClInclude Include="src\Rendering\Materials\SpriteMaterial.h" />
     <ClInclude Include="src\Rendering\Pipelines\SpritePipeline.h" />
     <ClInclude Include="src\Rendering\Geometry\SpriteVertex.h" />

@@ -9,7 +9,7 @@
 #include "Scene/FollowCamera.h"
 #include "Scene/HudOverlay.h"
 #include "Scene/ICamera.h"
-#include "Rendering/Sprites/SpriteImage.h"
+#include "Rendering/Sprites/Sprite.h"
 
 #include <Windows.h>
 
@@ -43,7 +43,7 @@ private:
 	CameraFollowHeightLock m_cameraFollowHeightLock;
 	Ground m_ground;
 	Cube m_originCube;
-	std::array<SpriteImage, 3> m_primitiveImages;
+	std::array<Sprite, 3> m_primitiveSprites;
 	HudOverlay m_hudOverlay;
 	std::vector<std::unique_ptr<Actor>> m_actors;
 };

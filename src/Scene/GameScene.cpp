@@ -7,7 +7,7 @@
 #include "Gameplay/OrcPlayer.h"
 #include "Gameplay/Player.h"
 #include "Models/SkinnedMeshActor.h"
-#include "Rendering/Sprites/PrimitiveSpriteFactory.h"
+#include "Rendering/Sprites/SpriteShapeFactory.h"
 
 #include <memory>
 
@@ -42,21 +42,21 @@ void GameScene::Load(const SceneLoadContext& context)
 	m_originCube.SetGroundCollisionEnabled(false);
 	m_originCube.SetGravityEnabled(false);
 	m_originCube.Initialize(context.device);
-	m_primitiveImages[0] = PrimitiveSpriteFactory::CreateRect(
+	m_primitiveSprites[0] = SpriteShapeFactory::CreateRect(
 		context.device,
 		310.0f,
 		28.0f,
 		72.0f,
 		72.0f,
 		SquareColor);
-	m_primitiveImages[1] = PrimitiveSpriteFactory::CreateRect(
+	m_primitiveSprites[1] = SpriteShapeFactory::CreateRect(
 		context.device,
 		394.0f,
 		42.0f,
 		116.0f,
 		44.0f,
 		RectColor);
-	m_primitiveImages[2] = PrimitiveSpriteFactory::CreateTriangle(
+	m_primitiveSprites[2] = SpriteShapeFactory::CreateTriangle(
 		context.device,
 		526.0f,
 		28.0f,
@@ -119,9 +119,9 @@ void GameScene::Render(Dx12Renderer& renderer) const
 	{
 		actor->Draw(renderer);
 	}
-	for (const SpriteImage& primitiveImage : m_primitiveImages)
+	for (const Sprite& primitiveSprite : m_primitiveSprites)
 	{
-		primitiveImage.Render(renderer);
+		primitiveSprite.Render(renderer);
 	}
 	m_hudOverlay.Render(renderer);
 }

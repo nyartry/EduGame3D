@@ -1,4 +1,4 @@
-#include "Rendering/Sprites/PrimitiveSprite.h"
+#include "Rendering/Sprites/SpriteShape.h"
 
 #include <algorithm>
 #include <cmath>
@@ -14,22 +14,22 @@ namespace
 	}
 }
 
-PrimitiveSprite::PrimitiveSprite(UINT textureWidth, UINT textureHeight, const XMFLOAT4& color)
+SpriteShape::SpriteShape(UINT textureWidth, UINT textureHeight, const XMFLOAT4& color)
 	: m_textureWidth(std::max<UINT>(textureWidth, 1))
 	, m_textureHeight(std::max<UINT>(textureHeight, 1))
 	, m_color(color)
 {
 }
 
-SpriteImage PrimitiveSprite::CreateImage(
+Sprite SpriteShape::CreateSprite(
 	ID3D12Device* device,
 	float x,
 	float y,
 	float width,
 	float height) const
 {
-	SpriteImage image;
-	image.Initialize(
+	Sprite sprite;
+	sprite.Initialize(
 		device,
 		BuildPixels(),
 		m_textureWidth,
@@ -38,25 +38,25 @@ SpriteImage PrimitiveSprite::CreateImage(
 		y,
 		width,
 		height);
-	return image;
+	return sprite;
 }
 
-UINT PrimitiveSprite::GetTextureWidth() const
+UINT SpriteShape::GetTextureWidth() const
 {
 	return m_textureWidth;
 }
 
-UINT PrimitiveSprite::GetTextureHeight() const
+UINT SpriteShape::GetTextureHeight() const
 {
 	return m_textureHeight;
 }
 
-const XMFLOAT4& PrimitiveSprite::GetColor() const
+const XMFLOAT4& SpriteShape::GetColor() const
 {
 	return m_color;
 }
 
-std::vector<UINT8> PrimitiveSprite::BuildPixels() const
+std::vector<UINT8> SpriteShape::BuildPixels() const
 {
 	std::vector<UINT8> pixels(static_cast<size_t>(m_textureWidth) * m_textureHeight * BytesPerPixel, 0);
 	const UINT8 red = ToByte(m_color.x);

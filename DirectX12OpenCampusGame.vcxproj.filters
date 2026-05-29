@@ -110,13 +110,13 @@
     <ClCompile Include="src\Gameplay\PrimitiveObject.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Sprites\PrimitiveSprite.cpp">
+    <ClCompile Include="src\Rendering\Sprites\SpriteShape.cpp">
       <Filter>Rendering\Sprites</Filter>
     </ClCompile>
     <ClCompile Include="src\Animation\RootMotionPolicy.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Sprites\PrimitiveSpriteFactory.cpp">
+    <ClCompile Include="src\Rendering\Sprites\SpriteShapeFactory.cpp">
       <Filter>Rendering\Sprites</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\Sprites\Rect.cpp">
@@ -140,7 +140,7 @@
     <ClCompile Include="src\Rendering\Sprites\SpriteBatch.cpp">
       <Filter>Rendering\Sprites</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Sprites\SpriteImage.cpp">
+    <ClCompile Include="src\Rendering\Sprites\Sprite.cpp">
       <Filter>Rendering\Sprites</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\Materials\SpriteMaterial.cpp">
@@ -292,10 +292,10 @@
     <ClInclude Include="src\Gameplay\PrimitiveObject.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Sprites\PrimitiveSprite.h">
+    <ClInclude Include="src\Rendering\Sprites\SpriteShape.h">
       <Filter>Rendering\Sprites</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Sprites\PrimitiveSpriteFactory.h">
+    <ClInclude Include="src\Rendering\Sprites\SpriteShapeFactory.h">
       <Filter>Rendering\Sprites</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\Sprites\Rect.h">
@@ -331,7 +331,7 @@
     <ClInclude Include="src\Rendering\Sprites\SpriteBatch.h">
       <Filter>Rendering\Sprites</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Sprites\SpriteImage.h">
+    <ClInclude Include="src\Rendering\Sprites\Sprite.h">
       <Filter>Rendering\Sprites</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\Materials\SpriteMaterial.h">

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Rendering/Sprites/PrimitiveSprite.h"
+#include "Rendering/Sprites/SpriteShape.h"
 
-class Rect : public PrimitiveSprite
+class Rect : public SpriteShape
 {
 public:
 	Rect(UINT textureWidth, UINT textureHeight, const DirectX::XMFLOAT4& color);

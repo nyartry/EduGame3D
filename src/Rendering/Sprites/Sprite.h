@@ -11,7 +11,7 @@
 class Dx12Renderer;
 struct ID3D12Device;
 
-class SpriteImage
+class Sprite
 {
 public:
 	void Initialize(

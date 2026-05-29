@@ -1,10 +1,10 @@
-#include "Rendering/Sprites/SpriteImage.h"
+#include "Rendering/Sprites/Sprite.h"
 
 #include "Rendering/Core/Dx12Renderer.h"
 
 using namespace DirectX;
 
-void SpriteImage::Initialize(
+void Sprite::Initialize(
 	ID3D12Device* device,
 	const std::vector<UINT8>& rgbaPixels,
 	UINT textureWidth,
@@ -24,27 +24,27 @@ void SpriteImage::Initialize(
 	RebuildVertices();
 }
 
-void SpriteImage::SetPosition(float x, float y)
+void Sprite::SetPosition(float x, float y)
 {
 	m_x = x;
 	m_y = y;
 	RebuildVertices();
 }
 
-void SpriteImage::SetSize(float width, float height)
+void Sprite::SetSize(float width, float height)
 {
 	m_width = width;
 	m_height = height;
 	RebuildVertices();
 }
 
-void SpriteImage::SetTint(const XMFLOAT4& tint)
+void Sprite::SetTint(const XMFLOAT4& tint)
 {
 	m_tint = tint;
 	RebuildVertices();
 }
 
-void SpriteImage::Render(Dx12Renderer& renderer) const
+void Sprite::Render(Dx12Renderer& renderer) const
 {
 	if (!m_initialized)
 	{
@@ -54,7 +54,7 @@ void SpriteImage::Render(Dx12Renderer& renderer) const
 	renderer.DrawSprites(m_vertexBuffer, m_material);
 }
 
-void SpriteImage::RebuildVertices()
+void Sprite::RebuildVertices()
 {
 	if (!m_initialized)
 	{
