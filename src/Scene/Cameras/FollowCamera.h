@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scene/ICamera.h"
+#include "Scene/Cameras/ICamera.h"
 
 #include <DirectXMath.h>
 

@@ -1,4 +1,4 @@
-#include "Scene/HudOverlay.h"
+#include "Scene/Overlays/HudOverlay.h"
 
 #include "Rendering/Core/Dx12Renderer.h"
 

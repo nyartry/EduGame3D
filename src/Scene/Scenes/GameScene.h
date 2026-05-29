@@ -2,13 +2,13 @@
 
 #include "Gameplay/Cube.h"
 #include "Gameplay/Ground.h"
-#include "Scene/IScene.h"
-#include "Scene/Input.h"
+#include "Scene/Core/IScene.h"
+#include "Scene/Input/Input.h"
 #include "Gameplay/Actor.h"
-#include "Scene/CameraFollowHeightLock.h"
-#include "Scene/FollowCamera.h"
-#include "Scene/HudOverlay.h"
-#include "Scene/ICamera.h"
+#include "Scene/Cameras/CameraFollowHeightLock.h"
+#include "Scene/Cameras/FollowCamera.h"
+#include "Scene/Overlays/HudOverlay.h"
+#include "Scene/Cameras/ICamera.h"
 #include "Rendering/Sprites/Sprite.h"
 
 #include <Windows.h>

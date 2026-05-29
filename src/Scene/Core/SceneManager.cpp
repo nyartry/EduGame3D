@@ -1,4 +1,4 @@
-#include "Scene/SceneManager.h"
+#include "Scene/Core/SceneManager.h"
 
 #include "Rendering/Core/Dx12Renderer.h"
 

@@ -3,6 +3,11 @@
   <ItemGroup>
     <Filter Include="App"><UniqueIdentifier>{5f5e2507-b0ca-4fca-a992-8d9ba90e4401}</UniqueIdentifier></Filter>
     <Filter Include="Scene"><UniqueIdentifier>{c8215340-cf31-49c2-a297-38feadf862d3}</UniqueIdentifier></Filter>
+    <Filter Include="Scene\Core"><UniqueIdentifier>{f49589a9-4197-44e2-b05b-4e8079e877c7}</UniqueIdentifier></Filter>
+    <Filter Include="Scene\Scenes"><UniqueIdentifier>{04a85027-ce4f-4c6d-b51b-77b08c225928}</UniqueIdentifier></Filter>
+    <Filter Include="Scene\Cameras"><UniqueIdentifier>{008ef661-c8f9-441c-94e0-9020df5235dd}</UniqueIdentifier></Filter>
+    <Filter Include="Scene\Input"><UniqueIdentifier>{bf043720-17de-47bb-bec1-ab4c4bf6dd0a}</UniqueIdentifier></Filter>
+    <Filter Include="Scene\Overlays"><UniqueIdentifier>{09a31409-9e64-4799-98b3-45b4f0ef894a}</UniqueIdentifier></Filter>
     <Filter Include="Gameplay"><UniqueIdentifier>{327ee6d5-7f02-4d64-b9de-1e7324f17f57}</UniqueIdentifier></Filter>
     <Filter Include="Rendering"><UniqueIdentifier>{3d9db80a-90da-44a8-b7c4-2f39c427ab4a}</UniqueIdentifier></Filter>
     <Filter Include="Rendering\Core"><UniqueIdentifier>{5f4c7814-3867-4cad-8a9a-38bb4e4b5861}</UniqueIdentifier></Filter>
@@ -32,11 +37,11 @@
     <ClCompile Include="src\Rendering\Pipelines\BasicColorPipeline.cpp">
       <Filter>Rendering\Pipelines</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\CameraFollowHeightLock.cpp">
-      <Filter>Scene</Filter>
+    <ClCompile Include="src\Scene\Cameras\CameraFollowHeightLock.cpp">
+      <Filter>Scene\Cameras</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\Camera.cpp">
-      <Filter>Scene</Filter>
+    <ClCompile Include="src\Scene\Cameras\Camera.cpp">
+      <Filter>Scene\Cameras</Filter>
     </ClCompile>
     <ClCompile Include="src\Animation\CpuSkinnedMeshProcessor.cpp">
       <Filter>Animation</Filter>
@@ -59,20 +64,20 @@
     <ClCompile Include="src\App\Game.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\FollowCamera.cpp">
-      <Filter>Scene</Filter>
+    <ClCompile Include="src\Scene\Cameras\FollowCamera.cpp">
+      <Filter>Scene\Cameras</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\GameScene.cpp">
-      <Filter>Scene</Filter>
+    <ClCompile Include="src\Scene\Scenes\GameScene.cpp">
+      <Filter>Scene\Scenes</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\HudOverlay.cpp">
-      <Filter>Scene</Filter>
+    <ClCompile Include="src\Scene\Overlays\HudOverlay.cpp">
+      <Filter>Scene\Overlays</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\LoadingOverlay.cpp">
-      <Filter>Scene</Filter>
+    <ClCompile Include="src\Scene\Overlays\LoadingOverlay.cpp">
+      <Filter>Scene\Overlays</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\SceneManager.cpp">
-      <Filter>Scene</Filter>
+    <ClCompile Include="src\Scene\Core\SceneManager.cpp">
+      <Filter>Scene\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Gameplay\Ground.cpp">
       <Filter>Gameplay</Filter>
@@ -80,8 +85,8 @@
     <ClCompile Include="src\Animation\GpuSkinnedMeshProcessor.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\Input.cpp">
-      <Filter>Scene</Filter>
+    <ClCompile Include="src\Scene\Input\Input.cpp">
+      <Filter>Scene\Input</Filter>
     </ClCompile>
     <ClCompile Include="src\App\main.cpp">
       <Filter>App</Filter>
@@ -202,11 +207,11 @@
     <ClInclude Include="src\Rendering\Pipelines\BasicColorPipeline.h">
       <Filter>Rendering\Pipelines</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\CameraFollowHeightLock.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="src\Scene\Cameras\CameraFollowHeightLock.h">
+      <Filter>Scene\Cameras</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\Camera.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="src\Scene\Cameras\Camera.h">
+      <Filter>Scene\Cameras</Filter>
     </ClInclude>
     <ClInclude Include="src\Common\Common.h">
       <Filter>Common</Filter>
@@ -232,14 +237,14 @@
     <ClInclude Include="src\App\Game.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\FollowCamera.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="src\Scene\Cameras\FollowCamera.h">
+      <Filter>Scene\Cameras</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\GameScene.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="src\Scene\Scenes\GameScene.h">
+      <Filter>Scene\Scenes</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\HudOverlay.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="src\Scene\Overlays\HudOverlay.h">
+      <Filter>Scene\Overlays</Filter>
     </ClInclude>
     <ClInclude Include="src\Gameplay\Ground.h">
       <Filter>Gameplay</Filter>
@@ -247,20 +252,20 @@
     <ClInclude Include="src\Animation\GpuSkinnedMeshProcessor.h">
       <Filter>Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\ICamera.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="src\Scene\Cameras\ICamera.h">
+      <Filter>Scene\Cameras</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\IScene.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="src\Scene\Core\IScene.h">
+      <Filter>Scene\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\Input.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="src\Scene\Input\Input.h">
+      <Filter>Scene\Input</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\LoadingOverlay.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="src\Scene\Overlays\LoadingOverlay.h">
+      <Filter>Scene\Overlays</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\SceneManager.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="src\Scene\Core\SceneManager.h">
+      <Filter>Scene\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Animation\ISkinnedMeshProcessor.h">
       <Filter>Animation</Filter>

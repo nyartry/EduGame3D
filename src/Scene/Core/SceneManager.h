@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Scene/IScene.h"
-#include "Scene/LoadingOverlay.h"
+#include "Scene/Core/IScene.h"
+#include "Scene/Overlays/LoadingOverlay.h"
 
 #include <DirectXMath.h>
 

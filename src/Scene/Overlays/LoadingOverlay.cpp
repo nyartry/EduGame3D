@@ -1,4 +1,4 @@
-#include "Scene/LoadingOverlay.h"
+#include "Scene/Overlays/LoadingOverlay.h"
 
 #include "Rendering/Core/Dx12Renderer.h"
 

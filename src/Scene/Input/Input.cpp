@@ -1,4 +1,4 @@
-#include "Scene/Input.h"
+#include "Scene/Input/Input.h"
 
 #include <Windows.h>
 

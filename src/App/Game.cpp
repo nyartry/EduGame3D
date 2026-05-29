@@ -1,6 +1,6 @@
 #include "App/Game.h"
 
-#include "Scene/GameScene.h"
+#include "Scene/Scenes/GameScene.h"
 
 #include <cwchar>
 

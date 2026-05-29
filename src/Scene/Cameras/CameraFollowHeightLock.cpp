@@ -1,4 +1,4 @@
-#include "Scene/CameraFollowHeightLock.h"
+#include "Scene/Cameras/CameraFollowHeightLock.h"
 
 using namespace DirectX;
 

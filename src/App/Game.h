@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Rendering/Core/Dx12Renderer.h"
-#include "Scene/Input.h"
-#include "Scene/SceneManager.h"
+#include "Scene/Input/Input.h"
+#include "Scene/Core/SceneManager.h"
 
 #include <Windows.h>
 

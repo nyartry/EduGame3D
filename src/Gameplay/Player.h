@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Gameplay/CharacterGrounding.h"
-#include "Scene/Input.h"
+#include "Scene/Input/Input.h"
 #include "Models/SkinnedMeshActor.h"
 
 #include <DirectXMath.h>

@@ -1,4 +1,4 @@
-#include "Scene/GameScene.h"
+#include "Scene/Scenes/GameScene.h"
 
 #include "Gameplay/DavenPlayer.h"
 #include "Rendering/Core/Dx12Renderer.h"
