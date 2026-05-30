@@ -22,6 +22,9 @@
     <Filter Include="Common"><UniqueIdentifier>{4df4c967-ab19-487e-8db7-3b1a1b2c8a07}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Gameplay\AnimatedCubeObject.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
     <ClCompile Include="src\Gameplay\CharacterGrounding.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
@@ -186,6 +189,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Gameplay\AnimatedCubeObject.h">
+      <Filter>Gameplay</Filter>
+    </ClInclude>
     <ClInclude Include="src\Common\MathUtils.h">
       <Filter>Common</Filter>
     </ClInclude>

@@ -1,5 +1,6 @@
 #include "Scene/Scenes/GameScene.h"
 
+#include "Gameplay/AnimatedCubeObject.h"
 #include "Gameplay/DavenPlayer.h"
 #include "Rendering/Core/Dx12Renderer.h"
 #include "Gameplay/ForestGoddessPlayer.h"
@@ -72,6 +73,7 @@ void GameScene::Load(const SceneLoadContext& context)
 	m_player = player.get();
 	m_followTarget = player.get();
 	m_actors.push_back(std::move(player));
+	m_actors.push_back(std::make_unique<AnimatedCubeObject>());
 	m_actors.push_back(std::make_unique<DavenPlayer>());
 	m_actors.push_back(std::make_unique<NathanWalker>());
 	//m_actors.push_back(std::make_unique<ForestGoddessPlayer>());

@@ -96,6 +96,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Gameplay\AnimatedCubeObject.cpp" />
     <ClCompile Include="src\Gameplay\CharacterGrounding.cpp" />
     <ClCompile Include="src\Gameplay\CollisionComponents.cpp" />
     <ClCompile Include="src\Models\StaticMeshActor.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="src\App\Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Gameplay\AnimatedCubeObject.h" />
     <ClInclude Include="src\Common\MathUtils.h" />
     <ClInclude Include="src\Gameplay\CharacterGrounding.h" />
     <ClInclude Include="src\Gameplay\CollisionComponents.h" />
