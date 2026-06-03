@@ -10,6 +10,7 @@
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -18,6 +19,12 @@ using namespace DirectX;
 namespace
 {
 	constexpr const char* FallbackTexturePath = "";
+
+	void WriteDebugLog(const std::string& message)
+	{
+		OutputDebugStringA(message.c_str());
+		OutputDebugStringA("\n");
+	}
 
 	XMMATRIX LoadMatrix(const XMFLOAT4X4& matrix)
 	{
@@ -167,9 +174,19 @@ void SkinnedModel::FitModel(const ModelScaleSettings& scaleSettings)
 	}
 
 	const float height = maxY - minY;
+	const float width = maxX - minX;
+	const float depth = maxZ - minZ;
+	std::ostringstream stream;
+	stream << "[SkinnedModel] rawAabb min=(" << minX << ", " << minY << ", " << minZ << ")"
+		<< " max=(" << maxX << ", " << maxY << ", " << maxZ << ")"
+		<< " size=(" << width << ", " << height << ", " << depth << ")"
+		<< " targetHeight=" << scaleSettings.targetHeight;
+	WriteDebugLog(stream.str());
+
 	if (height <= 0.0f)
 	{
 		m_modelScale = 1.0f;
+		WriteDebugLog("[SkinnedModel] height is not positive. modelScale=1");
 		return;
 	}
 
@@ -177,6 +194,14 @@ void SkinnedModel::FitModel(const ModelScaleSettings& scaleSettings)
 	m_modelMinY = minY;
 	m_modelCenterZ = (minZ + maxZ) * 0.5f;
 	m_modelScale = scaleSettings.targetHeight / height;
+
+	std::ostringstream scaleStream;
+	scaleStream << "[SkinnedModel] modelScale=" << m_modelScale
+		<< " fittedSize=("
+		<< width * m_modelScale << ", "
+		<< height * m_modelScale << ", "
+		<< depth * m_modelScale << ")";
+	WriteDebugLog(scaleStream.str());
 }
 
 std::unique_ptr<ISkinnedMeshProcessor> SkinnedModel::CreateMeshProcessor(SkinningMode skinningMode)

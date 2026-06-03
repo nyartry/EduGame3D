@@ -8,7 +8,7 @@ const SkinnedMeshActorDefinition& AnimatedCubeObject::GetSkinnedMeshDefinition()
 	{
 		"Content\\Models\\Untitled\\Untitled.fbx",
 		"Content\\Models\\Untitled\\Untitled.fbx",
-		0.01f,
+		1.0f,
 		XMFLOAT3{ 0.0f, 0.0f, -2.0f },
 		0.0f,
 		SkinningMode::Gpu

@@ -8,12 +8,18 @@
 #include <assimp/anim.h>
 #include <assimp/material.h>
 #include <assimp/mesh.h>
+#include <assimp/metadata.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
 #include <DirectXMath.h>
+#include <Windows.h>
 
+#include <algorithm>
+#include <cmath>
 #include <filesystem>
+#include <limits>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 
@@ -21,6 +27,150 @@ using namespace DirectX;
 
 namespace
 {
+	void WriteDebugLog(const std::string& message)
+	{
+		OutputDebugStringA(message.c_str());
+		OutputDebugStringA("\n");
+	}
+
+	std::string MetadataValueToString(const aiMetadataEntry& entry)
+	{
+		if (entry.mData == nullptr)
+		{
+			return "<null>";
+		}
+
+		std::ostringstream stream;
+		switch (entry.mType)
+		{
+		case AI_BOOL:
+			stream << (*static_cast<bool*>(entry.mData) ? "true" : "false");
+			break;
+		case AI_INT32:
+			stream << *static_cast<int32_t*>(entry.mData);
+			break;
+		case AI_UINT32:
+			stream << *static_cast<uint32_t*>(entry.mData);
+			break;
+		case AI_INT64:
+			stream << *static_cast<int64_t*>(entry.mData);
+			break;
+		case AI_UINT64:
+			stream << *static_cast<uint64_t*>(entry.mData);
+			break;
+		case AI_FLOAT:
+			stream << *static_cast<float*>(entry.mData);
+			break;
+		case AI_DOUBLE:
+			stream << *static_cast<double*>(entry.mData);
+			break;
+		case AI_AISTRING:
+			stream << static_cast<aiString*>(entry.mData)->C_Str();
+			break;
+		case AI_AIVECTOR3D:
+		{
+			const aiVector3D& value = *static_cast<aiVector3D*>(entry.mData);
+			stream << "(" << value.x << ", " << value.y << ", " << value.z << ")";
+			break;
+		}
+		default:
+			stream << "<type " << entry.mType << ">";
+			break;
+		}
+		return stream.str();
+	}
+
+	bool IsNearlyOne(float value)
+	{
+		return std::fabs(value - 1.0f) < 0.001f;
+	}
+
+	bool HasNonUnitScale(const aiVector3D& scale)
+	{
+		return !IsNearlyOne(scale.x) || !IsNearlyOne(scale.y) || !IsNearlyOne(scale.z);
+	}
+
+	void LogNodeScaleDiagnostics(const aiNode* node, int depth = 0)
+	{
+		if (node == nullptr)
+		{
+			return;
+		}
+
+		aiVector3D scale;
+		aiVector3D rotation;
+		aiVector3D translation;
+		node->mTransformation.Decompose(scale, rotation, translation);
+		if (HasNonUnitScale(scale))
+		{
+			std::ostringstream stream;
+			stream << "[SkinnedModelLoader] nodeScale depth=" << depth
+				<< " name=" << node->mName.C_Str()
+				<< " scale=(" << scale.x << ", " << scale.y << ", " << scale.z << ")"
+				<< " translation=(" << translation.x << ", " << translation.y << ", " << translation.z << ")";
+			WriteDebugLog(stream.str());
+		}
+
+		for (unsigned int childIndex = 0; childIndex < node->mNumChildren; ++childIndex)
+		{
+			LogNodeScaleDiagnostics(node->mChildren[childIndex], depth + 1);
+		}
+	}
+
+	void LogAnimationScaleDiagnostics(const aiScene* scene)
+	{
+		if (scene == nullptr)
+		{
+			return;
+		}
+
+		for (unsigned int animationIndex = 0; animationIndex < scene->mNumAnimations; ++animationIndex)
+		{
+			const aiAnimation* animation = scene->mAnimations[animationIndex];
+			for (unsigned int channelIndex = 0; channelIndex < animation->mNumChannels; ++channelIndex)
+			{
+				const aiNodeAnim* channel = animation->mChannels[channelIndex];
+				if (channel == nullptr || channel->mNumScalingKeys == 0)
+				{
+					continue;
+				}
+
+				aiVector3D minScale{
+					std::numeric_limits<float>::max(),
+					std::numeric_limits<float>::max(),
+					std::numeric_limits<float>::max()
+				};
+				aiVector3D maxScale{
+					std::numeric_limits<float>::lowest(),
+					std::numeric_limits<float>::lowest(),
+					std::numeric_limits<float>::lowest()
+				};
+
+				for (unsigned int keyIndex = 0; keyIndex < channel->mNumScalingKeys; ++keyIndex)
+				{
+					const aiVector3D& scale = channel->mScalingKeys[keyIndex].mValue;
+					minScale.x = std::min(minScale.x, scale.x);
+					minScale.y = std::min(minScale.y, scale.y);
+					minScale.z = std::min(minScale.z, scale.z);
+					maxScale.x = std::max(maxScale.x, scale.x);
+					maxScale.y = std::max(maxScale.y, scale.y);
+					maxScale.z = std::max(maxScale.z, scale.z);
+				}
+
+				if (HasNonUnitScale(minScale) || HasNonUnitScale(maxScale))
+				{
+					std::ostringstream stream;
+					stream << "[SkinnedModelLoader] animationScale animation=" << animationIndex
+						<< " channel=" << channel->mNodeName.C_Str()
+						<< " keys=" << channel->mNumScalingKeys
+						<< " min=(" << minScale.x << ", " << minScale.y << ", " << minScale.z << ")"
+						<< " max=(" << maxScale.x << ", " << maxScale.y << ", " << maxScale.z << ")";
+					WriteDebugLog(stream.str());
+				}
+			}
+		}
+	}
+
 	XMFLOAT4X4 ToFloat4x4(const aiMatrix4x4& matrix)
 	{
 		return XMFLOAT4X4
@@ -30,6 +180,91 @@ namespace
 			matrix.a3, matrix.b3, matrix.c3, matrix.d3,
 			matrix.a4, matrix.b4, matrix.c4, matrix.d4
 		};
+	}
+
+	void LogSceneScaleDiagnostics(const std::string& filePath, const aiScene* scene)
+	{
+		if (scene == nullptr)
+		{
+			return;
+		}
+
+		std::ostringstream stream;
+		stream << "[SkinnedModelLoader] file=" << filePath
+			<< " meshes=" << scene->mNumMeshes
+			<< " animations=" << scene->mNumAnimations;
+		WriteDebugLog(stream.str());
+
+		if (scene->mRootNode != nullptr)
+		{
+			const aiMatrix4x4& transform = scene->mRootNode->mTransformation;
+			std::ostringstream rootStream;
+			rootStream << "[SkinnedModelLoader] rootTransform="
+				<< "[" << transform.a1 << ", " << transform.a2 << ", " << transform.a3 << ", " << transform.a4 << "] "
+				<< "[" << transform.b1 << ", " << transform.b2 << ", " << transform.b3 << ", " << transform.b4 << "] "
+				<< "[" << transform.c1 << ", " << transform.c2 << ", " << transform.c3 << ", " << transform.c4 << "] "
+				<< "[" << transform.d1 << ", " << transform.d2 << ", " << transform.d3 << ", " << transform.d4 << "]";
+			WriteDebugLog(rootStream.str());
+			LogNodeScaleDiagnostics(scene->mRootNode);
+		}
+
+		if (scene->mMetaData != nullptr)
+		{
+			for (unsigned int metadataIndex = 0; metadataIndex < scene->mMetaData->mNumProperties; ++metadataIndex)
+			{
+				std::ostringstream metadataStream;
+				metadataStream << "[SkinnedModelLoader] metadata "
+					<< scene->mMetaData->mKeys[metadataIndex].C_Str()
+					<< "="
+					<< MetadataValueToString(scene->mMetaData->mValues[metadataIndex]);
+				WriteDebugLog(metadataStream.str());
+			}
+		}
+
+		for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+		{
+			const aiMesh* mesh = scene->mMeshes[meshIndex];
+			if (mesh == nullptr || mesh->mNumVertices == 0)
+			{
+				continue;
+			}
+
+			aiVector3D minPosition{
+				std::numeric_limits<float>::max(),
+				std::numeric_limits<float>::max(),
+				std::numeric_limits<float>::max()
+			};
+			aiVector3D maxPosition{
+				std::numeric_limits<float>::lowest(),
+				std::numeric_limits<float>::lowest(),
+				std::numeric_limits<float>::lowest()
+			};
+
+			for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+			{
+				const aiVector3D& position = mesh->mVertices[vertexIndex];
+				minPosition.x = std::min(minPosition.x, position.x);
+				minPosition.y = std::min(minPosition.y, position.y);
+				minPosition.z = std::min(minPosition.z, position.z);
+				maxPosition.x = std::max(maxPosition.x, position.x);
+				maxPosition.y = std::max(maxPosition.y, position.y);
+				maxPosition.z = std::max(maxPosition.z, position.z);
+			}
+
+			std::ostringstream meshStream;
+			meshStream << "[SkinnedModelLoader] mesh=" << meshIndex
+				<< " name=" << mesh->mName.C_Str()
+				<< " vertices=" << mesh->mNumVertices
+				<< " min=(" << minPosition.x << ", " << minPosition.y << ", " << minPosition.z << ")"
+				<< " max=(" << maxPosition.x << ", " << maxPosition.y << ", " << maxPosition.z << ")"
+				<< " size=("
+				<< maxPosition.x - minPosition.x << ", "
+				<< maxPosition.y - minPosition.y << ", "
+				<< maxPosition.z - minPosition.z << ")";
+			WriteDebugLog(meshStream.str());
+		}
+
+		LogAnimationScaleDiagnostics(scene);
 	}
 
 	XMFLOAT4 GetMaterialColor(const aiMaterial* material)
@@ -265,6 +500,8 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 		m_lastError = importer.GetErrorString();
 		return false;
 	}
+
+	LogSceneScaleDiagnostics(filePath, scene);
 
 	modelData = SkinnedModelData{};
 	aiMatrix4x4 rootInverseTransform = scene->mRootNode->mTransformation;
