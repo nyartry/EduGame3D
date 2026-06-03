@@ -6,6 +6,7 @@
 #include <Windows.h>
 
 #include <DirectXMath.h>
+#include <string>
 #include <vector>
 
 class Dx12Renderer;
@@ -23,6 +24,14 @@ public:
 		float y,
 		float width,
 		float height);
+	void InitializeTexture(
+		ID3D12Device* device,
+		const std::string& texturePath,
+		float x,
+		float y,
+		float width,
+		float height,
+		bool useSrgb = true);
 	void SetPosition(float x, float y);
 	void SetSize(float width, float height);
 	void SetTint(const DirectX::XMFLOAT4& tint);

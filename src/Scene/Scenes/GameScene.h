@@ -43,6 +43,7 @@ private:
 	CameraFollowHeightLock m_cameraFollowHeightLock;
 	Ground m_ground;
 	Cube m_originCube;
+	Sprite m_generatedImageSprite;
 	std::array<Sprite, 3> m_primitiveSprites;
 	HudOverlay m_hudOverlay;
 	std::vector<std::unique_ptr<Actor>> m_actors;

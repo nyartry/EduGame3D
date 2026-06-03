@@ -24,6 +24,25 @@ void Sprite::Initialize(
 	RebuildVertices();
 }
 
+void Sprite::InitializeTexture(
+	ID3D12Device* device,
+	const std::string& texturePath,
+	float x,
+	float y,
+	float width,
+	float height,
+	bool useSrgb)
+{
+	m_x = x;
+	m_y = y;
+	m_width = width;
+	m_height = height;
+	m_vertexBuffer.Initialize(device, 6);
+	m_material.InitializeTexture(device, texturePath, useSrgb);
+	m_initialized = true;
+	RebuildVertices();
+}
+
 void Sprite::SetPosition(float x, float y)
 {
 	m_x = x;

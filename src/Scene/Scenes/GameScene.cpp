@@ -21,6 +21,7 @@ namespace
 	//constexpr float CameraFarZ = 100.0f;
 	constexpr float CameraNearZ = 0.5f;
 	constexpr float CameraFarZ = 50.0f;
+	constexpr const char* GeneratedImageTexturePath = "Content\\Textures\\UI\\open_campus_crest.png";
 	constexpr XMFLOAT3 PlatformCubePosition{ 0.0f, 0.5f, 2.0f };
 	constexpr XMFLOAT4 RectColor{ 0.35f, 0.86f, 1.0f, 0.88f };
 	constexpr XMFLOAT4 SquareColor{ 0.92f, 0.36f, 0.78f, 0.88f };
@@ -64,6 +65,13 @@ void GameScene::Load(const SceneLoadContext& context)
 		72.0f,
 		72.0f,
 		TriangleColor);
+	m_generatedImageSprite.InitializeTexture(
+		context.device,
+		GeneratedImageTexturePath,
+		42.0f,
+		static_cast<float>(context.height) - 202.0f,
+		160.0f,
+		160.0f);
 	m_hudOverlay.Initialize(context.device, context.width, context.height);
 
 	m_actors.clear();
@@ -125,6 +133,7 @@ void GameScene::Render(Dx12Renderer& renderer) const
 	{
 		primitiveSprite.Render(renderer);
 	}
+	m_generatedImageSprite.Render(renderer);
 	m_hudOverlay.Render(renderer);
 }
 
