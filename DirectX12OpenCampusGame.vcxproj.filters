@@ -133,6 +133,9 @@
     <ClCompile Include="src\Rendering\Sprites\Rect.cpp">
       <Filter>Rendering\Sprites</Filter>
     </ClCompile>
+    <ClCompile Include="src\Rendering\RmlUi\RmlUiSpriteRenderInterface.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
     <ClCompile Include="src\Models\SkinnedMeshActor.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -317,6 +320,9 @@
     </ClInclude>
     <ClInclude Include="src\Rendering\Sprites\Rect.h">
       <Filter>Rendering\Sprites</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\RmlUi\RmlUiSpriteRenderInterface.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\Animation\RootMotion.h">
       <Filter>Animation</Filter>

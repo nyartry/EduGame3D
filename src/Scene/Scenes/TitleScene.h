@@ -1,7 +1,10 @@
 #pragma once
 
+#include "Rendering/RmlUi/RmlUiSpriteRenderInterface.h"
 #include "Rendering/Sprites/SpriteBatch.h"
 #include "Scene/Core/IScene.h"
+
+#include <RmlUi/Core/Types.h>
 
 #include <Windows.h>
 
@@ -11,6 +14,10 @@
 
 class Dx12Renderer;
 struct ID3D12Device;
+namespace Rml {
+class Context;
+class ElementDocument;
+}
 
 class TitleScene : public IScene
 {
@@ -30,10 +37,19 @@ public:
 private:
 	void RebuildBatch();
 	void DrawCenteredText(std::string_view text, float centerY, float pixelSize, const DirectX::XMFLOAT4& color);
+	void InitializeRmlUi();
+	void ShutdownRmlUi();
+	void RenderRmlUiToBatch();
 
 	SpriteBatch m_batch;
+	RmlUiSpriteRenderInterface m_rmlRenderer;
+	Rml::Context* m_rmlContext{};
+	Rml::ElementDocument* m_rmlDocument{};
 	UINT m_width{};
 	UINT m_height{};
 	float m_elapsedTime{};
 	bool m_startRequested{};
+	bool m_rmlInitialized{};
+	int m_probeButtonClickCount{};
+	float m_probeButtonFlashTime{};
 };

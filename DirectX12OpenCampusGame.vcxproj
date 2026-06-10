@@ -133,6 +133,7 @@
     <ClCompile Include="src\Animation\RootMotionPolicy.cpp" />
     <ClCompile Include="src\Rendering\Sprites\SpriteShapeFactory.cpp" />
     <ClCompile Include="src\Rendering\Sprites\Rect.cpp" />
+    <ClCompile Include="src\Rendering\RmlUi\RmlUiSpriteRenderInterface.cpp" />
     <ClCompile Include="src\Models\SkinnedMeshActor.cpp" />
     <ClCompile Include="src\Models\SkinnedModel.cpp" />
     <ClCompile Include="src\Models\SkinnedModelLoader.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="src\Rendering\Sprites\SpriteShape.h" />
     <ClInclude Include="src\Rendering\Sprites\SpriteShapeFactory.h" />
     <ClInclude Include="src\Rendering\Sprites\Rect.h" />
+    <ClInclude Include="src\Rendering\RmlUi\RmlUiSpriteRenderInterface.h" />
     <ClInclude Include="src\Animation\RootMotion.h" />
     <ClInclude Include="src\Animation\RootMotionPolicy.h" />
     <ClInclude Include="src\Animation\SkinningMode.h" />

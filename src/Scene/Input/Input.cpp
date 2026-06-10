@@ -121,6 +121,8 @@ int Input::ToVirtualKey(InputKey key)
 		return VK_SHIFT;
 	case InputKey::Space:
 		return VK_SPACE;
+	case InputKey::Enter:
+		return VK_RETURN;
 	case InputKey::Escape:
 		return VK_ESCAPE;
 	default:
