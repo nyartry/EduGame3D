@@ -52,4 +52,6 @@ private:
 	bool m_rmlInitialized{};
 	int m_probeButtonClickCount{};
 	float m_probeButtonFlashTime{};
+	int m_selectedSampleButton{};
+	int m_sampleButtonClickCount{};
 };
