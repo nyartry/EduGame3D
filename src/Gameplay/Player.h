@@ -37,6 +37,8 @@ public:
 	void SetGravityEnabled(bool enabled);
 	bool IsGravityEnabled() const;
 	bool IsGrounded() const;
+	bool DidStartJumpThisFrame() const;
+	DirectX::XMFLOAT3 GetLastJumpStartPosition() const;
 
 protected:
 	const SkinnedMeshActorDefinition& GetSkinnedMeshDefinition() const final;
@@ -88,4 +90,6 @@ private:
 	float m_attackDurationSeconds{};
 	bool m_hasJoggingAnimation{};
 	bool m_hasAttackAnimation{};
+	bool m_startedJumpThisFrame{};
+	DirectX::XMFLOAT3 m_lastJumpStartPosition{};
 };

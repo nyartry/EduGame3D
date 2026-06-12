@@ -10,7 +10,6 @@ using namespace DirectX;
 namespace
 {
 	constexpr int32_t MaxSpriteCount = 8000;
-	constexpr float SampleReplaySeconds = 3.0f;
 	constexpr float FixedUpdateFrameRate = 60.0f;
 }
 
@@ -64,7 +63,17 @@ void EffekseerEffectSystem::LoadSampleEffect(const std::string& effectPath)
 
 	const std::u16string utf16Path = ToUtf16Path(effectPath);
 	m_sampleEffect = Effekseer::Effect::Create(m_manager, utf16Path.c_str());
-	m_sampleReplayTimer = SampleReplaySeconds;
+}
+
+void EffekseerEffectSystem::PlaySampleEffect(const XMFLOAT3& position, float scale)
+{
+	if (!m_initialized || m_sampleEffect == nullptr)
+	{
+		return;
+	}
+
+	m_sampleHandle = m_manager->Play(m_sampleEffect, position.x, position.y, position.z);
+	m_manager->SetScale(m_sampleHandle, scale, scale, scale);
 }
 
 void EffekseerEffectSystem::Update(float deltaTime)
@@ -75,14 +84,6 @@ void EffekseerEffectSystem::Update(float deltaTime)
 	}
 
 	m_elapsedTime += deltaTime;
-	m_sampleReplayTimer += deltaTime;
-
-	if (m_sampleEffect != nullptr && m_sampleReplayTimer >= SampleReplaySeconds)
-	{
-		m_sampleHandle = m_manager->Play(m_sampleEffect, 0.0f, 1.8f, 1.8f);
-		m_manager->SetScale(m_sampleHandle, 0.7f, 0.7f, 0.7f);
-		m_sampleReplayTimer = 0.0f;
-	}
 
 	Effekseer::Manager::UpdateParameter updateParameter;
 	updateParameter.DeltaFrame = std::max(deltaTime * FixedUpdateFrameRate, 0.0f);

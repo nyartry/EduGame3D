@@ -18,6 +18,7 @@ class EffekseerEffectSystem
 public:
 	void Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue);
 	void LoadSampleEffect(const std::string& effectPath);
+	void PlaySampleEffect(const DirectX::XMFLOAT3& position, float scale = 1.0f);
 	void Update(float deltaTime);
 	void Render(Dx12Renderer& renderer, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection);
 
@@ -36,6 +37,5 @@ private:
 	Effekseer::EffectRef m_sampleEffect;
 	Effekseer::Handle m_sampleHandle{};
 	float m_elapsedTime{};
-	float m_sampleReplayTimer{};
 	bool m_initialized{};
 };

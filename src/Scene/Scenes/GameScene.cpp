@@ -75,6 +75,7 @@ void GameScene::Load(const SceneLoadContext& context)
 		160.0f);
 	m_effekseerEffects.Initialize(context.device, context.commandQueue);
 	m_effekseerEffects.LoadSampleEffect(EffekseerSampleEffectPath);
+	m_jumpParticles.Initialize(context.device);
 	m_hudOverlay.Initialize(context.device, context.width, context.height);
 
 	m_actors.clear();
@@ -115,6 +116,13 @@ void GameScene::Update(float deltaTime, const Input& input)
 	{
 		actor->Update(deltaTime, input);
 	}
+	if (m_player != nullptr && m_player->DidStartJumpThisFrame())
+	{
+		XMFLOAT3 effectPosition = m_player->GetLastJumpStartPosition();
+		effectPosition.y += 0.02f;
+		m_jumpParticles.Emit(effectPosition);
+	}
+	m_jumpParticles.Update(deltaTime);
 	m_effekseerEffects.Update(deltaTime);
 	m_hudOverlay.Update(deltaTime);
 
@@ -137,6 +145,7 @@ void GameScene::Render(Dx12Renderer& renderer) const
 	{
 		m_effekseerEffects.Render(renderer, m_followCamera->GetViewMatrix(), m_followCamera->GetProjectionMatrix());
 	}
+	m_jumpParticles.Render(renderer);
 	for (const Sprite& primitiveSprite : m_primitiveSprites)
 	{
 		primitiveSprite.Render(renderer);

@@ -3,6 +3,7 @@
 #include "Gameplay/Cube.h"
 #include "Gameplay/Ground.h"
 #include "Effects/Effekseer/EffekseerEffectSystem.h"
+#include "Effects/Particles/SimpleJumpParticleSystem.h"
 #include "Scene/Core/IScene.h"
 #include "Scene/Input/Input.h"
 #include "Gameplay/Actor.h"
@@ -44,7 +45,8 @@ private:
 	CameraFollowHeightLock m_cameraFollowHeightLock;
 	Ground m_ground;
 	Cube m_originCube;
-    mutable EffekseerEffectSystem m_effekseerEffects;
+	mutable EffekseerEffectSystem m_effekseerEffects;
+	SimpleJumpParticleSystem m_jumpParticles;
 	Sprite m_generatedImageSprite;
 	std::array<Sprite, 3> m_primitiveSprites;
 	HudOverlay m_hudOverlay;

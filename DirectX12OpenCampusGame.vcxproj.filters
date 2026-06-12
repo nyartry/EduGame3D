@@ -22,10 +22,14 @@
     <Filter Include="Common"><UniqueIdentifier>{4df4c967-ab19-487e-8db7-3b1a1b2c8a07}</UniqueIdentifier></Filter>
     <Filter Include="Effects"><UniqueIdentifier>{0bdbe3f4-bf55-4a8a-83dd-17f052a790b2}</UniqueIdentifier></Filter>
     <Filter Include="Effects\Effekseer"><UniqueIdentifier>{1ace1160-dc76-4c4a-9659-dfb4a52d98db}</UniqueIdentifier></Filter>
+    <Filter Include="Effects\Particles"><UniqueIdentifier>{2ae3dfce-b995-43e1-8660-cfd181e95d37}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Effects\Effekseer\EffekseerEffectSystem.cpp">
       <Filter>Effects\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Effects\Particles\SimpleJumpParticleSystem.cpp">
+      <Filter>Effects\Particles</Filter>
     </ClCompile>
     <ClCompile Include="src\Gameplay\AnimatedCubeObject.cpp">
       <Filter>Gameplay</Filter>
@@ -199,6 +203,9 @@
   <ItemGroup>
     <ClInclude Include="src\Effects\Effekseer\EffekseerEffectSystem.h">
       <Filter>Effects\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Effects\Particles\SimpleJumpParticleSystem.h">
+      <Filter>Effects\Particles</Filter>
     </ClInclude>
     <ClInclude Include="src\Gameplay\AnimatedCubeObject.h">
       <Filter>Gameplay</Filter>

@@ -50,6 +50,8 @@ void Player::Initialize(ID3D12Device* device)
 
 void Player::Update(float deltaTime, const Input& input)
 {
+	m_startedJumpThisFrame = false;
+
 	if (input.WasPressed(InputKey::X) && m_hasAttackAnimation)
 	{
 		StartAttack();
@@ -180,7 +182,14 @@ void Player::ApplyMovement(
 	XMFLOAT3 position = GetPosition();
 	position.x += displacement.x;
 	position.z += displacement.z;
+	const XMFLOAT3 jumpStartPosition = position;
+	const bool wasGrounded = m_verticalMotion.IsGrounded();
 	m_verticalMotion.Update(deltaTime, wantsJump, position, m_groundProbe);
+	m_startedJumpThisFrame = wantsJump && wasGrounded && !m_verticalMotion.IsGrounded();
+	if (m_startedJumpThisFrame)
+	{
+		m_lastJumpStartPosition = jumpStartPosition;
+	}
 	SetPosition(position);
 }
 
@@ -238,6 +247,16 @@ bool Player::IsGravityEnabled() const
 bool Player::IsGrounded() const
 {
 	return m_verticalMotion.IsGrounded();
+}
+
+bool Player::DidStartJumpThisFrame() const
+{
+	return m_startedJumpThisFrame;
+}
+
+XMFLOAT3 Player::GetLastJumpStartPosition() const
+{
+	return m_lastJumpStartPosition;
 }
 
 XMFLOAT3 Player::ChooseDisplacement(
