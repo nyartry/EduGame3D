@@ -20,8 +20,13 @@
     <Filter Include="Models"><UniqueIdentifier>{9fce9db4-4d2d-401d-8457-74b364a783a4}</UniqueIdentifier></Filter>
     <Filter Include="Animation"><UniqueIdentifier>{820321f1-35da-4cf7-8c0a-560aa6812b0d}</UniqueIdentifier></Filter>
     <Filter Include="Common"><UniqueIdentifier>{4df4c967-ab19-487e-8db7-3b1a1b2c8a07}</UniqueIdentifier></Filter>
+    <Filter Include="Effects"><UniqueIdentifier>{0bdbe3f4-bf55-4a8a-83dd-17f052a790b2}</UniqueIdentifier></Filter>
+    <Filter Include="Effects\Effekseer"><UniqueIdentifier>{1ace1160-dc76-4c4a-9659-dfb4a52d98db}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Effects\Effekseer\EffekseerEffectSystem.cpp">
+      <Filter>Effects\Effekseer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Gameplay\AnimatedCubeObject.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
@@ -192,6 +197,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Effects\Effekseer\EffekseerEffectSystem.h">
+      <Filter>Effects\Effekseer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Gameplay\AnimatedCubeObject.h">
       <Filter>Gameplay</Filter>
     </ClInclude>

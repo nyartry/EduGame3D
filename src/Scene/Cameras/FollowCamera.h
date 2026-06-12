@@ -12,12 +12,11 @@ public:
 	void SetFollowTarget(const DirectX::XMFLOAT3& position, float rotationY);
 
 	DirectX::XMFLOAT3 GetForwardXZ() const override;
+	DirectX::XMMATRIX GetViewMatrix() const;
+	DirectX::XMMATRIX GetProjectionMatrix() const;
 	DirectX::XMMATRIX GetViewProjectionMatrix() const override;
 
 private:
-	DirectX::XMMATRIX GetViewMatrix() const;
-	DirectX::XMMATRIX GetProjectionMatrix() const;
-
 	DirectX::XMFLOAT3 m_position{ 0.0f, 4.5f, -7.0f };
 	DirectX::XMFLOAT3 m_lookAt{ 0.0f, 1.2f, 0.0f };
 	DirectX::XMFLOAT3 m_targetPosition{ 0.0f, 0.0f, 0.0f };

@@ -58,15 +58,15 @@
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;RMLUI_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;$(ProjectDir)third_party\rmlui\include;$(ProjectDir)third_party\rmlui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;$(ProjectDir)third_party\rmlui\include;$(ProjectDir)third_party\rmlui\backends;$(ProjectDir)third_party\effekseer\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)third_party\assimp\lib\Debug;$(ProjectDir)third_party\rmlui\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;rmlui.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)third_party\assimp\lib\Debug;$(ProjectDir)third_party\rmlui\lib\Debug;$(ProjectDir)third_party\effekseer\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;rmlui.lib;assimp-vc143-mtd.lib;EffekseerRendererDX12.lib;EffekseerRendererLLGI.lib;EffekseerRendererCommon.lib;Effekseer.lib;LLGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(ProjectDir)third_party\assimp\bin\Debug\assimp-vc143-mtd.dll" copy /Y "$(ProjectDir)third_party\assimp\bin\Debug\assimp-vc143-mtd.dll" "$(OutDir)"</Command>
@@ -79,7 +79,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;RMLUI_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;$(ProjectDir)third_party\rmlui\include;$(ProjectDir)third_party\rmlui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;$(ProjectDir)third_party\rmlui\include;$(ProjectDir)third_party\rmlui\backends;$(ProjectDir)third_party\effekseer\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -88,14 +88,15 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)third_party\assimp\lib\Release;$(ProjectDir)third_party\rmlui\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;rmlui.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)third_party\assimp\lib\Release;$(ProjectDir)third_party\rmlui\lib\Release;$(ProjectDir)third_party\effekseer\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;rmlui.lib;assimp-vc143-mt.lib;EffekseerRendererDX12.lib;EffekseerRendererLLGI.lib;EffekseerRendererCommon.lib;Effekseer.lib;LLGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(ProjectDir)third_party\assimp\bin\Release\assimp-vc143-mt.dll" copy /Y "$(ProjectDir)third_party\assimp\bin\Release\assimp-vc143-mt.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Effects\Effekseer\EffekseerEffectSystem.cpp" />
     <ClCompile Include="src\Gameplay\AnimatedCubeObject.cpp" />
     <ClCompile Include="src\Gameplay\CharacterGrounding.cpp" />
     <ClCompile Include="src\Gameplay\CollisionComponents.cpp" />
@@ -154,6 +155,7 @@
     <ClCompile Include="src\App\Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Effects\Effekseer\EffekseerEffectSystem.h" />
     <ClInclude Include="src\Gameplay\AnimatedCubeObject.h" />
     <ClInclude Include="src\Common\MathUtils.h" />
     <ClInclude Include="src\Gameplay\CharacterGrounding.h" />

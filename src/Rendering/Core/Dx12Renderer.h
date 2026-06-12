@@ -51,6 +51,8 @@ public:
 	void EndFrame();
 	void WaitForGpu();
 	ID3D12Device* GetDevice() const;
+	ID3D12CommandQueue* GetCommandQueue() const;
+	ID3D12GraphicsCommandList* GetCommandList() const;
 	UINT GetWidth() const;
 	UINT GetHeight() const;
 

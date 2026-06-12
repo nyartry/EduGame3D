@@ -197,6 +197,16 @@ ID3D12Device* Dx12Renderer::GetDevice() const
 	return m_device.Get();
 }
 
+ID3D12CommandQueue* Dx12Renderer::GetCommandQueue() const
+{
+	return m_commandQueue.Get();
+}
+
+ID3D12GraphicsCommandList* Dx12Renderer::GetCommandList() const
+{
+	return m_commandList.Get();
+}
+
 UINT Dx12Renderer::GetWidth() const
 {
 	return m_width;

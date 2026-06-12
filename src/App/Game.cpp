@@ -9,7 +9,7 @@ void Game::Initialize(HWND hwnd, UINT width, UINT height)
 {
 	m_hwnd = hwnd;
 	m_renderer.Initialize(hwnd, width, height);
-	m_sceneManager.Initialize(m_renderer.GetDevice(), width, height);
+	m_sceneManager.Initialize(m_renderer.GetDevice(), m_renderer.GetCommandQueue(), width, height);
 	m_sceneManager.AddScene<GameScene>("Game");
 	m_sceneManager.AddScene<TitleScene>("Title");
 	m_sceneManager.LoadScene("Title", SceneLoadType::Synchronous, SceneLoadMode::Single);

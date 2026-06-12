@@ -22,6 +22,7 @@ namespace
 	constexpr float CameraNearZ = 0.5f;
 	constexpr float CameraFarZ = 50.0f;
 	constexpr const char* GeneratedImageTexturePath = "Content\\Textures\\UI\\open_campus_crest.png";
+	constexpr const char* EffekseerSampleEffectPath = "Content\\Effects\\Effekseer\\Samples\\Laser01.efkefc";
 	constexpr XMFLOAT3 PlatformCubePosition{ 0.0f, 0.5f, 2.0f };
 	constexpr XMFLOAT4 RectColor{ 0.35f, 0.86f, 1.0f, 0.88f };
 	constexpr XMFLOAT4 SquareColor{ 0.92f, 0.36f, 0.78f, 0.88f };
@@ -72,6 +73,8 @@ void GameScene::Load(const SceneLoadContext& context)
 		static_cast<float>(context.height) - 202.0f,
 		160.0f,
 		160.0f);
+	m_effekseerEffects.Initialize(context.device, context.commandQueue);
+	m_effekseerEffects.LoadSampleEffect(EffekseerSampleEffectPath);
 	m_hudOverlay.Initialize(context.device, context.width, context.height);
 
 	m_actors.clear();
@@ -112,6 +115,7 @@ void GameScene::Update(float deltaTime, const Input& input)
 	{
 		actor->Update(deltaTime, input);
 	}
+	m_effekseerEffects.Update(deltaTime);
 	m_hudOverlay.Update(deltaTime);
 
 	if (m_followCamera != nullptr && m_followTarget != nullptr)
@@ -128,6 +132,10 @@ void GameScene::Render(Dx12Renderer& renderer) const
 	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
 		actor->Draw(renderer);
+	}
+	if (m_followCamera != nullptr)
+	{
+		m_effekseerEffects.Render(renderer, m_followCamera->GetViewMatrix(), m_followCamera->GetProjectionMatrix());
 	}
 	for (const Sprite& primitiveSprite : m_primitiveSprites)
 	{

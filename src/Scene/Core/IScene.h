@@ -8,11 +8,13 @@
 #include <string>
 
 class Dx12Renderer;
+struct ID3D12CommandQueue;
 struct ID3D12Device;
 
 struct SceneLoadContext
 {
 	ID3D12Device* device{};
+	ID3D12CommandQueue* commandQueue{};
 	UINT width{};
 	UINT height{};
 };
