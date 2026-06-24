@@ -62,6 +62,39 @@ bool GroundHeightCollider::TryGetHeightAt(const XMFLOAT3& position, float radius
 	return true;
 }
 
+GroundBoundaryCollider::GroundBoundaryCollider(float halfExtent)
+	: m_halfExtent(halfExtent)
+{
+}
+
+void GroundBoundaryCollider::SetEnabled(bool enabled)
+{
+	m_switch.SetEnabled(enabled);
+}
+
+bool GroundBoundaryCollider::IsEnabled() const
+{
+	return m_switch.IsEnabled();
+}
+
+bool GroundBoundaryCollider::ResolveInsideBounds(XMFLOAT3& position, float radius) const
+{
+	if (!m_switch.IsEnabled())
+	{
+		return false;
+	}
+
+	const float minCenter = -m_halfExtent + radius;
+	const float maxCenter = m_halfExtent - radius;
+	const float resolvedX = std::clamp(position.x, minCenter, maxCenter);
+	const float resolvedZ = std::clamp(position.z, minCenter, maxCenter);
+	const bool changed = resolvedX != position.x || resolvedZ != position.z;
+
+	position.x = resolvedX;
+	position.z = resolvedZ;
+	return changed;
+}
+
 void PrimitiveObjectCollider::SetEnabled(bool enabled)
 {
 	m_switch.SetEnabled(enabled);

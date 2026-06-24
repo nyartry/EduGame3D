@@ -182,6 +182,7 @@ void Player::ApplyMovement(
 	XMFLOAT3 position = GetPosition();
 	position.x += displacement.x;
 	position.z += displacement.z;
+	m_groundProbe.ResolveWallCollision(position);
 	const XMFLOAT3 jumpStartPosition = position;
 	const bool wasGrounded = m_verticalMotion.IsGrounded();
 	m_verticalMotion.Update(deltaTime, wantsJump, position, m_groundProbe);

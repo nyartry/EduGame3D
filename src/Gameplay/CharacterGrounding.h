@@ -28,6 +28,7 @@ public:
 		float previousBottomY,
 		float currentBottomY,
 		float& floorHeight) const;
+	bool ResolveWallCollision(DirectX::XMFLOAT3& position) const;
 
 private:
 	CharacterGroundingSettings m_settings;

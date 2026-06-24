@@ -92,6 +92,11 @@ bool CharacterGroundProbe::TryFindFloor(
 	return true;
 }
 
+bool CharacterGroundProbe::ResolveWallCollision(XMFLOAT3& position) const
+{
+	return m_ground != nullptr && m_ground->ResolveWallCollision(position, m_settings.collisionRadius);
+}
+
 CharacterVerticalMotion::CharacterVerticalMotion(CharacterVerticalMotionSettings settings)
 	: m_settings(settings)
 {

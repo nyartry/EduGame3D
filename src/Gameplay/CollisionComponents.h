@@ -32,6 +32,20 @@ private:
 	float m_halfExtent{};
 };
 
+class GroundBoundaryCollider
+{
+public:
+	explicit GroundBoundaryCollider(float halfExtent);
+
+	void SetEnabled(bool enabled);
+	bool IsEnabled() const;
+	bool ResolveInsideBounds(DirectX::XMFLOAT3& position, float radius) const;
+
+private:
+	CollisionSwitch m_switch;
+	float m_halfExtent{};
+};
+
 class PrimitiveObjectCollider
 {
 public:
