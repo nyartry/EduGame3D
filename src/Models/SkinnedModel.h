@@ -33,12 +33,14 @@ public:
 
 	void SetPosition(float x, float y, float z);
 	void SetRotationY(float radians);
+	DirectX::XMFLOAT3 GetAnimatedBoundsCenterLocal() const;
 
 private:
 	static std::unique_ptr<ISkinnedMeshProcessor> CreateMeshProcessor(SkinningMode skinningMode);
 	void FitModel(const ModelScaleSettings& scaleSettings);
 	RootMotionDelta ExtractRootMotionDelta(float deltaTime) const;
 	void UpdateBoneMatrices();
+	void UpdateAnimatedBounds();
 
 	DirectX::XMMATRIX GetLocalTransform(const BoneData& bone) const;
 
@@ -53,4 +55,5 @@ private:
 	float m_modelMinY{};
 	float m_modelCenterZ{};
 	float m_rotationY{};
+	DirectX::XMFLOAT3 m_animatedBoundsCenterLocal{};
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Animation/RootMotion.h"
 #include "Gameplay/Actor.h"
 #include "Models/SkinnedModel.h"
 
@@ -15,6 +16,8 @@ struct SkinnedMeshActorDefinition
 	DirectX::XMFLOAT3 initialPosition{ 0.0f, 0.0f, 0.0f };
 	float initialRotationY{};
 	SkinningMode skinningMode{ SkinningMode::Gpu };
+	RootMotionMode rootMotionMode{ RootMotionMode::Apply };
+	RootMotionVerticalMode rootMotionVerticalMode{ RootMotionVerticalMode::Ignore };
 };
 
 class SkinnedMeshActor : public Actor
@@ -36,8 +39,12 @@ protected:
 	void SetRotationY(float radians);
 
 private:
+	DirectX::XMFLOAT3 TransformRootMotionToWorld(const DirectX::XMFLOAT3& localRootMotion) const;
+
 	SkinnedModel m_model;
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
 	float m_rotationY{};
+	RootMotionMode m_rootMotionMode{ RootMotionMode::Apply };
+	RootMotionVerticalMode m_rootMotionVerticalMode{ RootMotionVerticalMode::Ignore };
 	bool m_hasIdleAnimation{};
 };

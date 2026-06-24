@@ -14,6 +14,8 @@ void SkinnedMeshActor::Initialize(ID3D12Device* device)
 	const SkinnedMeshActorDefinition& definition = GetSkinnedMeshDefinition();
 	m_position = definition.initialPosition;
 	m_rotationY = definition.initialRotationY;
+	m_rootMotionMode = definition.rootMotionMode;
+	m_rootMotionVerticalMode = definition.rootMotionVerticalMode;
 	m_hasIdleAnimation = !definition.idleAnimationPath.empty();
 
 	m_model.Initialize(
@@ -33,7 +35,15 @@ void SkinnedMeshActor::Initialize(ID3D12Device* device)
 
 void SkinnedMeshActor::Update(float deltaTime, const Input&)
 {
-	m_model.Update(deltaTime);
+	const RootMotionDelta rootMotionDelta = m_model.Update(deltaTime);
+	if (m_rootMotionMode == RootMotionMode::Apply)
+	{
+		const DirectX::XMFLOAT3 displacement = TransformRootMotionToWorld(rootMotionDelta.translation);
+		m_position.x += displacement.x;
+		m_position.y += displacement.y;
+		m_position.z += displacement.z;
+	}
+
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
 }
 
@@ -72,4 +82,18 @@ void SkinnedMeshActor::SetRotationY(float radians)
 {
 	m_rotationY = radians;
 	m_model.SetRotationY(m_rotationY);
+}
+
+DirectX::XMFLOAT3 SkinnedMeshActor::TransformRootMotionToWorld(const DirectX::XMFLOAT3& localRootMotion) const
+{
+	const DirectX::XMVECTOR local = DirectX::XMLoadFloat3(&localRootMotion);
+	const DirectX::XMVECTOR world = DirectX::XMVector3TransformNormal(local, DirectX::XMMatrixRotationY(m_rotationY));
+
+	DirectX::XMFLOAT3 result{};
+	DirectX::XMStoreFloat3(&result, world);
+	if (m_rootMotionVerticalMode == RootMotionVerticalMode::Ignore)
+	{
+		result.y = 0.0f;
+	}
+	return result;
 }

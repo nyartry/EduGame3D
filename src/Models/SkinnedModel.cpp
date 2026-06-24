@@ -68,6 +68,7 @@ void SkinnedModel::Initialize(
 	}
 
 	UpdateBoneMatrices();
+	UpdateAnimatedBounds();
 	for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
 	{
 		meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
@@ -116,6 +117,7 @@ RootMotionDelta SkinnedModel::Update(float deltaTime)
 	const RootMotionDelta rootMotionDelta = ExtractRootMotionDelta(deltaTime);
 	m_animationTimeSeconds += deltaTime;
 	UpdateBoneMatrices();
+	UpdateAnimatedBounds();
 	for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
 	{
 		meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
@@ -140,6 +142,11 @@ void SkinnedModel::SetPosition(float x, float y, float z)
 void SkinnedModel::SetRotationY(float radians)
 {
 	m_rotationY = radians;
+}
+
+XMFLOAT3 SkinnedModel::GetAnimatedBoundsCenterLocal() const
+{
+	return m_animatedBoundsCenterLocal;
 }
 
 void SkinnedModel::FitModel(const ModelScaleSettings& scaleSettings)
@@ -307,6 +314,81 @@ void SkinnedModel::UpdateBoneMatrices()
 		const XMMATRIX rootInverse = LoadMatrix(m_modelData.rootInverseTransform);
 		XMStoreFloat4x4(&m_boneMatrices[boneIndex], offset * globalTransforms[boneIndex] * rootInverse);
 	}
+}
+
+void SkinnedModel::UpdateAnimatedBounds()
+{
+	XMFLOAT3 minBounds
+	{
+		std::numeric_limits<float>::max(),
+		std::numeric_limits<float>::max(),
+		std::numeric_limits<float>::max()
+	};
+	XMFLOAT3 maxBounds
+	{
+		std::numeric_limits<float>::lowest(),
+		std::numeric_limits<float>::lowest(),
+		std::numeric_limits<float>::lowest()
+	};
+	bool hasVertex = false;
+
+	for (const SkinnedMeshData& meshData : m_modelData.meshes)
+	{
+		for (const SkinnedVertex& vertex : meshData.vertices)
+		{
+			XMVECTOR position = XMVectorZero();
+			float totalWeight = 0.0f;
+			const XMVECTOR sourcePosition = XMLoadFloat3(&vertex.vertex.position);
+
+			for (int slot = 0; slot < 4; ++slot)
+			{
+				const int boneIndex = vertex.boneIndices[slot];
+				const float weight = vertex.boneWeights[slot];
+				if (boneIndex < 0 || weight == 0.0f || boneIndex >= static_cast<int>(m_boneMatrices.size()))
+				{
+					continue;
+				}
+
+				const XMMATRIX boneMatrix = XMLoadFloat4x4(&m_boneMatrices[boneIndex]);
+				position += XMVector3TransformCoord(sourcePosition, boneMatrix) * weight;
+				totalWeight += weight;
+			}
+
+			if (totalWeight == 0.0f)
+			{
+				position = sourcePosition;
+			}
+			else if (totalWeight != 1.0f)
+			{
+				position /= totalWeight;
+			}
+
+			position = XMVectorSet(
+				(XMVectorGetX(position) - m_modelCenterX) * m_modelScale,
+				(XMVectorGetY(position) - m_modelMinY) * m_modelScale,
+				(XMVectorGetZ(position) - m_modelCenterZ) * m_modelScale,
+				1.0f);
+
+			XMFLOAT3 fittedPosition{};
+			XMStoreFloat3(&fittedPosition, position);
+			minBounds.x = std::min(minBounds.x, fittedPosition.x);
+			minBounds.y = std::min(minBounds.y, fittedPosition.y);
+			minBounds.z = std::min(minBounds.z, fittedPosition.z);
+			maxBounds.x = std::max(maxBounds.x, fittedPosition.x);
+			maxBounds.y = std::max(maxBounds.y, fittedPosition.y);
+			maxBounds.z = std::max(maxBounds.z, fittedPosition.z);
+			hasVertex = true;
+		}
+	}
+
+	m_animatedBoundsCenterLocal = hasVertex
+		? XMFLOAT3
+		{
+			(minBounds.x + maxBounds.x) * 0.5f,
+			(minBounds.y + maxBounds.y) * 0.5f,
+			(minBounds.z + maxBounds.z) * 0.5f
+		}
+	: XMFLOAT3{};
 }
 
 XMMATRIX SkinnedModel::GetLocalTransform(const BoneData& bone) const
