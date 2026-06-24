@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Gameplay/CollisionBody.h"
 #include "Gameplay/CollisionComponents.h"
 #include "Rendering/Geometry/Vertex.h"
 #include "Rendering/Buffers/VertexBuffer.h"
@@ -13,7 +14,7 @@ class Dx12Renderer;
 class Ground;
 struct ID3D12Device;
 
-class PrimitiveObject
+class PrimitiveObject : public CollisionBody
 {
 public:
 	virtual ~PrimitiveObject() = default;
@@ -23,6 +24,11 @@ public:
 	void Draw(Dx12Renderer& renderer) const;
 
 	void SetPosition(float x, float y, float z);
+	DirectX::XMFLOAT3 GetCollisionPosition() const override;
+	void SetCollisionPosition(const DirectX::XMFLOAT3& position) override;
+	CollisionBodyDefinition GetCollisionBodyDefinition() const override;
+	float GetCollisionBottomY() const override;
+	float GetCollisionTopY() const override;
 	void SetGround(const Ground* ground);
 	void SetGravityEnabled(bool enabled);
 	bool IsGravityEnabled() const;

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Models/StaticMeshActor.h"
+#include "Models/SolidStaticMeshActor.h"
 
-class DavenPlayer : public StaticMeshActor
+class DavenPlayer : public SolidStaticMeshActor
 {
 protected:
-	const StaticMeshActorDefinition& GetStaticMeshDefinition() const override;
+	const SolidStaticMeshActorDefinition& GetSolidStaticMeshDefinition() const override;
 };

@@ -2,14 +2,18 @@
 
 using namespace DirectX;
 
-const StaticMeshActorDefinition& ForestGoddessPlayer::GetStaticMeshDefinition() const
+const SolidStaticMeshActorDefinition& ForestGoddessPlayer::GetSolidStaticMeshDefinition() const
 {
-	static const StaticMeshActorDefinition definition
+	static const SolidStaticMeshActorDefinition definition
 	{
-		"Content\\Models\\forest_goddess\\forest_goddess.fbx",
-		1.8f,
-		XMFLOAT3{ 3.0f, 0.0f, 0.0f },
-		XM_PI
+		StaticMeshActorDefinition
+		{
+			"Content\\Models\\forest_goddess\\forest_goddess.fbx",
+			1.8f,
+			XMFLOAT3{ 3.0f, 0.0f, 0.0f },
+			XM_PI
+		},
+		CollisionBodyDefinition{ 0.4f, 1.8f, true }
 	};
 	return definition;
 }

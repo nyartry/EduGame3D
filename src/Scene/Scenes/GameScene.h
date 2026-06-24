@@ -37,6 +37,7 @@ public:
 
 private:
 	DirectX::XMFLOAT3 GetCameraFollowPosition();
+	void ResolvePlayerBodyCollisions();
 
 	std::unique_ptr<ICamera> m_camera;
 	FollowCamera* m_followCamera{};

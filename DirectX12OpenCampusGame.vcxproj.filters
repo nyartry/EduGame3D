@@ -37,6 +37,9 @@
     <ClCompile Include="src\Gameplay\CharacterGrounding.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="src\Gameplay\CollisionBody.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
     <ClCompile Include="src\Gameplay\CollisionComponents.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
@@ -154,6 +157,12 @@
     <ClCompile Include="src\Models\SkinnedModelLoader.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="src\Models\SolidSkinnedMeshActor.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Models\SolidStaticMeshActor.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
     <ClCompile Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.cpp">
       <Filter>Rendering\Pipelines</Filter>
     </ClCompile>
@@ -214,6 +223,9 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="src\Gameplay\CharacterGrounding.h">
+      <Filter>Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Gameplay\CollisionBody.h">
       <Filter>Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="src\Gameplay\CollisionComponents.h">
@@ -358,6 +370,12 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="src\Models\SkinnedModelLoader.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Models\SolidSkinnedMeshActor.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Models\SolidStaticMeshActor.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.h">

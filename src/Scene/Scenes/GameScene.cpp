@@ -1,6 +1,7 @@
 #include "Scene/Scenes/GameScene.h"
 
 #include "Gameplay/AnimatedCubeObject.h"
+#include "Gameplay/CollisionBody.h"
 #include "Gameplay/DavenPlayer.h"
 #include "Rendering/Core/Dx12Renderer.h"
 #include "Gameplay/ForestGoddessPlayer.h"
@@ -116,6 +117,7 @@ void GameScene::Update(float deltaTime, const Input& input)
 	{
 		actor->Update(deltaTime, input);
 	}
+	ResolvePlayerBodyCollisions();
 	if (m_player != nullptr && m_player->DidStartJumpThisFrame())
 	{
 		XMFLOAT3 effectPosition = m_player->GetLastJumpStartPosition();
@@ -163,4 +165,45 @@ XMFLOAT3 GameScene::GetCameraFollowPosition()
 {
 	const bool shouldUpdateHeight = m_player == nullptr || m_player->IsGrounded();
 	return m_cameraFollowHeightLock.ResolveFollowPosition(m_followTarget->GetPosition(), shouldUpdateHeight);
+}
+
+void GameScene::ResolvePlayerBodyCollisions()
+{
+	if (m_player == nullptr)
+	{
+		return;
+	}
+
+	constexpr int SolverPassCount = 3;
+	CollisionBody& playerBody = *m_player;
+	for (int pass = 0; pass < SolverPassCount; ++pass)
+	{
+		bool resolvedAny = false;
+		resolvedAny |= ResolveCollisionBodyAgainst(playerBody, m_originCube);
+
+		for (const std::unique_ptr<Actor>& actor : m_actors)
+		{
+			if (actor.get() == m_player)
+			{
+				continue;
+			}
+
+			const CollisionBody* body = dynamic_cast<const CollisionBody*>(actor.get());
+			if (body == nullptr)
+			{
+				continue;
+			}
+
+			resolvedAny |= ResolveCollisionBodyAgainst(playerBody, *body);
+		}
+
+		if (resolvedAny)
+		{
+			m_player->ResolveWallCollision();
+		}
+		else
+		{
+			break;
+		}
+	}
 }

@@ -25,3 +25,14 @@ void StaticMeshActor::Draw(Dx12Renderer& renderer) const
 {
 	m_model.Draw(renderer);
 }
+
+const DirectX::XMFLOAT3& StaticMeshActor::GetPosition() const
+{
+	return m_position;
+}
+
+void StaticMeshActor::SetPosition(const DirectX::XMFLOAT3& position)
+{
+	m_position = position;
+	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
+}

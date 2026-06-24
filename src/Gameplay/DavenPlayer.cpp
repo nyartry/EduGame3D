@@ -2,14 +2,18 @@
 
 using namespace DirectX;
 
-const StaticMeshActorDefinition& DavenPlayer::GetStaticMeshDefinition() const
+const SolidStaticMeshActorDefinition& DavenPlayer::GetSolidStaticMeshDefinition() const
 {
-	static const StaticMeshActorDefinition definition
+	static const SolidStaticMeshActorDefinition definition
 	{
-		"Content\\Models\\Daven\\t-pose.fbx",
-		1.8f,
-		XMFLOAT3{ -3.0f, 0.0f, 0.0f },
-		XM_PI
+		StaticMeshActorDefinition
+		{
+			"Content\\Models\\Daven\\t-pose.fbx",
+			1.8f,
+			XMFLOAT3{ -3.0f, 0.0f, 0.0f },
+			XM_PI
+		},
+		CollisionBodyDefinition{ 0.4f, 1.8f, true }
 	};
 	return definition;
 }

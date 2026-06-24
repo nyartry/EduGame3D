@@ -100,6 +100,7 @@
     <ClCompile Include="src\Effects\Particles\SimpleJumpParticleSystem.cpp" />
     <ClCompile Include="src\Gameplay\AnimatedCubeObject.cpp" />
     <ClCompile Include="src\Gameplay\CharacterGrounding.cpp" />
+    <ClCompile Include="src\Gameplay\CollisionBody.cpp" />
     <ClCompile Include="src\Gameplay\CollisionComponents.cpp" />
     <ClCompile Include="src\Models\StaticMeshActor.cpp" />
     <ClCompile Include="src\Animation\AnimationSampler.cpp" />
@@ -139,6 +140,8 @@
     <ClCompile Include="src\Models\SkinnedMeshActor.cpp" />
     <ClCompile Include="src\Models\SkinnedModel.cpp" />
     <ClCompile Include="src\Models\SkinnedModelLoader.cpp" />
+    <ClCompile Include="src\Models\SolidSkinnedMeshActor.cpp" />
+    <ClCompile Include="src\Models\SolidStaticMeshActor.cpp" />
     <ClCompile Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.cpp" />
     <ClCompile Include="src\Rendering\Buffers\SkinnedVertexBuffer.cpp" />
     <ClCompile Include="src\Rendering\Sprites\SpriteBatch.cpp" />
@@ -161,6 +164,7 @@
     <ClInclude Include="src\Gameplay\AnimatedCubeObject.h" />
     <ClInclude Include="src\Common\MathUtils.h" />
     <ClInclude Include="src\Gameplay\CharacterGrounding.h" />
+    <ClInclude Include="src\Gameplay\CollisionBody.h" />
     <ClInclude Include="src\Gameplay\CollisionComponents.h" />
     <ClInclude Include="src\Rendering\Core\ConstantBufferRing.h" />
     <ClInclude Include="src\Gameplay\Actor.h" />
@@ -209,6 +213,8 @@
     <ClInclude Include="src\Models\SkinnedModel.h" />
     <ClInclude Include="src\Models\SkinnedModelData.h" />
     <ClInclude Include="src\Models\SkinnedModelLoader.h" />
+    <ClInclude Include="src\Models\SolidSkinnedMeshActor.h" />
+    <ClInclude Include="src\Models\SolidStaticMeshActor.h" />
     <ClInclude Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.h" />
     <ClInclude Include="src\Rendering\Buffers\SkinnedVertexBuffer.h" />
     <ClInclude Include="src\Rendering\Sprites\SpriteBatch.h" />

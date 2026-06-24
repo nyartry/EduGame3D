@@ -2,16 +2,20 @@
 
 using namespace DirectX;
 
-const SkinnedMeshActorDefinition& AnimatedCubeObject::GetSkinnedMeshDefinition() const
+const SolidSkinnedMeshActorDefinition& AnimatedCubeObject::GetSolidSkinnedMeshDefinition() const
 {
-	static const SkinnedMeshActorDefinition definition
+	static const SolidSkinnedMeshActorDefinition definition
 	{
-		"Content\\Models\\Untitled\\Untitled.fbx",
-		"Content\\Models\\Untitled\\Untitled.fbx",
-		1.0f,
-		XMFLOAT3{ 0.0f, 0.0f, -2.0f },
-		0.0f,
-		SkinningMode::Gpu
+		SkinnedMeshActorDefinition
+		{
+			"Content\\Models\\Untitled\\Untitled.fbx",
+			"Content\\Models\\Untitled\\Untitled.fbx",
+			1.0f,
+			XMFLOAT3{ 0.0f, 0.0f, -2.0f },
+			0.0f,
+			SkinningMode::Gpu
+		},
+		CollisionBodyDefinition{ 0.5f, 1.0f, true }
 	};
 	return definition;
 }

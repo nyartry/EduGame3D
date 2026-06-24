@@ -34,6 +34,36 @@ void PrimitiveObject::SetPosition(float x, float y, float z)
 	m_position = XMFLOAT3{ x, y, z };
 }
 
+XMFLOAT3 PrimitiveObject::GetCollisionPosition() const
+{
+	return m_position;
+}
+
+void PrimitiveObject::SetCollisionPosition(const XMFLOAT3& position)
+{
+	m_position = position;
+}
+
+CollisionBodyDefinition PrimitiveObject::GetCollisionBodyDefinition() const
+{
+	return CollisionBodyDefinition
+	{
+		m_collider.GetCollisionRadius(),
+		GetCollisionTopY() - GetCollisionBottomY(),
+		m_collider.IsEnabled()
+	};
+}
+
+float PrimitiveObject::GetCollisionBottomY() const
+{
+	return m_collider.GetBottomY(m_position);
+}
+
+float PrimitiveObject::GetCollisionTopY() const
+{
+	return m_collider.GetTopY(m_position);
+}
+
 void PrimitiveObject::SetGround(const Ground* ground)
 {
 	m_groundCollision.SetGround(ground);

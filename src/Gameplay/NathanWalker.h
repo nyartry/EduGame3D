@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Models/SkinnedMeshActor.h"
+#include "Models/SolidSkinnedMeshActor.h"
 
-class NathanWalker : public SkinnedMeshActor
+class NathanWalker : public SolidSkinnedMeshActor
 {
 protected:
-	const SkinnedMeshActorDefinition& GetSkinnedMeshDefinition() const override;
+	const SolidSkinnedMeshActorDefinition& GetSolidSkinnedMeshDefinition() const override;
 };

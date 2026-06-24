@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Gameplay/CharacterGrounding.h"
+#include "Gameplay/CollisionBody.h"
 #include "Scene/Input/Input.h"
 #include "Models/SkinnedMeshActor.h"
 
@@ -23,14 +24,18 @@ struct PlayerDefinition
 	CharacterVerticalMotionSettings verticalMotion;
 };
 
-class Player : public SkinnedMeshActor
+class Player : public SkinnedMeshActor, public CollisionBody
 {
 public:
 	void Initialize(ID3D12Device* device) override;
 	void Update(float deltaTime, const Input& input) override;
+	DirectX::XMFLOAT3 GetCollisionPosition() const override;
+	void SetCollisionPosition(const DirectX::XMFLOAT3& position) override;
+	CollisionBodyDefinition GetCollisionBodyDefinition() const override;
 	void SetMovementForward(const DirectX::XMFLOAT3& forward);
 	void SetGround(const Ground* ground);
 	void AddLandingSurface(const PrimitiveObject* surface);
+	void ResolveWallCollision();
 	void SetRootMotionMode(RootMotionMode mode);
 	void SetRootMotionVerticalMode(RootMotionVerticalMode mode);
 	void SetRootMotionBlendWeight(float weight);

@@ -22,8 +22,11 @@ public:
 	void Update(float deltaTime, const Input& input) override;
 	void Draw(Dx12Renderer& renderer) const override;
 
+	const DirectX::XMFLOAT3& GetPosition() const;
+
 protected:
 	virtual const StaticMeshActorDefinition& GetStaticMeshDefinition() const = 0;
+	void SetPosition(const DirectX::XMFLOAT3& position);
 
 private:
 	StaticModel m_model;

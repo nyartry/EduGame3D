@@ -64,6 +64,27 @@ void Player::Update(float deltaTime, const Input& input)
 	UpdateAttackTimer(deltaTime, movementInput.hasDirection);
 }
 
+XMFLOAT3 Player::GetCollisionPosition() const
+{
+	return GetPosition();
+}
+
+void Player::SetCollisionPosition(const XMFLOAT3& position)
+{
+	SetPosition(position);
+}
+
+CollisionBodyDefinition Player::GetCollisionBodyDefinition() const
+{
+	const PlayerDefinition& definition = GetPlayerDefinition();
+	return CollisionBodyDefinition
+	{
+		definition.grounding.collisionRadius,
+		definition.mesh.height,
+		true
+	};
+}
+
 void Player::SetMovementForward(const XMFLOAT3& forward)
 {
 	XMFLOAT3 normalized{};
@@ -83,6 +104,15 @@ void Player::SetGround(const Ground* ground)
 void Player::AddLandingSurface(const PrimitiveObject* surface)
 {
 	m_groundProbe.AddLandingSurface(surface);
+}
+
+void Player::ResolveWallCollision()
+{
+	XMFLOAT3 position = GetPosition();
+	if (m_groundProbe.ResolveWallCollision(position))
+	{
+		SetPosition(position);
+	}
 }
 
 void Player::StartAttack()
