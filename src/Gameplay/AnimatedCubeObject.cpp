@@ -15,7 +15,8 @@ const SolidSkinnedMeshActorDefinition& AnimatedCubeObject::GetSolidSkinnedMeshDe
 			0.0f,
 			SkinningMode::Gpu
 		},
-		CollisionBodyDefinition{ 0.5f, 1.0f, true }
+		CollisionBodyDefinition{ 0.5f, 1.0f, true },
+		SkinnedCollisionAnchorDefinition{ SkinnedCollisionAnchorMode::ActorOrigin }
 	};
 	return definition;
 }

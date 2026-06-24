@@ -15,7 +15,8 @@ const SolidSkinnedMeshActorDefinition& NathanWalker::GetSolidSkinnedMeshDefiniti
 			XM_PI,
 			SkinningMode::Gpu
 		},
-		CollisionBodyDefinition{ 0.4f, 1.8f, true }
+		CollisionBodyDefinition{ 0.4f, 1.8f, true },
+		SkinnedCollisionAnchorDefinition{ SkinnedCollisionAnchorMode::NamedBone, "Hips" }
 	};
 	return definition;
 }

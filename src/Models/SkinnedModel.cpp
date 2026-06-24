@@ -46,6 +46,7 @@ void SkinnedModel::Initialize(
 
 	FitModel(scaleSettings);
 	m_boneMatrices.resize(m_modelData.bones.size());
+	m_boneModelMatrices.resize(m_modelData.bones.size());
 
 	std::unordered_map<std::string, std::shared_ptr<TexturedMaterial>> materialCache;
 	m_meshProcessors.clear();
@@ -68,7 +69,6 @@ void SkinnedModel::Initialize(
 	}
 
 	UpdateBoneMatrices();
-	UpdateAnimatedBounds();
 	for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
 	{
 		meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
@@ -117,7 +117,6 @@ RootMotionDelta SkinnedModel::Update(float deltaTime)
 	const RootMotionDelta rootMotionDelta = ExtractRootMotionDelta(deltaTime);
 	m_animationTimeSeconds += deltaTime;
 	UpdateBoneMatrices();
-	UpdateAnimatedBounds();
 	for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
 	{
 		meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
@@ -146,7 +145,50 @@ void SkinnedModel::SetRotationY(float radians)
 
 XMFLOAT3 SkinnedModel::GetAnimatedBoundsCenterLocal() const
 {
+	if (m_animatedBoundsDirty)
+	{
+		UpdateAnimatedBounds();
+	}
+
 	return m_animatedBoundsCenterLocal;
+}
+
+bool SkinnedModel::TryGetBonePositionLocal(std::string_view boneName, XMFLOAT3& position) const
+{
+	const std::string suffixWithColon = ":" + std::string(boneName);
+	const std::string suffixWithUnderscore = "_" + std::string(boneName);
+
+	for (size_t boneIndex = 0; boneIndex < m_modelData.bones.size(); ++boneIndex)
+	{
+		const std::string& currentName = m_modelData.bones[boneIndex].name;
+		const bool matches =
+			currentName == boneName ||
+			currentName.ends_with(suffixWithColon) ||
+			currentName.ends_with(suffixWithUnderscore);
+		if (matches && TryGetBonePositionLocal(static_cast<int>(boneIndex), position))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool SkinnedModel::TryGetRootMotionBonePositionLocal(XMFLOAT3& position) const
+{
+	if (m_modelData.animations.empty() || m_currentAnimationIndex >= m_modelData.animations.size())
+	{
+		return false;
+	}
+
+	const AnimationClip& clip = m_modelData.animations[m_currentAnimationIndex];
+	if (clip.rootMotionBoneAnimationIndex < 0 ||
+		clip.rootMotionBoneAnimationIndex >= static_cast<int>(clip.boneAnimations.size()))
+	{
+		return false;
+	}
+
+	return TryGetBonePositionLocal(clip.boneAnimations[clip.rootMotionBoneAnimationIndex].boneIndex, position);
 }
 
 void SkinnedModel::FitModel(const ModelScaleSettings& scaleSettings)
@@ -277,6 +319,7 @@ void SkinnedModel::UpdateBoneMatrices()
 {
 	std::vector<XMMATRIX> globalTransforms(m_modelData.bones.size(), XMMatrixIdentity());
 	const AnimationSampler animationSampler;
+	const XMMATRIX rootInverse = LoadMatrix(m_modelData.rootInverseTransform);
 
 	for (size_t boneIndex = 0; boneIndex < m_modelData.bones.size(); ++boneIndex)
 	{
@@ -311,12 +354,15 @@ void SkinnedModel::UpdateBoneMatrices()
 		}
 
 		const XMMATRIX offset = LoadMatrix(bone.offsetMatrix);
-		const XMMATRIX rootInverse = LoadMatrix(m_modelData.rootInverseTransform);
-		XMStoreFloat4x4(&m_boneMatrices[boneIndex], offset * globalTransforms[boneIndex] * rootInverse);
+		const XMMATRIX modelTransform = globalTransforms[boneIndex] * rootInverse;
+		XMStoreFloat4x4(&m_boneModelMatrices[boneIndex], modelTransform);
+		XMStoreFloat4x4(&m_boneMatrices[boneIndex], offset * modelTransform);
 	}
+
+	m_animatedBoundsDirty = true;
 }
 
-void SkinnedModel::UpdateAnimatedBounds()
+void SkinnedModel::UpdateAnimatedBounds() const
 {
 	XMFLOAT3 minBounds
 	{
@@ -389,6 +435,26 @@ void SkinnedModel::UpdateAnimatedBounds()
 			(minBounds.z + maxBounds.z) * 0.5f
 		}
 	: XMFLOAT3{};
+	m_animatedBoundsDirty = false;
+}
+
+bool SkinnedModel::TryGetBonePositionLocal(int boneIndex, XMFLOAT3& position) const
+{
+	if (boneIndex < 0 || boneIndex >= static_cast<int>(m_boneModelMatrices.size()))
+	{
+		return false;
+	}
+
+	const XMMATRIX boneModel = XMLoadFloat4x4(&m_boneModelMatrices[boneIndex]);
+	const XMVECTOR modelPosition = XMVector3TransformCoord(XMVectorZero(), boneModel);
+	const XMVECTOR fittedPosition = XMVectorSet(
+		(XMVectorGetX(modelPosition) - m_modelCenterX) * m_modelScale,
+		(XMVectorGetY(modelPosition) - m_modelMinY) * m_modelScale,
+		(XMVectorGetZ(modelPosition) - m_modelCenterZ) * m_modelScale,
+		1.0f);
+
+	XMStoreFloat3(&position, fittedPosition);
+	return true;
 }
 
 XMMATRIX SkinnedModel::GetLocalTransform(const BoneData& bone) const

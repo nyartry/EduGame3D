@@ -3,10 +3,27 @@
 #include "Gameplay/CollisionBody.h"
 #include "Models/SkinnedMeshActor.h"
 
+#include <string_view>
+
+enum class SkinnedCollisionAnchorMode
+{
+	ActorOrigin,
+	RootMotionBone,
+	NamedBone,
+	AnimatedBounds,
+};
+
+struct SkinnedCollisionAnchorDefinition
+{
+	SkinnedCollisionAnchorMode mode{ SkinnedCollisionAnchorMode::ActorOrigin };
+	std::string_view boneName{};
+};
+
 struct SolidSkinnedMeshActorDefinition
 {
 	SkinnedMeshActorDefinition mesh;
 	CollisionBodyDefinition collision;
+	SkinnedCollisionAnchorDefinition collisionAnchor;
 };
 
 class SolidSkinnedMeshActor : public SkinnedMeshActor, public CollisionBody
@@ -19,4 +36,7 @@ public:
 protected:
 	const SkinnedMeshActorDefinition& GetSkinnedMeshDefinition() const final;
 	virtual const SolidSkinnedMeshActorDefinition& GetSolidSkinnedMeshDefinition() const = 0;
+
+private:
+	DirectX::XMFLOAT3 ResolveCollisionAnchorLocal() const;
 };
