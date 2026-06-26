@@ -124,6 +124,7 @@ void SkinnedTexturedPipeline::CreatePipelineState(ID3D12Device* device)
 		{ "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
 
+	//D3D12からこのようにパイプラインを作成するようになった。D3D11にはこれらの構造体や関数は存在しない。
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
 	psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
 	psoDesc.pRootSignature = m_rootSignature.Get();
