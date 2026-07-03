@@ -318,10 +318,9 @@ void TitleScene::Update(float deltaTime, const Input& input)
 {
 	m_elapsedTime += deltaTime;
 	m_probeButtonFlashTime = std::max(0.0f, m_probeButtonFlashTime - deltaTime);
-	if (!m_bgmStarted && m_audio != nullptr)
+	if (m_audio != nullptr)
 	{
 		m_audio->PlayBgm(BgmId::Title);
-		m_bgmStarted = true;
 	}
 
 	if (m_rmlContext != nullptr && input.IsMouseInsideClient())

@@ -50,7 +50,6 @@ private:
 	UINT m_width{};
 	UINT m_height{};
 	float m_elapsedTime{};
-	bool m_bgmStarted{};
 	bool m_startRequested{};
 	bool m_rmlInitialized{};
 	int m_probeButtonClickCount{};

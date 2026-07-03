@@ -2,6 +2,10 @@
 
 #include <algorithm>
 #include <exception>
+#include <filesystem>
+#include <system_error>
+
+#include <Windows.h>
 
 using namespace DirectX;
 
@@ -10,6 +14,45 @@ namespace
 	constexpr const char* TitleBgmPath = "Content\\Audio\\BGM\\title_theme.wav";
 	constexpr const char* GameBgmPath = "Content\\Audio\\BGM\\game_theme.wav";
 	constexpr const char* ButtonSePath = "Content\\Audio\\SE\\button_click.wav";
+
+	void DebugLogAudio(const char* message)
+	{
+		OutputDebugStringA("[Audio] ");
+		OutputDebugStringA(message);
+		OutputDebugStringA("\n");
+	}
+
+	void DebugLogAudio(const std::wstring& message)
+	{
+		OutputDebugStringW(L"[Audio] ");
+		OutputDebugStringW(message.c_str());
+		OutputDebugStringW(L"\n");
+	}
+
+	std::filesystem::path GetExecutableDirectory()
+	{
+		wchar_t modulePath[MAX_PATH]{};
+		const DWORD length = GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
+		if (length == 0 || length >= MAX_PATH)
+		{
+			return {};
+		}
+
+		return std::filesystem::path(modulePath).parent_path();
+	}
+
+	bool TryResolvePath(const std::filesystem::path& candidate, std::wstring& resolvedPath)
+	{
+		std::error_code error;
+		if (!std::filesystem::exists(candidate, error))
+		{
+			return false;
+		}
+
+		const std::filesystem::path absolutePath = std::filesystem::absolute(candidate, error);
+		resolvedPath = error ? candidate.wstring() : absolutePath.wstring();
+		return true;
+	}
 }
 
 std::wstring AudioPlayerBase::ToWidePath(const char* path)
@@ -23,9 +66,53 @@ std::wstring AudioPlayerBase::ToWidePath(const char* path)
 	return widePath;
 }
 
+std::wstring AudioPlayerBase::ResolveAssetPath(const char* path)
+{
+	const std::filesystem::path relativePath{ ToWidePath(path) };
+	std::wstring resolvedPath;
+	if (relativePath.is_absolute() && TryResolvePath(relativePath, resolvedPath))
+	{
+		return resolvedPath;
+	}
+
+	std::error_code error;
+	std::filesystem::path roots[] =
+	{
+		std::filesystem::current_path(error),
+		GetExecutableDirectory()
+	};
+
+	for (const std::filesystem::path& root : roots)
+	{
+		if (root.empty())
+		{
+			continue;
+		}
+
+		std::filesystem::path searchRoot = root;
+		for (int depth = 0; depth < 6 && !searchRoot.empty(); ++depth)
+		{
+			if (TryResolvePath(searchRoot / relativePath, resolvedPath))
+			{
+				return resolvedPath;
+			}
+
+			const std::filesystem::path parent = searchRoot.parent_path();
+			if (parent == searchRoot)
+			{
+				break;
+			}
+			searchRoot = parent;
+		}
+	}
+
+	DebugLogAudio(std::wstring(L"Asset not found: ") + relativePath.wstring());
+	return relativePath.wstring();
+}
+
 void BgmPlayer::Register(BgmId id, const char* path)
 {
-	m_tracks[id].path = ToWidePath(path);
+	m_tracks[id].path = ResolveAssetPath(path);
 }
 
 bool BgmPlayer::Load(AudioEngine& engine)
@@ -33,6 +120,7 @@ bool BgmPlayer::Load(AudioEngine& engine)
 	for (auto& [id, track] : m_tracks)
 	{
 		(void)id;
+		DebugLogAudio(std::wstring(L"Loading BGM: ") + track.path);
 		track.effect = std::make_unique<SoundEffect>(&engine, track.path.c_str());
 		track.instance = track.effect->CreateInstance();
 		track.instance->SetVolume(m_volume);
@@ -58,6 +146,14 @@ void BgmPlayer::Play(BgmId id)
 {
 	if (m_hasCurrent && m_currentId == id)
 	{
+		auto currentTrack = m_tracks.find(id);
+		if (currentTrack != m_tracks.end() &&
+			currentTrack->second.instance != nullptr &&
+			currentTrack->second.instance->GetState() != PLAYING)
+		{
+			currentTrack->second.instance->SetVolume(m_volume);
+			currentTrack->second.instance->Play(true);
+		}
 		return;
 	}
 
@@ -92,7 +188,7 @@ void BgmPlayer::Stop()
 
 void SePlayer::Register(SeId id, const char* path)
 {
-	m_clips[id].path = ToWidePath(path);
+	m_clips[id].path = ResolveAssetPath(path);
 }
 
 bool SePlayer::Load(AudioEngine& engine)
@@ -100,6 +196,7 @@ bool SePlayer::Load(AudioEngine& engine)
 	for (auto& [id, clip] : m_clips)
 	{
 		(void)id;
+		DebugLogAudio(std::wstring(L"Loading SE: ") + clip.path);
 		clip.effect = std::make_unique<SoundEffect>(&engine, clip.path.c_str());
 	}
 
@@ -126,6 +223,22 @@ bool AudioSystem::Initialize()
 {
 	try
 	{
+		const HRESULT comResult = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+		if (SUCCEEDED(comResult))
+		{
+			m_comInitialized = true;
+			DebugLogAudio("COM initialized for audio.");
+		}
+		else if (comResult == RPC_E_CHANGED_MODE)
+		{
+			DebugLogAudio("COM was already initialized with another threading model.");
+		}
+		else
+		{
+			DebugLogAudio("COM initialization failed for audio.");
+			throw std::runtime_error("CoInitializeEx");
+		}
+
 		m_engine = std::make_unique<AudioEngine>();
 		m_bgmPlayer.Register(BgmId::Title, TitleBgmPath);
 		m_bgmPlayer.Register(BgmId::Game, GameBgmPath);
@@ -133,14 +246,28 @@ bool AudioSystem::Initialize()
 		m_bgmPlayer.Load(*m_engine);
 		m_sePlayer.Load(*m_engine);
 		m_available = true;
+		DebugLogAudio("AudioSystem initialized.");
 		return true;
 	}
-	catch (const std::exception&)
+	catch (const std::exception& ex)
 	{
+		DebugLogAudio("AudioSystem initialization failed.");
+		DebugLogAudio(ex.what());
 		m_bgmPlayer.Stop();
 		m_engine.reset();
 		m_available = false;
 		return false;
+	}
+}
+
+AudioSystem::~AudioSystem()
+{
+	m_bgmPlayer.Stop();
+	m_engine.reset();
+	if (m_comInitialized)
+	{
+		CoUninitialize();
+		m_comInitialized = false;
 	}
 }
 

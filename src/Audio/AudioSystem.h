@@ -17,6 +17,7 @@ public:
 
 protected:
 	static std::wstring ToWidePath(const char* path);
+	static std::wstring ResolveAssetPath(const char* path);
 };
 
 class BgmPlayer final : public AudioPlayerBase
@@ -64,6 +65,8 @@ private:
 class AudioSystem final : public IAudioService
 {
 public:
+	~AudioSystem();
+
 	bool Initialize();
 	void Update();
 
@@ -81,4 +84,5 @@ private:
 	BgmPlayer m_bgmPlayer;
 	SePlayer m_sePlayer;
 	bool m_available{};
+	bool m_comInitialized{};
 };

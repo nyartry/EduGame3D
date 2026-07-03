@@ -109,10 +109,9 @@ void GameScene::Unload()
 
 void GameScene::Update(float deltaTime, const Input& input)
 {
-	if (!m_bgmStarted && m_audio != nullptr)
+	if (m_audio != nullptr)
 	{
 		m_audio->PlayBgm(BgmId::Game);
-		m_bgmStarted = true;
 	}
 
 	if (m_player != nullptr)
