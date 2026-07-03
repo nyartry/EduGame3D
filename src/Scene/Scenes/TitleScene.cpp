@@ -1,5 +1,6 @@
 #include "Scene/Scenes/TitleScene.h"
 
+#include "Audio/IAudioService.h"
 #include "Rendering/Core/Dx12Renderer.h"
 
 #include <RmlUi/Core.h>
@@ -302,6 +303,7 @@ void TitleScene::Load(const SceneLoadContext& context)
 {
 	m_width = context.width;
 	m_height = context.height;
+	m_audio = context.audio;
 	m_batch.Initialize(context.device, 4096);
 	InitializeRmlUi();
 	RebuildBatch();
@@ -316,6 +318,11 @@ void TitleScene::Update(float deltaTime, const Input& input)
 {
 	m_elapsedTime += deltaTime;
 	m_probeButtonFlashTime = std::max(0.0f, m_probeButtonFlashTime - deltaTime);
+	if (!m_bgmStarted && m_audio != nullptr)
+	{
+		m_audio->PlayBgm(BgmId::Title);
+		m_bgmStarted = true;
+	}
 
 	if (m_rmlContext != nullptr && input.IsMouseInsideClient())
 	{
@@ -361,6 +368,10 @@ void TitleScene::Update(float deltaTime, const Input& input)
 
 	if (clickedProbeButton)
 	{
+		if (m_audio != nullptr)
+		{
+			m_audio->PlaySe(SeId::Button);
+		}
 		++m_probeButtonClickCount;
 		m_probeButtonFlashTime = 0.35f;
 		if (m_rmlDocument != nullptr)
@@ -401,6 +412,10 @@ void TitleScene::Update(float deltaTime, const Input& input)
 
 	if (clickedSampleButton != 0 && m_rmlDocument != nullptr)
 	{
+		if (m_audio != nullptr)
+		{
+			m_audio->PlaySe(SeId::Button);
+		}
 		m_selectedSampleButton = clickedSampleButton;
 		++m_sampleButtonClickCount;
 
@@ -440,6 +455,10 @@ void TitleScene::Update(float deltaTime, const Input& input)
 
 	if (input.WasPressed(InputKey::Enter) || input.WasPressed(InputKey::Space) || clickedStartButton)
 	{
+		if (!m_startRequested && m_audio != nullptr)
+		{
+			m_audio->PlaySe(SeId::Button);
+		}
 		m_startRequested = true;
 	}
 

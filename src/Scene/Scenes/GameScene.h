@@ -21,6 +21,7 @@
 #include <vector>
 
 class Dx12Renderer;
+class IAudioService;
 class Player;
 class SkinnedMeshActor;
 struct ID3D12Device;
@@ -40,6 +41,7 @@ private:
 	void ResolvePlayerBodyCollisions();
 
 	std::unique_ptr<ICamera> m_camera;
+	IAudioService* m_audio{};
 	FollowCamera* m_followCamera{};
 	Player* m_player{};
 	const SkinnedMeshActor* m_followTarget{};
@@ -52,4 +54,5 @@ private:
 	std::array<Sprite, 3> m_primitiveSprites;
 	HudOverlay m_hudOverlay;
 	std::vector<std::unique_ptr<Actor>> m_actors;
+	bool m_bgmStarted{};
 };

@@ -1,5 +1,6 @@
 #include "Scene/Scenes/GameScene.h"
 
+#include "Audio/IAudioService.h"
 #include "Gameplay/AnimatedCubeObject.h"
 #include "Gameplay/CollisionBody.h"
 #include "Gameplay/DavenPlayer.h"
@@ -32,6 +33,7 @@ namespace
 
 void GameScene::Load(const SceneLoadContext& context)
 {
+	m_audio = context.audio;
 	const float aspectRatio = static_cast<float>(context.width) / static_cast<float>(context.height);
 
 	auto followCamera = std::make_unique<FollowCamera>();
@@ -107,6 +109,12 @@ void GameScene::Unload()
 
 void GameScene::Update(float deltaTime, const Input& input)
 {
+	if (!m_bgmStarted && m_audio != nullptr)
+	{
+		m_audio->PlayBgm(BgmId::Game);
+		m_bgmStarted = true;
+	}
+
 	if (m_player != nullptr)
 	{
 		m_player->SetMovementForward(m_camera->GetForwardXZ());

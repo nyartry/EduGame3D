@@ -13,6 +13,7 @@
 #include <string_view>
 
 class Dx12Renderer;
+class IAudioService;
 struct ID3D12Device;
 namespace Rml {
 class Context;
@@ -42,12 +43,14 @@ private:
 	void RenderRmlUiToBatch();
 
 	SpriteBatch m_batch;
+	IAudioService* m_audio{};
 	RmlUiSpriteRenderInterface m_rmlRenderer;
 	Rml::Context* m_rmlContext{};
 	Rml::ElementDocument* m_rmlDocument{};
 	UINT m_width{};
 	UINT m_height{};
 	float m_elapsedTime{};
+	bool m_bgmStarted{};
 	bool m_startRequested{};
 	bool m_rmlInitialized{};
 	int m_probeButtonClickCount{};

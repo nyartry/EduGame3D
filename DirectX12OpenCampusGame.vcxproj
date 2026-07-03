@@ -66,7 +66,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)third_party\assimp\lib\Debug;$(ProjectDir)third_party\rmlui\lib\Debug;$(ProjectDir)third_party\effekseer\lib\Debug;$(ProjectDir)third_party\directxtk12\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;xaudio2.lib;rmlui.lib;assimp-vc143-mtd.lib;EffekseerRendererDX12.lib;EffekseerRendererLLGI.lib;EffekseerRendererCommon.lib;Effekseer.lib;LLGI.lib;DirectXTK12.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;xaudio2.lib;xapobase.lib;rmlui.lib;assimp-vc143-mtd.lib;EffekseerRendererDX12.lib;EffekseerRendererLLGI.lib;EffekseerRendererCommon.lib;Effekseer.lib;LLGI.lib;DirectXTK12.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(ProjectDir)third_party\assimp\bin\Debug\assimp-vc143-mtd.dll" copy /Y "$(ProjectDir)third_party\assimp\bin\Debug\assimp-vc143-mtd.dll" "$(OutDir)"</Command>
@@ -89,13 +89,14 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)third_party\assimp\lib\Release;$(ProjectDir)third_party\rmlui\lib\Release;$(ProjectDir)third_party\effekseer\lib\Release;$(ProjectDir)third_party\directxtk12\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;xaudio2.lib;rmlui.lib;assimp-vc143-mt.lib;EffekseerRendererDX12.lib;EffekseerRendererLLGI.lib;EffekseerRendererCommon.lib;Effekseer.lib;LLGI.lib;DirectXTK12.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;xaudio2.lib;xapobase.lib;rmlui.lib;assimp-vc143-mt.lib;EffekseerRendererDX12.lib;EffekseerRendererLLGI.lib;EffekseerRendererCommon.lib;Effekseer.lib;LLGI.lib;DirectXTK12.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(ProjectDir)third_party\assimp\bin\Release\assimp-vc143-mt.dll" copy /Y "$(ProjectDir)third_party\assimp\bin\Release\assimp-vc143-mt.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Audio\AudioSystem.cpp" />
     <ClCompile Include="src\Effects\Effekseer\EffekseerEffectSystem.cpp" />
     <ClCompile Include="src\Effects\Particles\SimpleJumpParticleSystem.cpp" />
     <ClCompile Include="src\Gameplay\AnimatedCubeObject.cpp" />
@@ -159,6 +160,9 @@
     <ClCompile Include="src\App\Win32Application.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Audio\AudioIds.h" />
+    <ClInclude Include="src\Audio\AudioSystem.h" />
+    <ClInclude Include="src\Audio\IAudioService.h" />
     <ClInclude Include="src\Effects\Effekseer\EffekseerEffectSystem.h" />
     <ClInclude Include="src\Effects\Particles\SimpleJumpParticleSystem.h" />
     <ClInclude Include="src\Gameplay\AnimatedCubeObject.h" />

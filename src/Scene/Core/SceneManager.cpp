@@ -16,10 +16,11 @@ namespace
 	constexpr UINT RetiredSceneKeepAliveFrames = Dx12Renderer::FrameCount + 1;
 }
 
-void SceneManager::Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue, UINT width, UINT height)
+void SceneManager::Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue, IAudioService* audio, UINT width, UINT height)
 {
 	m_context.device = device;
 	m_context.commandQueue = commandQueue;
+	m_context.audio = audio;
 	m_context.width = width;
 	m_context.height = height;
 	m_loadingOverlay.Initialize(device, width, height);

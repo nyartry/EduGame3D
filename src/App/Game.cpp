@@ -8,8 +8,9 @@
 void Game::Initialize(HWND hwnd, UINT width, UINT height)
 {
 	m_hwnd = hwnd;
+	m_audio.Initialize();
 	m_renderer.Initialize(hwnd, width, height);
-	m_sceneManager.Initialize(m_renderer.GetDevice(), m_renderer.GetCommandQueue(), width, height);
+	m_sceneManager.Initialize(m_renderer.GetDevice(), m_renderer.GetCommandQueue(), &m_audio, width, height);
 	m_sceneManager.AddScene<GameScene>("Game");
 	m_sceneManager.AddScene<TitleScene>("Title");
 	m_sceneManager.LoadScene("Title", SceneLoadType::Synchronous, SceneLoadMode::Single);
@@ -22,6 +23,7 @@ void Game::Tick()
 	m_input.Update(m_hwnd);
 	const float deltaTime = CalculateDeltaTime();
 	m_sceneManager.Update(deltaTime, m_input);
+	m_audio.Update();
 	m_renderer.BeginFrame(m_sceneManager.GetViewProjectionMatrix());
 	m_sceneManager.Render(m_renderer);
 	m_renderer.EndFrame();

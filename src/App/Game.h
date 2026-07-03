@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Audio/AudioSystem.h"
 #include "Rendering/Core/Dx12Renderer.h"
 #include "Scene/Input/Input.h"
 #include "Scene/Core/SceneManager.h"
@@ -21,6 +22,7 @@ private:
 
 	HWND m_hwnd{};
 	Input m_input;
+	AudioSystem m_audio;
 	Dx12Renderer m_renderer;
 	SceneManager m_sceneManager;
 	std::chrono::steady_clock::time_point m_lastTickTime{};

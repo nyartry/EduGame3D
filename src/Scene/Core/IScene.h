@@ -8,6 +8,7 @@
 #include <string>
 
 class Dx12Renderer;
+class IAudioService;
 struct ID3D12CommandQueue;
 struct ID3D12Device;
 
@@ -15,6 +16,7 @@ struct SceneLoadContext
 {
 	ID3D12Device* device{};
 	ID3D12CommandQueue* commandQueue{};
+	IAudioService* audio{};
 	UINT width{};
 	UINT height{};
 };

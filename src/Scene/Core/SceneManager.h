@@ -30,7 +30,7 @@ class SceneManager
 public:
 	using SceneFactory = std::function<std::unique_ptr<IScene>()>;
 
-	void Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue, UINT width, UINT height);
+	void Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue, IAudioService* audio, UINT width, UINT height);
 
 	void RegisterScene(const std::string& name, SceneFactory factory);
 

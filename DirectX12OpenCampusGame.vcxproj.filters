@@ -23,8 +23,12 @@
     <Filter Include="Effects"><UniqueIdentifier>{0bdbe3f4-bf55-4a8a-83dd-17f052a790b2}</UniqueIdentifier></Filter>
     <Filter Include="Effects\Effekseer"><UniqueIdentifier>{1ace1160-dc76-4c4a-9659-dfb4a52d98db}</UniqueIdentifier></Filter>
     <Filter Include="Effects\Particles"><UniqueIdentifier>{2ae3dfce-b995-43e1-8660-cfd181e95d37}</UniqueIdentifier></Filter>
+    <Filter Include="Audio"><UniqueIdentifier>{b6da9ae2-e6c5-4f94-8304-460d5d278428}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Audio\AudioSystem.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
     <ClCompile Include="src\Effects\Effekseer\EffekseerEffectSystem.cpp">
       <Filter>Effects\Effekseer</Filter>
     </ClCompile>
@@ -210,6 +214,15 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Audio\AudioIds.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Audio\AudioSystem.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Audio\IAudioService.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
     <ClInclude Include="src\Effects\Effekseer\EffekseerEffectSystem.h">
       <Filter>Effects\Effekseer</Filter>
     </ClInclude>
