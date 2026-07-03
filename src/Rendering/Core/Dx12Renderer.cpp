@@ -37,6 +37,48 @@ void Dx12Renderer::Initialize(HWND hwnd, UINT width, UINT height)
 	m_startTime = std::chrono::steady_clock::now();
 }
 
+void Dx12Renderer::Resize(UINT width, UINT height)
+{
+	if (width == 0 || height == 0 || m_swapChain == nullptr)
+	{
+		return;
+	}
+
+	if (width == m_width && height == m_height)
+	{
+		return;
+	}
+
+	WaitForGpu();
+
+	for (ComPtr<ID3D12Resource>& renderTarget : m_renderTargets)
+	{
+		renderTarget.Reset();
+	}
+	m_depthStencil.Reset();
+
+	ThrowIfFailed(m_swapChain->ResizeBuffers(
+		FrameCount,
+		width,
+		height,
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		0));
+
+	m_width = width;
+	m_height = height;
+	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
+	for (UINT index = 0; index < FrameCount; ++index)
+	{
+		ThrowIfFailed(m_swapChain->GetBuffer(index, IID_PPV_ARGS(&m_renderTargets[index])));
+		m_device->CreateRenderTargetView(m_renderTargets[index].Get(), nullptr, rtvHandle);
+		rtvHandle.ptr += m_rtvDescriptorSize;
+	}
+
+	CreateDepthBuffer();
+}
+
 void Dx12Renderer::BeginFrame(const XMMATRIX& viewProjection)
 {
 	XMStoreFloat4x4(&m_viewProjection, viewProjection);
@@ -186,10 +228,7 @@ void Dx12Renderer::EndFrame()
 
 void Dx12Renderer::WaitForGpu()
 {
-	ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_fenceValues[m_frameIndex]));
-	ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent));
-	WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
-	++m_fenceValues[m_frameIndex];
+	FlushGpu();
 }
 
 ID3D12Device* Dx12Renderer::GetDevice() const
@@ -324,8 +363,7 @@ void Dx12Renderer::LoadAssets()
 
 	CreateDepthBuffer();
 
-	ThrowIfFailed(m_device->CreateFence(m_fenceValues[m_frameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-	++m_fenceValues[m_frameIndex];
+	ThrowIfFailed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
 
 	m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	if (m_fenceEvent == nullptr)
@@ -382,8 +420,9 @@ void Dx12Renderer::UpdateClearColor()
 
 void Dx12Renderer::MoveToNextFrame()
 {
-	const UINT64 currentFenceValue = m_fenceValues[m_frameIndex];
-	ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
+	const UINT64 fenceValue = m_nextFenceValue++;
+	ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fenceValue));
+	m_fenceValues[m_frameIndex] = fenceValue;
 
 	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 
@@ -393,5 +432,22 @@ void Dx12Renderer::MoveToNextFrame()
 		WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
 	}
 
-	m_fenceValues[m_frameIndex] = currentFenceValue + 1;
+}
+
+void Dx12Renderer::FlushGpu()
+{
+	if (m_commandQueue == nullptr || m_fence == nullptr || m_fenceEvent == nullptr)
+	{
+		return;
+	}
+
+	const UINT64 fenceValue = m_nextFenceValue++;
+	ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fenceValue));
+	ThrowIfFailed(m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent));
+	WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
+
+	for (UINT64& frameFenceValue : m_fenceValues)
+	{
+		frameFenceValue = fenceValue;
+	}
 }

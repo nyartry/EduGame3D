@@ -34,6 +34,7 @@ public:
 	Dx12Renderer& operator=(const Dx12Renderer&) = delete;
 
 	void Initialize(HWND hwnd, UINT width, UINT height);
+	void Resize(UINT width, UINT height);
 	void BeginFrame(const DirectX::XMMATRIX& viewProjection);
 	void Draw(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world);
 	void DrawScreen(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world);
@@ -62,6 +63,7 @@ private:
 	void CreateDepthBuffer();
 	void UpdateClearColor();
 	void MoveToNextFrame();
+	void FlushGpu();
 
 	HWND m_hwnd{};
 	UINT m_width{};
@@ -88,4 +90,5 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
 	Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
 	std::array<UINT64, FrameCount> m_fenceValues{};
+	UINT64 m_nextFenceValue{ 1 };
 };

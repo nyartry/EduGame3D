@@ -217,6 +217,12 @@ namespace
 
 		void Tick()
 		{
+			if (ApplyPendingResize())
+			{
+				m_lastTick = std::chrono::steady_clock::now();
+				return;
+			}
+
 			const float deltaTime = CalculateDeltaTime();
 			UpdatePlayback(deltaTime);
 
@@ -261,7 +267,49 @@ namespace
 			SaveEvents(m_defaultSavePath);
 		}
 
+		void RequestResize(UINT width, UINT height)
+		{
+			if (width == 0 || height == 0)
+			{
+				return;
+			}
+
+			m_pendingResizeWidth = width;
+			m_pendingResizeHeight = height;
+			m_hasPendingResize = true;
+		}
+
+		void RequestClientResize()
+		{
+			RECT clientRect{};
+			if (!GetClientRect(m_hwnd, &clientRect))
+			{
+				return;
+			}
+
+			const UINT width = static_cast<UINT>(std::max<LONG>(0, clientRect.right - clientRect.left));
+			const UINT height = static_cast<UINT>(std::max<LONG>(0, clientRect.bottom - clientRect.top));
+			RequestResize(width, height);
+		}
+
 	private:
+		bool ApplyPendingResize()
+		{
+			if (!m_hasPendingResize)
+			{
+				return false;
+			}
+
+			m_hasPendingResize = false;
+			if (m_pendingResizeWidth == m_renderer.GetWidth() && m_pendingResizeHeight == m_renderer.GetHeight())
+			{
+				return false;
+			}
+
+			m_renderer.Resize(m_pendingResizeWidth, m_pendingResizeHeight);
+			return true;
+		}
+
 		void CreateImGuiContext()
 		{
 			D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
@@ -829,6 +877,9 @@ namespace
 		std::chrono::steady_clock::time_point m_lastTick{};
 		int m_selectedEvent{ -1 };
 		bool m_isPlaying{};
+		bool m_hasPendingResize{};
+		UINT m_pendingResizeWidth{ WindowWidth };
+		UINT m_pendingResizeHeight{ WindowHeight };
 		float m_playbackSpeed{ 1.0f };
 		float m_cameraYaw{ XMConvertToRadians(25.0f) };
 		float m_cameraPitch{ XMConvertToRadians(15.0f) };
@@ -847,6 +898,13 @@ namespace
 
 		switch (message)
 		{
+		case WM_SIZE:
+			if (GApp != nullptr && wParam != SIZE_MINIMIZED)
+			{
+				GApp->RequestClientResize();
+				return 0;
+			}
+			break;
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			return 0;
