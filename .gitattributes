@@ -9,6 +9,7 @@ third_party/assimp/bin/**/*.dll filter=lfs diff=lfs merge=lfs -text
 third_party/assimp/lib/**/*.lib filter=lfs diff=lfs merge=lfs -text
 third_party/rmlui/lib/**/*.lib filter=lfs diff=lfs merge=lfs -text
 third_party/effekseer/lib/**/*.lib filter=lfs diff=lfs merge=lfs -text
+third_party/directxtk12/lib/**/*.lib filter=lfs diff=lfs merge=lfs -text
 Content/Effects/**/*.efkefc filter=lfs diff=lfs merge=lfs -text
 Content/Effects/**/*.png filter=lfs diff=lfs merge=lfs -text
 Content/Effects/**/*.jpg filter=lfs diff=lfs merge=lfs -text
