@@ -4,6 +4,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX12OpenCampusGame", "DirectX12OpenCampusGame.vcxproj", "{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimationEventEditor", "AnimationEventEditor.vcxproj", "{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -14,6 +16,10 @@ Global
 		{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}.Debug|x64.Build.0 = Debug|x64
 		{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}.Release|x64.ActiveCfg = Release|x64
 		{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}.Release|x64.Build.0 = Release|x64
+		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Debug|x64.ActiveCfg = Debug|x64
+		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Debug|x64.Build.0 = Debug|x64
+		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Release|x64.ActiveCfg = Release|x64
+		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -22,4 +28,3 @@ Global
 		SolutionGuid = {62B67E9A-E114-49D6-9930-BC7F5D51B1B9}
 	EndGlobalSection
 EndGlobal
-

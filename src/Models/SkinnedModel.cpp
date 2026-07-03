@@ -100,6 +100,27 @@ void SkinnedModel::PlayAnimation(const std::string& animationName)
 	}
 }
 
+#if defined(ANIMATION_EVENT_EDITOR_TOOL)
+void SkinnedModel::PlayAnimationByIndex(size_t animationIndex)
+{
+	if (animationIndex >= m_modelData.animations.size())
+	{
+		return;
+	}
+
+	if (m_currentAnimationIndex != animationIndex)
+	{
+		m_currentAnimationIndex = animationIndex;
+		m_animationTimeSeconds = 0.0f;
+		UpdateBoneMatrices();
+		for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
+		{
+			meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
+		}
+	}
+}
+#endif
+
 float SkinnedModel::GetAnimationDurationSeconds(const std::string& animationName) const
 {
 	for (const AnimationClip& clip : m_modelData.animations)
@@ -111,6 +132,46 @@ float SkinnedModel::GetAnimationDurationSeconds(const std::string& animationName
 	}
 	return 0.0f;
 }
+
+#if defined(ANIMATION_EVENT_EDITOR_TOOL)
+float SkinnedModel::GetCurrentAnimationDurationSeconds() const
+{
+	if (m_currentAnimationIndex >= m_modelData.animations.size())
+	{
+		return 0.0f;
+	}
+
+	const AnimationClip& clip = m_modelData.animations[m_currentAnimationIndex];
+	return clip.ticksPerSecond > 0.0
+		? static_cast<float>(clip.durationTicks / clip.ticksPerSecond)
+		: 0.0f;
+}
+
+float SkinnedModel::GetAnimationTimeSeconds() const
+{
+	return m_animationTimeSeconds;
+}
+
+size_t SkinnedModel::GetCurrentAnimationIndex() const
+{
+	return m_currentAnimationIndex;
+}
+
+const SkinnedModelData& SkinnedModel::GetModelData() const
+{
+	return m_modelData;
+}
+
+void SkinnedModel::SetAnimationTimeSeconds(float animationTimeSeconds)
+{
+	m_animationTimeSeconds = std::max(0.0f, animationTimeSeconds);
+	UpdateBoneMatrices();
+	for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
+	{
+		meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
+	}
+}
+#endif
 
 RootMotionDelta SkinnedModel::Update(float deltaTime)
 {
