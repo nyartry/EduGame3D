@@ -10,6 +10,7 @@
 #include <commdlg.h>
 #include <d3d12.h>
 #include <DirectXMath.h>
+#include <shlobj.h>
 #include <wrl/client.h>
 
 #include <algorithm>
@@ -27,6 +28,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <vector>
 
 using Microsoft::WRL::ComPtr;
@@ -167,6 +169,45 @@ namespace
 		std::filesystem::path path = std::filesystem::path(fbxPath);
 		path.replace_extension(".anim_events.json");
 		return path.string();
+	}
+
+	std::filesystem::path GetLocalAppDataPath()
+	{
+		PWSTR knownFolderPath = nullptr;
+		if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_CREATE, nullptr, &knownFolderPath)))
+		{
+			std::filesystem::path result = knownFolderPath;
+			CoTaskMemFree(knownFolderPath);
+			return result;
+		}
+
+		std::array<wchar_t, MAX_PATH> fallbackPath{};
+		const DWORD length = GetEnvironmentVariableW(L"LOCALAPPDATA", fallbackPath.data(), static_cast<DWORD>(fallbackPath.size()));
+		if (length > 0 && length < fallbackPath.size())
+		{
+			return fallbackPath.data();
+		}
+
+		return std::filesystem::current_path();
+	}
+
+	std::filesystem::path MakeEditorSettingsDirectory()
+	{
+		std::filesystem::path directory = GetLocalAppDataPath() / L"OpenCampusAnimationEventEditor";
+		std::error_code error;
+		std::filesystem::create_directories(directory, error);
+		if (!error)
+		{
+			return directory;
+		}
+
+		return std::filesystem::current_path();
+	}
+
+	std::string PathToUtf8String(const std::filesystem::path& path)
+	{
+		const std::u8string utf8Path = path.u8string();
+		return std::string(utf8Path.begin(), utf8Path.end());
 	}
 
 	XMMATRIX BuildViewProjection(float yaw, float pitch, float distance, UINT width, UINT height)
@@ -328,7 +369,8 @@ namespace
 			ImGui::CreateContext();
 			ImGuiIO& io = ImGui::GetIO();
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-			io.IniFilename = nullptr;
+			m_imguiIniPath = PathToUtf8String(MakeEditorSettingsDirectory() / L"imgui.ini");
+			io.IniFilename = m_imguiIniPath.c_str();
 			ImGui::StyleColorsDark();
 
 			ImGui_ImplWin32_Init(m_hwnd);
@@ -546,6 +588,7 @@ namespace
 
 		void DrawAssetPanel()
 		{
+			SetInitialWindowRect(16.0f, 56.0f, 340.0f, 300.0f);
 			ImGui::Begin("Asset");
 			if (ImGui::Button("Open FBX"))
 			{
@@ -587,6 +630,7 @@ namespace
 
 		void DrawViewportPanel()
 		{
+			SetInitialWindowRect(16.0f, 376.0f, 360.0f, 176.0f);
 			ImGui::Begin("Viewport Controls");
 			ImGui::SliderAngle("Camera Yaw", &m_cameraYaw, -180.0f, 180.0f);
 			ImGui::SliderAngle("Camera Pitch", &m_cameraPitch, -15.0f, 60.0f);
@@ -598,6 +642,8 @@ namespace
 
 		void DrawTimelinePanel()
 		{
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			SetInitialWindowRect(392.0f, std::max(56.0f, viewport->WorkSize.y - 264.0f), viewport->WorkSize.x - 424.0f, 232.0f);
 			ImGui::Begin("Timeline");
 			if (m_model == nullptr)
 			{
@@ -735,6 +781,8 @@ namespace
 
 		void DrawEventPanel()
 		{
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			SetInitialWindowRect(std::max(392.0f, viewport->WorkSize.x - 388.0f), 56.0f, 372.0f, 300.0f);
 			ImGui::Begin("Event Properties");
 			if (!IsSelectedEventValid())
 			{
@@ -794,6 +842,8 @@ namespace
 
 		void DrawStatusPanel()
 		{
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			SetInitialWindowRect(16.0f, std::max(568.0f, viewport->WorkSize.y - 136.0f), 360.0f, 112.0f);
 			ImGui::Begin("Status");
 			ImGui::TextWrapped("%s", m_status.c_str());
 			if (!m_defaultSavePath.empty())
@@ -863,6 +913,20 @@ namespace
 			m_status = "Saved events: " + path;
 		}
 
+		static void SetInitialWindowRect(float x, float y, float width, float height)
+		{
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			const float safeWidth = std::max(180.0f, std::min(width, viewport->WorkSize.x - 16.0f));
+			const float safeHeight = std::max(96.0f, std::min(height, viewport->WorkSize.y - 16.0f));
+			const float maxX = std::max(8.0f, viewport->WorkSize.x - safeWidth - 8.0f);
+			const float maxY = std::max(8.0f, viewport->WorkSize.y - safeHeight - 8.0f);
+			const float safeX = std::clamp(x, 8.0f, maxX);
+			const float safeY = std::clamp(y, 8.0f, maxY);
+
+			ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + safeX, viewport->WorkPos.y + safeY), ImGuiCond_FirstUseEver);
+			ImGui::SetNextWindowSize(ImVec2(safeWidth, safeHeight), ImGuiCond_FirstUseEver);
+		}
+
 		HWND m_hwnd{};
 		Dx12Renderer m_renderer;
 		ComPtr<ID3D12DescriptorHeap> m_imguiSrvHeap;
@@ -874,6 +938,7 @@ namespace
 		std::string m_modelPath;
 		std::string m_defaultSavePath;
 		std::string m_status;
+		std::string m_imguiIniPath;
 		std::chrono::steady_clock::time_point m_lastTick{};
 		int m_selectedEvent{ -1 };
 		bool m_isPlaying{};
