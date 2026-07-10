@@ -313,16 +313,16 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		WriteDefaultImGuiLayoutIni(path);
 	}
 
-	XMMATRIX BuildViewProjection(float yaw, float pitch, float distance, UINT width, UINT height)
+	XMMATRIX BuildViewProjection(float yaw, float pitch, float distance, const XMFLOAT3& targetPosition, UINT width, UINT height)
 	{
 		const float aspect = height == 0 ? 1.0f : static_cast<float>(width) / static_cast<float>(height);
 		const float horizontal = std::cos(pitch) * distance;
+		const XMVECTOR target = XMLoadFloat3(&targetPosition);
 		const XMVECTOR eye = XMVectorSet(
-			std::sin(yaw) * horizontal,
-			1.1f + std::sin(pitch) * distance,
-			std::cos(yaw) * horizontal,
+			targetPosition.x + std::sin(yaw) * horizontal,
+			targetPosition.y + std::sin(pitch) * distance,
+			targetPosition.z + std::cos(yaw) * horizontal,
 			1.0f);
-		const XMVECTOR target = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 		const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 		const XMMATRIX view = XMMatrixLookAtLH(eye, target, up);
 		const XMMATRIX projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(55.0f), aspect, 0.05f, 100.0f);
@@ -349,6 +349,14 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 	{
 		std::vector<AnimationEvent> events;
 		int selectedEvent{ -1 };
+	};
+
+	enum class CameraDragMode
+	{
+		None,
+		Orbit,
+		Pan,
+		Dolly
 	};
 
 	bool AnimationEventEquals(const AnimationEvent& left, const AnimationEvent& right)
@@ -874,10 +882,17 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 			const float deltaTime = CalculateDeltaTime();
 			UpdatePlayback(deltaTime);
 
+			ImGui_ImplDX12_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ApplyPendingLayoutReset();
+			ImGui::NewFrame();
+			UpdateCameraInput();
+
 			const XMMATRIX viewProjection = BuildViewProjection(
 				m_cameraYaw,
 				m_cameraPitch,
 				m_cameraDistance,
+				m_cameraTarget,
 				m_renderer.GetWidth(),
 				m_renderer.GetHeight());
 			m_renderer.BeginFrame(viewProjection);
@@ -887,10 +902,6 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 				m_model->Draw(m_renderer);
 			}
 
-			ImGui_ImplDX12_NewFrame();
-			ImGui_ImplWin32_NewFrame();
-			ApplyPendingLayoutReset();
-			ImGui::NewFrame();
 			DrawUi();
 			ImGui::Render();
 
@@ -1037,6 +1048,133 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 			ImGui::LoadIniSettingsFromMemory(DefaultImGuiLayoutIni.data(), DefaultImGuiLayoutIni.size());
 			ImGui::SaveIniSettingsToDisk(m_imguiIniPath.c_str());
 			m_pendingLayoutReset = false;
+		}
+
+		void UpdateCameraInput()
+		{
+			const ImGuiIO& io = ImGui::GetIO();
+			const bool inputBlocked = IsCameraInputBlocked();
+
+			if (m_cameraDragMode == CameraDragMode::None && !inputBlocked)
+			{
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+				{
+					m_cameraDragMode = CameraDragMode::Orbit;
+				}
+				else if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle))
+				{
+					m_cameraDragMode = CameraDragMode::Pan;
+				}
+				else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+				{
+					m_cameraDragMode = CameraDragMode::Dolly;
+				}
+			}
+
+			if (m_cameraDragMode != CameraDragMode::None)
+			{
+				const ImGuiMouseButton activeButton = GetCameraDragMouseButton();
+				if (!ImGui::IsMouseDown(activeButton))
+				{
+					m_cameraDragMode = CameraDragMode::None;
+				}
+				else
+				{
+					const ImVec2 delta = io.MouseDelta;
+					if (m_cameraDragMode == CameraDragMode::Orbit)
+					{
+						OrbitCamera(delta);
+					}
+					else if (m_cameraDragMode == CameraDragMode::Pan)
+					{
+						PanCamera(delta);
+					}
+					else if (m_cameraDragMode == CameraDragMode::Dolly)
+					{
+						ZoomCamera(delta.y * 0.015f);
+					}
+
+					ImGui::SetMouseCursor(m_cameraDragMode == CameraDragMode::Dolly
+						? ImGuiMouseCursor_ResizeNS
+						: ImGuiMouseCursor_ResizeAll);
+				}
+			}
+
+			if (m_cameraDragMode == CameraDragMode::None && !inputBlocked && io.MouseWheel != 0.0f)
+			{
+				ZoomCamera(-io.MouseWheel * 0.18f);
+			}
+		}
+
+		bool IsCameraInputBlocked() const
+		{
+			return m_mouseOverEditorPanel
+				|| ImGui::IsAnyItemActive()
+				|| ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopup);
+		}
+
+		ImGuiMouseButton GetCameraDragMouseButton() const
+		{
+			switch (m_cameraDragMode)
+			{
+			case CameraDragMode::Orbit:
+				return ImGuiMouseButton_Left;
+			case CameraDragMode::Pan:
+				return ImGuiMouseButton_Middle;
+			case CameraDragMode::Dolly:
+				return ImGuiMouseButton_Right;
+			default:
+				return ImGuiMouseButton_Left;
+			}
+		}
+
+		void OrbitCamera(const ImVec2& mouseDelta)
+		{
+			constexpr float OrbitSensitivity = 0.006f;
+			m_cameraYaw += mouseDelta.x * OrbitSensitivity;
+			m_cameraPitch += mouseDelta.y * OrbitSensitivity;
+			m_cameraPitch = std::clamp(
+				m_cameraPitch,
+				XMConvertToRadians(-80.0f),
+				XMConvertToRadians(80.0f));
+		}
+
+		void PanCamera(const ImVec2& mouseDelta)
+		{
+			constexpr float PanSensitivity = 0.0015f;
+			const XMVECTOR target = XMLoadFloat3(&m_cameraTarget);
+			const XMVECTOR eye = CalculateCameraEye();
+			const XMVECTOR forward = XMVector3Normalize(target - eye);
+			const XMVECTOR worldUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+			const XMVECTOR right = XMVector3Normalize(XMVector3Cross(forward, worldUp));
+			const XMVECTOR up = XMVector3Normalize(XMVector3Cross(right, forward));
+			const float scale = std::max(0.1f, m_cameraDistance) * PanSensitivity;
+			const XMVECTOR movement = right * (mouseDelta.x * scale) + up * (mouseDelta.y * scale);
+			XMStoreFloat3(&m_cameraTarget, target + movement);
+		}
+
+		void ZoomCamera(float amount)
+		{
+			m_cameraDistance *= std::exp(amount);
+			m_cameraDistance = std::clamp(m_cameraDistance, 0.35f, 30.0f);
+		}
+
+		void ResetCamera()
+		{
+			m_cameraYaw = XMConvertToRadians(25.0f);
+			m_cameraPitch = XMConvertToRadians(15.0f);
+			m_cameraDistance = 4.0f;
+			m_cameraTarget = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		}
+
+		XMVECTOR CalculateCameraEye() const
+		{
+			const float horizontal = std::cos(m_cameraPitch) * m_cameraDistance;
+			return XMVectorSet(
+				m_cameraTarget.x + std::sin(m_cameraYaw) * horizontal,
+				m_cameraTarget.y + std::sin(m_cameraPitch) * m_cameraDistance,
+				m_cameraTarget.z + std::cos(m_cameraYaw) * horizontal,
+				1.0f);
 		}
 
 		void CreateImGuiContext()
@@ -1275,6 +1413,7 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		void DrawUi()
 		{
 			HandleShortcuts();
+			m_mouseOverEditorPanelThisFrame = false;
 			ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 			DrawMainMenu();
 			DrawAssetPanel();
@@ -1282,6 +1421,15 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 			DrawTimelinePanel();
 			DrawEventPanel();
 			DrawStatusPanel();
+			m_mouseOverEditorPanel = m_mouseOverEditorPanelThisFrame;
+		}
+
+		void RecordEditorPanelHover()
+		{
+			if (ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows))
+			{
+				m_mouseOverEditorPanelThisFrame = true;
+			}
 		}
 
 		void HandleShortcuts()
@@ -1308,6 +1456,7 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 			{
 				return;
 			}
+			RecordEditorPanelHover();
 
 			if (ImGui::BeginMenu("File"))
 			{
@@ -1367,6 +1516,7 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		{
 			SetInitialWindowRect(0.0f, 19.0f, 358.0f, 756.0f);
 			ImGui::Begin("Asset");
+			RecordEditorPanelHover();
 			if (ImGui::Button("Open FBX"))
 			{
 				OpenFbx();
@@ -1409,9 +1559,15 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		{
 			SetInitialWindowRect(0.0f, 19.0f, 358.0f, 756.0f);
 			ImGui::Begin("Viewport Controls");
+			RecordEditorPanelHover();
 			ImGui::SliderAngle("Camera Yaw", &m_cameraYaw, -180.0f, 180.0f);
 			ImGui::SliderAngle("Camera Pitch", &m_cameraPitch, -15.0f, 60.0f);
 			ImGui::SliderFloat("Camera Distance", &m_cameraDistance, 1.5f, 8.0f);
+			ImGui::DragFloat3("Camera Target", &m_cameraTarget.x, 0.01f);
+			if (ImGui::Button("Reset Camera"))
+			{
+				ResetCamera();
+			}
 			ImGui::SliderAngle("Model Rotation", &m_modelRotation, -180.0f, 180.0f);
 			ImGui::TextDisabled("The 3D preview is rendered behind the editor panels.");
 			ImGui::End();
@@ -1421,6 +1577,7 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		{
 			SetInitialWindowRect(361.0f, 777.0f, 1559.0f, 232.0f);
 			ImGui::Begin("Timeline");
+			RecordEditorPanelHover();
 			if (m_model == nullptr)
 			{
 				ImGui::TextDisabled("Open an FBX to edit animation events.");
@@ -1565,6 +1722,7 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		{
 			SetInitialWindowRect(1548.0f, 19.0f, 372.0f, 756.0f);
 			ImGui::Begin("Event Properties");
+			RecordEditorPanelHover();
 			if (!IsSelectedEventValid())
 			{
 				ImGui::TextDisabled("Select or create an event on the timeline.");
@@ -1634,6 +1792,7 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		{
 			SetInitialWindowRect(0.0f, 777.0f, 359.0f, 232.0f);
 			ImGui::Begin("Status");
+			RecordEditorPanelHover();
 			ImGui::Text("Events: %s", m_hasUnsavedChanges ? "Unsaved changes" : "Saved");
 			ImGui::TextWrapped("%s", m_status.c_str());
 			if (!m_defaultSavePath.empty())
@@ -1802,12 +1961,16 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		bool m_hasPendingResize{};
 		bool m_hasUnsavedChanges{};
 		bool m_pendingLayoutReset{};
+		bool m_mouseOverEditorPanel{};
+		bool m_mouseOverEditorPanelThisFrame{};
 		UINT m_pendingResizeWidth{ WindowWidth };
 		UINT m_pendingResizeHeight{ WindowHeight };
+		CameraDragMode m_cameraDragMode{ CameraDragMode::None };
 		float m_playbackSpeed{ 1.0f };
 		float m_cameraYaw{ XMConvertToRadians(25.0f) };
 		float m_cameraPitch{ XMConvertToRadians(15.0f) };
 		float m_cameraDistance{ 4.0f };
+		XMFLOAT3 m_cameraTarget{ 0.0f, 1.0f, 0.0f };
 		float m_modelRotation{};
 	};
 
