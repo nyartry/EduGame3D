@@ -72,11 +72,11 @@
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(ProjectDir)third_party\assimp\bin\Debug\assimp-vc143-mtd.dll" copy /Y "$(ProjectDir)third_party\assimp\bin\Debug\assimp-vc143-mtd.dll" "$(OutDir)"
-if not exist "$(OutDir)src\Rendering\Shaders" mkdir "$(OutDir)src\Rendering\Shaders"
-copy /Y "$(ProjectDir)src\Rendering\Shaders\*.hlsl" "$(OutDir)src\Rendering\Shaders\"
+if not exist "$(OutDir)src\Framework\Rendering\Shaders" mkdir "$(OutDir)src\Framework\Rendering\Shaders"
+copy /Y "$(ProjectDir)src\Framework\Rendering\Shaders\*.hlsl" "$(OutDir)src\Framework\Rendering\Shaders\"
 if not exist "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)" mkdir "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)"
-if not exist "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Rendering\Shaders" mkdir "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Rendering\Shaders"
-copy /Y "$(ProjectDir)src\Rendering\Shaders\*.hlsl" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Rendering\Shaders\"
+if not exist "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Framework\Rendering\Shaders" mkdir "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Framework\Rendering\Shaders"
+copy /Y "$(ProjectDir)src\Framework\Rendering\Shaders\*.hlsl" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Framework\Rendering\Shaders\"
 copy /Y "$(TargetPath)" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\" || echo AnimationEventEditor.exe is running; close it before rebuilding to update the bin copy.
 if exist "$(OutDir)assimp-vc143-mtd.dll" copy /Y "$(OutDir)assimp-vc143-mtd.dll" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\" || echo assimp-vc143-mtd.dll is running; close the editor before rebuilding to update the bin copy.</Command>
     </PostBuildEvent>
@@ -102,11 +102,11 @@ if exist "$(OutDir)assimp-vc143-mtd.dll" copy /Y "$(OutDir)assimp-vc143-mtd.dll"
     </Link>
     <PostBuildEvent>
       <Command>if exist "$(ProjectDir)third_party\assimp\bin\Release\assimp-vc143-mt.dll" copy /Y "$(ProjectDir)third_party\assimp\bin\Release\assimp-vc143-mt.dll" "$(OutDir)"
-if not exist "$(OutDir)src\Rendering\Shaders" mkdir "$(OutDir)src\Rendering\Shaders"
-copy /Y "$(ProjectDir)src\Rendering\Shaders\*.hlsl" "$(OutDir)src\Rendering\Shaders\"
+if not exist "$(OutDir)src\Framework\Rendering\Shaders" mkdir "$(OutDir)src\Framework\Rendering\Shaders"
+copy /Y "$(ProjectDir)src\Framework\Rendering\Shaders\*.hlsl" "$(OutDir)src\Framework\Rendering\Shaders\"
 if not exist "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)" mkdir "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)"
-if not exist "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Rendering\Shaders" mkdir "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Rendering\Shaders"
-copy /Y "$(ProjectDir)src\Rendering\Shaders\*.hlsl" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Rendering\Shaders\"
+if not exist "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Framework\Rendering\Shaders" mkdir "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Framework\Rendering\Shaders"
+copy /Y "$(ProjectDir)src\Framework\Rendering\Shaders\*.hlsl" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\src\Framework\Rendering\Shaders\"
 copy /Y "$(TargetPath)" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\" || echo AnimationEventEditor.exe is running; close it before rebuilding to update the bin copy.
 if exist "$(OutDir)assimp-vc143-mt.dll" copy /Y "$(OutDir)assimp-vc143-mt.dll" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\" || echo assimp-vc143-mt.dll is running; close the editor before rebuilding to update the bin copy.</Command>
     </PostBuildEvent>
@@ -125,28 +125,28 @@ if exist "$(OutDir)assimp-vc143-mt.dll" copy /Y "$(OutDir)assimp-vc143-mt.dll" "
       <DisableSpecificWarnings>4189;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="third_party\imgui\backends\imgui_impl_win32.cpp" />
-    <ClCompile Include="src\Animation\AnimationSampler.cpp" />
-    <ClCompile Include="src\Animation\CpuSkinnedMeshProcessor.cpp" />
-    <ClCompile Include="src\Animation\GpuSkinnedMeshProcessor.cpp" />
-    <ClCompile Include="src\Animation\MeshTangentCalculator.cpp" />
-    <ClCompile Include="src\Animation\RootMotionPolicy.cpp" />
-    <ClCompile Include="src\Models\ModelTextureResolver.cpp" />
-    <ClCompile Include="src\Models\SkinnedModel.cpp" />
-    <ClCompile Include="src\Models\SkinnedModelLoader.cpp" />
-    <ClCompile Include="src\Rendering\Buffers\SkinnedVertexBuffer.cpp" />
-    <ClCompile Include="src\Rendering\Buffers\SpriteVertexBuffer.cpp" />
-    <ClCompile Include="src\Rendering\Buffers\TexturedVertexBuffer.cpp" />
-    <ClCompile Include="src\Rendering\Buffers\VertexBuffer.cpp" />
-    <ClCompile Include="src\Rendering\Core\Dx12BufferHelper.cpp" />
-    <ClCompile Include="src\Rendering\Core\Dx12PipelineHelper.cpp" />
-    <ClCompile Include="src\Rendering\Core\Dx12Renderer.cpp" />
-    <ClCompile Include="src\Rendering\Materials\SpriteMaterial.cpp" />
-    <ClCompile Include="src\Rendering\Materials\Texture2D.cpp" />
-    <ClCompile Include="src\Rendering\Materials\TexturedMaterial.cpp" />
-    <ClCompile Include="src\Rendering\Pipelines\BasicColorPipeline.cpp" />
-    <ClCompile Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.cpp" />
-    <ClCompile Include="src\Rendering\Pipelines\SpritePipeline.cpp" />
-    <ClCompile Include="src\Rendering\Pipelines\TexturedPipeline.cpp" />
+    <ClCompile Include="src\Framework\Animation\AnimationSampler.cpp" />
+    <ClCompile Include="src\Framework\Animation\CpuSkinnedMeshProcessor.cpp" />
+    <ClCompile Include="src\Framework\Animation\GpuSkinnedMeshProcessor.cpp" />
+    <ClCompile Include="src\Framework\Animation\MeshTangentCalculator.cpp" />
+    <ClCompile Include="src\Framework\Animation\RootMotionPolicy.cpp" />
+    <ClCompile Include="src\Framework\Models\ModelTextureResolver.cpp" />
+    <ClCompile Include="src\Framework\Models\SkinnedModel.cpp" />
+    <ClCompile Include="src\Framework\Models\SkinnedModelLoader.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Buffers\SkinnedVertexBuffer.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Buffers\SpriteVertexBuffer.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Buffers\TexturedVertexBuffer.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Buffers\VertexBuffer.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Core\Dx12BufferHelper.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Core\Dx12PipelineHelper.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Core\Dx12Renderer.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Materials\SpriteMaterial.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Materials\Texture2D.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Materials\TexturedMaterial.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Pipelines\BasicColorPipeline.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Pipelines\SkinnedTexturedPipeline.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Pipelines\SpritePipeline.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Pipelines\TexturedPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorApp.h" />
@@ -154,45 +154,45 @@ if exist "$(OutDir)assimp-vc143-mt.dll" copy /Y "$(OutDir)assimp-vc143-mt.dll" "
     <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.h" />
     <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorLayout.h" />
     <ClInclude Include="tools\AnimationEventEditor\AnimationEventJson.h" />
-    <ClInclude Include="src\Common\Common.h" />
-    <ClInclude Include="src\Common\MathUtils.h" />
-    <ClInclude Include="src\Common\ModelScaleSettings.h" />
-    <ClInclude Include="src\Animation\AnimationSampler.h" />
-    <ClInclude Include="src\Animation\CpuSkinnedMeshProcessor.h" />
-    <ClInclude Include="src\Animation\GpuSkinnedMeshProcessor.h" />
-    <ClInclude Include="src\Animation\ISkinnedMeshProcessor.h" />
-    <ClInclude Include="src\Animation\MeshTangentCalculator.h" />
-    <ClInclude Include="src\Animation\RootMotion.h" />
-    <ClInclude Include="src\Animation\RootMotionPolicy.h" />
-    <ClInclude Include="src\Animation\SkinningMode.h" />
-    <ClInclude Include="src\Models\ModelTextureResolver.h" />
-    <ClInclude Include="src\Models\SkinnedModel.h" />
-    <ClInclude Include="src\Models\SkinnedModelData.h" />
-    <ClInclude Include="src\Models\SkinnedModelLoader.h" />
-    <ClInclude Include="src\Rendering\Buffers\SkinnedVertexBuffer.h" />
-    <ClInclude Include="src\Rendering\Buffers\SpriteVertexBuffer.h" />
-    <ClInclude Include="src\Rendering\Buffers\TexturedVertexBuffer.h" />
-    <ClInclude Include="src\Rendering\Buffers\VertexBuffer.h" />
-    <ClInclude Include="src\Rendering\Core\ConstantBufferRing.h" />
-    <ClInclude Include="src\Rendering\Core\Dx12BufferHelper.h" />
-    <ClInclude Include="src\Rendering\Core\Dx12PipelineHelper.h" />
-    <ClInclude Include="src\Rendering\Core\Dx12Renderer.h" />
-    <ClInclude Include="src\Rendering\Geometry\SpriteVertex.h" />
-    <ClInclude Include="src\Rendering\Geometry\TexturedVertex.h" />
-    <ClInclude Include="src\Rendering\Geometry\Vertex.h" />
-    <ClInclude Include="src\Rendering\Materials\SpriteMaterial.h" />
-    <ClInclude Include="src\Rendering\Materials\Texture2D.h" />
-    <ClInclude Include="src\Rendering\Materials\TexturedMaterial.h" />
-    <ClInclude Include="src\Rendering\Pipelines\BasicColorPipeline.h" />
-    <ClInclude Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.h" />
-    <ClInclude Include="src\Rendering\Pipelines\SpritePipeline.h" />
-    <ClInclude Include="src\Rendering\Pipelines\TexturedPipeline.h" />
+    <ClInclude Include="src\Framework\Common\Common.h" />
+    <ClInclude Include="src\Framework\Common\MathUtils.h" />
+    <ClInclude Include="src\Framework\Common\ModelScaleSettings.h" />
+    <ClInclude Include="src\Framework\Animation\AnimationSampler.h" />
+    <ClInclude Include="src\Framework\Animation\CpuSkinnedMeshProcessor.h" />
+    <ClInclude Include="src\Framework\Animation\GpuSkinnedMeshProcessor.h" />
+    <ClInclude Include="src\Framework\Animation\ISkinnedMeshProcessor.h" />
+    <ClInclude Include="src\Framework\Animation\MeshTangentCalculator.h" />
+    <ClInclude Include="src\Framework\Animation\RootMotion.h" />
+    <ClInclude Include="src\Framework\Animation\RootMotionPolicy.h" />
+    <ClInclude Include="src\Framework\Animation\SkinningMode.h" />
+    <ClInclude Include="src\Framework\Models\ModelTextureResolver.h" />
+    <ClInclude Include="src\Framework\Models\SkinnedModel.h" />
+    <ClInclude Include="src\Framework\Models\SkinnedModelData.h" />
+    <ClInclude Include="src\Framework\Models\SkinnedModelLoader.h" />
+    <ClInclude Include="src\Framework\Rendering\Buffers\SkinnedVertexBuffer.h" />
+    <ClInclude Include="src\Framework\Rendering\Buffers\SpriteVertexBuffer.h" />
+    <ClInclude Include="src\Framework\Rendering\Buffers\TexturedVertexBuffer.h" />
+    <ClInclude Include="src\Framework\Rendering\Buffers\VertexBuffer.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\ConstantBufferRing.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\Dx12BufferHelper.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\Dx12PipelineHelper.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\Dx12Renderer.h" />
+    <ClInclude Include="src\Framework\Rendering\Geometry\SpriteVertex.h" />
+    <ClInclude Include="src\Framework\Rendering\Geometry\TexturedVertex.h" />
+    <ClInclude Include="src\Framework\Rendering\Geometry\Vertex.h" />
+    <ClInclude Include="src\Framework\Rendering\Materials\SpriteMaterial.h" />
+    <ClInclude Include="src\Framework\Rendering\Materials\Texture2D.h" />
+    <ClInclude Include="src\Framework\Rendering\Materials\TexturedMaterial.h" />
+    <ClInclude Include="src\Framework\Rendering\Pipelines\BasicColorPipeline.h" />
+    <ClInclude Include="src\Framework\Rendering\Pipelines\SkinnedTexturedPipeline.h" />
+    <ClInclude Include="src\Framework\Rendering\Pipelines\SpritePipeline.h" />
+    <ClInclude Include="src\Framework\Rendering\Pipelines\TexturedPipeline.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Rendering\Shaders\BasicColor.hlsl" />
-    <None Include="src\Rendering\Shaders\SkinnedTextured.hlsl" />
-    <None Include="src\Rendering\Shaders\Sprite.hlsl" />
-    <None Include="src\Rendering\Shaders\Textured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\BasicColor.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

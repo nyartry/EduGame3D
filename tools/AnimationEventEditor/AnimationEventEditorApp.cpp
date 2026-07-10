@@ -4,9 +4,9 @@
 #include "AnimationEventEditorDialogs.h"
 #include "AnimationEventEditorLayout.h"
 #include "AnimationEventJson.h"
-#include "Common/ModelScaleSettings.h"
-#include "Models/SkinnedModel.h"
-#include "Rendering/Core/Dx12Renderer.h"
+#include "Framework/Common/ModelScaleSettings.h"
+#include "Framework/Models/SkinnedModel.h"
+#include "Framework/Rendering/Core/Dx12Renderer.h"
 
 #include <backends/imgui_impl_dx12.h>
 #include <backends/imgui_impl_win32.h>

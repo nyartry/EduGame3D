@@ -1,56 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Tool">
-      <UniqueIdentifier>{9e909927-f042-4cfc-9ecf-ef38873c7324}</UniqueIdentifier>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{bff58e9e-2c9c-4abf-9383-ef9841901902}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Tool\Source">
-      <UniqueIdentifier>{4f9f992e-c65d-4ffc-9162-176af5253c7c}</UniqueIdentifier>
+    <Filter Include="Framework\Animation">
+      <UniqueIdentifier>{648d7aee-bd5e-4124-a3c3-3b9967ca49fe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Tool\Headers">
-      <UniqueIdentifier>{165a12e4-dc86-4cf0-8c1f-4a368a62547e}</UniqueIdentifier>
+    <Filter Include="Framework\Common">
+      <UniqueIdentifier>{6a3d60e7-2420-4ab5-9401-fbf9773a70d7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shared Game Source">
-      <UniqueIdentifier>{b144c8d7-e958-4dce-941a-ecc796a35e7b}</UniqueIdentifier>
+    <Filter Include="Framework\Models">
+      <UniqueIdentifier>{9322340a-56c9-45d1-a636-94af64397760}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shared Game Source\Common">
-      <UniqueIdentifier>{525ce52b-8eda-4da2-9212-9a0b7fdcb836}</UniqueIdentifier>
+    <Filter Include="Framework\Rendering">
+      <UniqueIdentifier>{bdc000b0-3d43-483d-8e07-3f7bfa822580}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shared Game Source\Animation">
-      <UniqueIdentifier>{f7b662ca-7608-42a4-8b17-a8d27d93f614}</UniqueIdentifier>
+    <Filter Include="Framework\Rendering\Buffers">
+      <UniqueIdentifier>{f7ba867b-0af6-456f-ad85-14f98b4fc5f0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shared Game Source\Models">
-      <UniqueIdentifier>{e34c73f5-45e8-49cb-ae1d-cf03fbdd87fd}</UniqueIdentifier>
+    <Filter Include="Framework\Rendering\Core">
+      <UniqueIdentifier>{d6dafaac-86cf-4f4e-9b1d-7739301e2d84}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shared Game Source\Rendering">
-      <UniqueIdentifier>{0d758926-1122-4a86-bf55-0c494febbf46}</UniqueIdentifier>
+    <Filter Include="Framework\Rendering\Geometry">
+      <UniqueIdentifier>{da2a22d6-17fa-4b79-aa89-87c08964636c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shared Game Source\Rendering\Buffers">
-      <UniqueIdentifier>{ca839bad-a951-4170-9ca4-0f0413a2ce04}</UniqueIdentifier>
+    <Filter Include="Framework\Rendering\Materials">
+      <UniqueIdentifier>{fc3d11d6-2856-455f-b950-7d0e25f8f148}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shared Game Source\Rendering\Core">
-      <UniqueIdentifier>{a0c40114-218f-4695-9a9e-5a416848209d}</UniqueIdentifier>
+    <Filter Include="Framework\Rendering\Pipelines">
+      <UniqueIdentifier>{e5028a0a-d1a8-4378-8675-93a4ea642a6d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shared Game Source\Rendering\Geometry">
-      <UniqueIdentifier>{77b91464-18f5-4927-8dce-1f23126f591c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shared Game Source\Rendering\Materials">
-      <UniqueIdentifier>{b318b6f3-2bd5-4108-a2b6-22d7c2a7f0da}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shared Game Source\Rendering\Pipelines">
-      <UniqueIdentifier>{079c41a4-9a04-49df-a3ec-ec3814658e6f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shared Game Source\Rendering\Shaders">
-      <UniqueIdentifier>{9245e769-774b-4a82-86e7-92ac164cd866}</UniqueIdentifier>
+    <Filter Include="Framework\Rendering\Shaders">
+      <UniqueIdentifier>{96685b5e-ee0a-42eb-ab9e-a5fc5615e02e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Third Party">
-      <UniqueIdentifier>{5d03fb74-904c-4eb8-90b2-df023a42b327}</UniqueIdentifier>
+      <UniqueIdentifier>{d295ca65-8f1f-43f2-a8be-59a272410715}</UniqueIdentifier>
     </Filter>
     <Filter Include="Third Party\Dear ImGui">
-      <UniqueIdentifier>{b7e273a2-efaa-43f4-b430-8b14951303c6}</UniqueIdentifier>
+      <UniqueIdentifier>{ab6aa79e-95ac-40f7-a915-8f7297ae290c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Third Party\Dear ImGui\Backends">
-      <UniqueIdentifier>{5cfb9fbd-c6e2-4bfb-a9ff-72a7f97d0442}</UniqueIdentifier>
+      <UniqueIdentifier>{9574033f-2f8a-4fc8-8257-8c07a791270d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tool">
+      <UniqueIdentifier>{446b2c5a-c95e-48f9-a806-7ee1014f3191}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tool\Headers">
+      <UniqueIdentifier>{ad775e5e-f1e4-4986-8805-07f9bfd12d39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tool\Source">
+      <UniqueIdentifier>{b45c28b7-fe70-470b-89d5-d8a578eb3ce9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -87,71 +87,71 @@
     <ClCompile Include="third_party\imgui\backends\imgui_impl_win32.cpp">
       <Filter>Third Party\Dear ImGui\Backends</Filter>
     </ClCompile>
-    <ClCompile Include="src\Animation\AnimationSampler.cpp">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClCompile Include="src\Framework\Animation\AnimationSampler.cpp">
+      <Filter>Framework\Animation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Animation\CpuSkinnedMeshProcessor.cpp">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClCompile Include="src\Framework\Animation\CpuSkinnedMeshProcessor.cpp">
+      <Filter>Framework\Animation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Animation\GpuSkinnedMeshProcessor.cpp">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClCompile Include="src\Framework\Animation\GpuSkinnedMeshProcessor.cpp">
+      <Filter>Framework\Animation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Animation\MeshTangentCalculator.cpp">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClCompile Include="src\Framework\Animation\MeshTangentCalculator.cpp">
+      <Filter>Framework\Animation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Animation\RootMotionPolicy.cpp">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClCompile Include="src\Framework\Animation\RootMotionPolicy.cpp">
+      <Filter>Framework\Animation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Models\ModelTextureResolver.cpp">
-      <Filter>Shared Game Source\Models</Filter>
+    <ClCompile Include="src\Framework\Models\ModelTextureResolver.cpp">
+      <Filter>Framework\Models</Filter>
     </ClCompile>
-    <ClCompile Include="src\Models\SkinnedModel.cpp">
-      <Filter>Shared Game Source\Models</Filter>
+    <ClCompile Include="src\Framework\Models\SkinnedModel.cpp">
+      <Filter>Framework\Models</Filter>
     </ClCompile>
-    <ClCompile Include="src\Models\SkinnedModelLoader.cpp">
-      <Filter>Shared Game Source\Models</Filter>
+    <ClCompile Include="src\Framework\Models\SkinnedModelLoader.cpp">
+      <Filter>Framework\Models</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Buffers\SkinnedVertexBuffer.cpp">
-      <Filter>Shared Game Source\Rendering\Buffers</Filter>
+    <ClCompile Include="src\Framework\Rendering\Buffers\SkinnedVertexBuffer.cpp">
+      <Filter>Framework\Rendering\Buffers</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Buffers\SpriteVertexBuffer.cpp">
-      <Filter>Shared Game Source\Rendering\Buffers</Filter>
+    <ClCompile Include="src\Framework\Rendering\Buffers\SpriteVertexBuffer.cpp">
+      <Filter>Framework\Rendering\Buffers</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Buffers\TexturedVertexBuffer.cpp">
-      <Filter>Shared Game Source\Rendering\Buffers</Filter>
+    <ClCompile Include="src\Framework\Rendering\Buffers\TexturedVertexBuffer.cpp">
+      <Filter>Framework\Rendering\Buffers</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Buffers\VertexBuffer.cpp">
-      <Filter>Shared Game Source\Rendering\Buffers</Filter>
+    <ClCompile Include="src\Framework\Rendering\Buffers\VertexBuffer.cpp">
+      <Filter>Framework\Rendering\Buffers</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Core\Dx12BufferHelper.cpp">
-      <Filter>Shared Game Source\Rendering\Core</Filter>
+    <ClCompile Include="src\Framework\Rendering\Core\Dx12BufferHelper.cpp">
+      <Filter>Framework\Rendering\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Core\Dx12PipelineHelper.cpp">
-      <Filter>Shared Game Source\Rendering\Core</Filter>
+    <ClCompile Include="src\Framework\Rendering\Core\Dx12PipelineHelper.cpp">
+      <Filter>Framework\Rendering\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Core\Dx12Renderer.cpp">
-      <Filter>Shared Game Source\Rendering\Core</Filter>
+    <ClCompile Include="src\Framework\Rendering\Core\Dx12Renderer.cpp">
+      <Filter>Framework\Rendering\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\SpriteMaterial.cpp">
-      <Filter>Shared Game Source\Rendering\Materials</Filter>
+    <ClCompile Include="src\Framework\Rendering\Materials\SpriteMaterial.cpp">
+      <Filter>Framework\Rendering\Materials</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\Texture2D.cpp">
-      <Filter>Shared Game Source\Rendering\Materials</Filter>
+    <ClCompile Include="src\Framework\Rendering\Materials\Texture2D.cpp">
+      <Filter>Framework\Rendering\Materials</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\TexturedMaterial.cpp">
-      <Filter>Shared Game Source\Rendering\Materials</Filter>
+    <ClCompile Include="src\Framework\Rendering\Materials\TexturedMaterial.cpp">
+      <Filter>Framework\Rendering\Materials</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Pipelines\BasicColorPipeline.cpp">
-      <Filter>Shared Game Source\Rendering\Pipelines</Filter>
+    <ClCompile Include="src\Framework\Rendering\Pipelines\BasicColorPipeline.cpp">
+      <Filter>Framework\Rendering\Pipelines</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.cpp">
-      <Filter>Shared Game Source\Rendering\Pipelines</Filter>
+    <ClCompile Include="src\Framework\Rendering\Pipelines\SkinnedTexturedPipeline.cpp">
+      <Filter>Framework\Rendering\Pipelines</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Pipelines\SpritePipeline.cpp">
-      <Filter>Shared Game Source\Rendering\Pipelines</Filter>
+    <ClCompile Include="src\Framework\Rendering\Pipelines\SpritePipeline.cpp">
+      <Filter>Framework\Rendering\Pipelines</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering\Pipelines\TexturedPipeline.cpp">
-      <Filter>Shared Game Source\Rendering\Pipelines</Filter>
+    <ClCompile Include="src\Framework\Rendering\Pipelines\TexturedPipeline.cpp">
+      <Filter>Framework\Rendering\Pipelines</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -170,118 +170,118 @@
     <ClInclude Include="tools\AnimationEventEditor\AnimationEventJson.h">
       <Filter>Tool\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="src\Common\Common.h">
-      <Filter>Shared Game Source\Common</Filter>
+    <ClInclude Include="src\Framework\Common\Common.h">
+      <Filter>Framework\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\Common\MathUtils.h">
-      <Filter>Shared Game Source\Common</Filter>
+    <ClInclude Include="src\Framework\Common\MathUtils.h">
+      <Filter>Framework\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\Common\ModelScaleSettings.h">
-      <Filter>Shared Game Source\Common</Filter>
+    <ClInclude Include="src\Framework\Common\ModelScaleSettings.h">
+      <Filter>Framework\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\Animation\AnimationSampler.h">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClInclude Include="src\Framework\Animation\AnimationSampler.h">
+      <Filter>Framework\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Animation\CpuSkinnedMeshProcessor.h">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClInclude Include="src\Framework\Animation\CpuSkinnedMeshProcessor.h">
+      <Filter>Framework\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Animation\GpuSkinnedMeshProcessor.h">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClInclude Include="src\Framework\Animation\GpuSkinnedMeshProcessor.h">
+      <Filter>Framework\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Animation\ISkinnedMeshProcessor.h">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClInclude Include="src\Framework\Animation\ISkinnedMeshProcessor.h">
+      <Filter>Framework\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Animation\MeshTangentCalculator.h">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClInclude Include="src\Framework\Animation\MeshTangentCalculator.h">
+      <Filter>Framework\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Animation\RootMotion.h">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClInclude Include="src\Framework\Animation\RootMotion.h">
+      <Filter>Framework\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Animation\RootMotionPolicy.h">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClInclude Include="src\Framework\Animation\RootMotionPolicy.h">
+      <Filter>Framework\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Animation\SkinningMode.h">
-      <Filter>Shared Game Source\Animation</Filter>
+    <ClInclude Include="src\Framework\Animation\SkinningMode.h">
+      <Filter>Framework\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Models\ModelTextureResolver.h">
-      <Filter>Shared Game Source\Models</Filter>
+    <ClInclude Include="src\Framework\Models\ModelTextureResolver.h">
+      <Filter>Framework\Models</Filter>
     </ClInclude>
-    <ClInclude Include="src\Models\SkinnedModel.h">
-      <Filter>Shared Game Source\Models</Filter>
+    <ClInclude Include="src\Framework\Models\SkinnedModel.h">
+      <Filter>Framework\Models</Filter>
     </ClInclude>
-    <ClInclude Include="src\Models\SkinnedModelData.h">
-      <Filter>Shared Game Source\Models</Filter>
+    <ClInclude Include="src\Framework\Models\SkinnedModelData.h">
+      <Filter>Framework\Models</Filter>
     </ClInclude>
-    <ClInclude Include="src\Models\SkinnedModelLoader.h">
-      <Filter>Shared Game Source\Models</Filter>
+    <ClInclude Include="src\Framework\Models\SkinnedModelLoader.h">
+      <Filter>Framework\Models</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Buffers\SkinnedVertexBuffer.h">
-      <Filter>Shared Game Source\Rendering\Buffers</Filter>
+    <ClInclude Include="src\Framework\Rendering\Buffers\SkinnedVertexBuffer.h">
+      <Filter>Framework\Rendering\Buffers</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Buffers\SpriteVertexBuffer.h">
-      <Filter>Shared Game Source\Rendering\Buffers</Filter>
+    <ClInclude Include="src\Framework\Rendering\Buffers\SpriteVertexBuffer.h">
+      <Filter>Framework\Rendering\Buffers</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Buffers\TexturedVertexBuffer.h">
-      <Filter>Shared Game Source\Rendering\Buffers</Filter>
+    <ClInclude Include="src\Framework\Rendering\Buffers\TexturedVertexBuffer.h">
+      <Filter>Framework\Rendering\Buffers</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Buffers\VertexBuffer.h">
-      <Filter>Shared Game Source\Rendering\Buffers</Filter>
+    <ClInclude Include="src\Framework\Rendering\Buffers\VertexBuffer.h">
+      <Filter>Framework\Rendering\Buffers</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Core\ConstantBufferRing.h">
-      <Filter>Shared Game Source\Rendering\Core</Filter>
+    <ClInclude Include="src\Framework\Rendering\Core\ConstantBufferRing.h">
+      <Filter>Framework\Rendering\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Core\Dx12BufferHelper.h">
-      <Filter>Shared Game Source\Rendering\Core</Filter>
+    <ClInclude Include="src\Framework\Rendering\Core\Dx12BufferHelper.h">
+      <Filter>Framework\Rendering\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Core\Dx12PipelineHelper.h">
-      <Filter>Shared Game Source\Rendering\Core</Filter>
+    <ClInclude Include="src\Framework\Rendering\Core\Dx12PipelineHelper.h">
+      <Filter>Framework\Rendering\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Core\Dx12Renderer.h">
-      <Filter>Shared Game Source\Rendering\Core</Filter>
+    <ClInclude Include="src\Framework\Rendering\Core\Dx12Renderer.h">
+      <Filter>Framework\Rendering\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Geometry\SpriteVertex.h">
-      <Filter>Shared Game Source\Rendering\Geometry</Filter>
+    <ClInclude Include="src\Framework\Rendering\Geometry\SpriteVertex.h">
+      <Filter>Framework\Rendering\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Geometry\TexturedVertex.h">
-      <Filter>Shared Game Source\Rendering\Geometry</Filter>
+    <ClInclude Include="src\Framework\Rendering\Geometry\TexturedVertex.h">
+      <Filter>Framework\Rendering\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Geometry\Vertex.h">
-      <Filter>Shared Game Source\Rendering\Geometry</Filter>
+    <ClInclude Include="src\Framework\Rendering\Geometry\Vertex.h">
+      <Filter>Framework\Rendering\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\SpriteMaterial.h">
-      <Filter>Shared Game Source\Rendering\Materials</Filter>
+    <ClInclude Include="src\Framework\Rendering\Materials\SpriteMaterial.h">
+      <Filter>Framework\Rendering\Materials</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\Texture2D.h">
-      <Filter>Shared Game Source\Rendering\Materials</Filter>
+    <ClInclude Include="src\Framework\Rendering\Materials\Texture2D.h">
+      <Filter>Framework\Rendering\Materials</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\TexturedMaterial.h">
-      <Filter>Shared Game Source\Rendering\Materials</Filter>
+    <ClInclude Include="src\Framework\Rendering\Materials\TexturedMaterial.h">
+      <Filter>Framework\Rendering\Materials</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Pipelines\BasicColorPipeline.h">
-      <Filter>Shared Game Source\Rendering\Pipelines</Filter>
+    <ClInclude Include="src\Framework\Rendering\Pipelines\BasicColorPipeline.h">
+      <Filter>Framework\Rendering\Pipelines</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Pipelines\SkinnedTexturedPipeline.h">
-      <Filter>Shared Game Source\Rendering\Pipelines</Filter>
+    <ClInclude Include="src\Framework\Rendering\Pipelines\SkinnedTexturedPipeline.h">
+      <Filter>Framework\Rendering\Pipelines</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Pipelines\SpritePipeline.h">
-      <Filter>Shared Game Source\Rendering\Pipelines</Filter>
+    <ClInclude Include="src\Framework\Rendering\Pipelines\SpritePipeline.h">
+      <Filter>Framework\Rendering\Pipelines</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Pipelines\TexturedPipeline.h">
-      <Filter>Shared Game Source\Rendering\Pipelines</Filter>
+    <ClInclude Include="src\Framework\Rendering\Pipelines\TexturedPipeline.h">
+      <Filter>Framework\Rendering\Pipelines</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Rendering\Shaders\BasicColor.hlsl">
-      <Filter>Shared Game Source\Rendering\Shaders</Filter>
+    <None Include="src\Framework\Rendering\Shaders\BasicColor.hlsl">
+      <Filter>Framework\Rendering\Shaders</Filter>
     </None>
-    <None Include="src\Rendering\Shaders\SkinnedTextured.hlsl">
-      <Filter>Shared Game Source\Rendering\Shaders</Filter>
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl">
+      <Filter>Framework\Rendering\Shaders</Filter>
     </None>
-    <None Include="src\Rendering\Shaders\Sprite.hlsl">
-      <Filter>Shared Game Source\Rendering\Shaders</Filter>
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl">
+      <Filter>Framework\Rendering\Shaders</Filter>
     </None>
-    <None Include="src\Rendering\Shaders\Textured.hlsl">
-      <Filter>Shared Game Source\Rendering\Shaders</Filter>
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl">
+      <Filter>Framework\Rendering\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
