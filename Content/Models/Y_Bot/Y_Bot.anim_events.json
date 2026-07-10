@@ -36,7 +36,7 @@
     },
     {
       "animation": "mixamo.com",
-      "time": 0.016895,
+      "time": 0.0156289,
       "type": "Footstep",
       "name": "Footstep",
       "bone": "",
@@ -52,7 +52,7 @@
     },
     {
       "animation": "mixamo.com",
-      "time": 0.017,
+      "time": 0.0183944,
       "type": "Footstep",
       "name": "Footstep",
       "bone": "",
@@ -60,7 +60,7 @@
     },
     {
       "animation": "mixamo.com",
-      "time": 0.017,
+      "time": 0.020578,
       "type": "Footstep",
       "name": "Footstep",
       "bone": "",
