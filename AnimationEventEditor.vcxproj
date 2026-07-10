@@ -112,6 +112,9 @@ if exist "$(OutDir)assimp-vc143-mt.dll" copy /Y "$(OutDir)assimp-vc143-mt.dll" "
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.cpp" />
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorLayout.cpp" />
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventJson.cpp" />
     <ClCompile Include="tools\AnimationEventEditor\main.cpp" />
     <ClCompile Include="third_party\imgui\imgui.cpp" />
     <ClCompile Include="third_party\imgui\imgui_draw.cpp" />
@@ -145,6 +148,10 @@ if exist "$(OutDir)assimp-vc143-mt.dll" copy /Y "$(OutDir)assimp-vc143-mt.dll" "
     <ClCompile Include="src\Rendering\Pipelines\TexturedPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventData.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorLayout.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventJson.h" />
     <ClInclude Include="src\Common\Common.h" />
     <ClInclude Include="src\Common\MathUtils.h" />
     <ClInclude Include="src\Common\ModelScaleSettings.h" />
