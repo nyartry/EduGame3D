@@ -1632,30 +1632,112 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		{
 			const float width = std::max(300.0f, ImGui::GetContentRegionAvail().x);
 			const ImVec2 canvasSize(width, 128.0f);
-			ImGui::InvisibleButton("timeline_canvas", canvasSize, ImGuiButtonFlags_MouseButtonLeft);
+			ImGui::InvisibleButton("timeline_canvas", canvasSize, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 			const ImVec2 min = ImGui::GetItemRectMin();
 			const ImVec2 max = ImGui::GetItemRectMax();
 			const bool hovered = ImGui::IsItemHovered();
+			const ImGuiIO& io = ImGui::GetIO();
 			ImDrawList* drawList = ImGui::GetWindowDrawList();
+			const float timelineStartX = min.x + 8.0f;
+			const float timelineWidth = canvasSize.x - 16.0f;
+			const float trackY = min.y + canvasSize.y * 0.55f;
+			const std::string currentAnimation = GetCurrentAnimationName();
+
+			auto timeToX = [&](float time)
+			{
+				const float ratio = std::clamp(time / duration, 0.0f, 1.0f);
+				return timelineStartX + ratio * timelineWidth;
+			};
+
+			auto mouseXToTime = [&](float mouseX)
+			{
+				const float ratio = std::clamp((mouseX - timelineStartX) / timelineWidth, 0.0f, 1.0f);
+				return ratio * duration;
+			};
+
+			const int hoveredEvent = hovered
+				? FindTimelineEventAtPosition(min, canvasSize, duration, currentAnimation, io.MousePos)
+				: -1;
+			if (hoveredEvent >= 0 || m_draggedTimelineEvent >= 0)
+			{
+				ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+			}
+
+			if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+			{
+				if (hoveredEvent >= 0)
+				{
+					m_selectedEvent = hoveredEvent;
+					m_draggedTimelineEvent = hoveredEvent;
+					m_timelineDragStartState = CaptureEventState();
+					m_isPlaying = false;
+				}
+				else
+				{
+					m_selectedEvent = -1;
+				}
+			}
+
+			if (m_draggedTimelineEvent >= 0)
+			{
+				if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) || m_draggedTimelineEvent >= static_cast<int>(m_events.size()))
+				{
+					CommitEventEdit(m_timelineDragStartState);
+					m_draggedTimelineEvent = -1;
+				}
+				else
+				{
+					AnimationEvent& draggedEvent = m_events[static_cast<size_t>(m_draggedTimelineEvent)];
+					draggedEvent.time = mouseXToTime(io.MousePos.x);
+					m_selectedEvent = m_draggedTimelineEvent;
+					m_model->SetAnimationTimeSeconds(draggedEvent.time);
+				}
+			}
+
+			if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+			{
+				m_timelineContextTime = mouseXToTime(io.MousePos.x);
+				if (hoveredEvent >= 0)
+				{
+					m_selectedEvent = hoveredEvent;
+				}
+				ImGui::OpenPopup("timeline_context");
+			}
+
+			if (ImGui::BeginPopup("timeline_context"))
+			{
+				if (ImGui::MenuItem("Add Event Here"))
+				{
+					const EventHistoryState beforeEdit = CaptureEventState();
+					AddEventAtTime(m_timelineContextTime);
+					CommitEventEdit(beforeEdit);
+				}
+				if (IsSelectedEventValid() && ImGui::MenuItem("Delete Selected Event"))
+				{
+					const EventHistoryState beforeEdit = CaptureEventState();
+					m_events.erase(m_events.begin() + m_selectedEvent);
+					m_selectedEvent = -1;
+					CommitEventEdit(beforeEdit);
+				}
+				ImGui::EndPopup();
+			}
 
 			drawList->AddRectFilled(min, max, IM_COL32(18, 24, 32, 240));
 			drawList->AddRect(min, max, IM_COL32(80, 105, 130, 255));
 
-			const float trackY = min.y + canvasSize.y * 0.55f;
-			drawList->AddLine(ImVec2(min.x + 8.0f, trackY), ImVec2(max.x - 8.0f, trackY), IM_COL32(130, 150, 170, 255), 2.0f);
+			drawList->AddLine(ImVec2(timelineStartX, trackY), ImVec2(timelineStartX + timelineWidth, trackY), IM_COL32(130, 150, 170, 255), 2.0f);
 
 			const int tickCount = 10;
 			for (int tick = 0; tick <= tickCount; ++tick)
 			{
 				const float ratio = static_cast<float>(tick) / static_cast<float>(tickCount);
-				const float x = min.x + 8.0f + ratio * (canvasSize.x - 16.0f);
+				const float x = timelineStartX + ratio * timelineWidth;
 				drawList->AddLine(ImVec2(x, trackY - 28.0f), ImVec2(x, trackY + 28.0f), IM_COL32(60, 80, 100, 255));
 				char label[32]{};
 				std::snprintf(label, sizeof(label), "%.2f", duration * ratio);
 				drawList->AddText(ImVec2(x + 3.0f, min.y + 8.0f), IM_COL32(170, 190, 210, 255), label);
 			}
 
-			const std::string currentAnimation = GetCurrentAnimationName();
 			for (int eventIndex = 0; eventIndex < static_cast<int>(m_events.size()); ++eventIndex)
 			{
 				const AnimationEvent& event = m_events[static_cast<size_t>(eventIndex)];
@@ -1664,11 +1746,12 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 					continue;
 				}
 
-				const float ratio = std::clamp(event.time / duration, 0.0f, 1.0f);
-				const float x = min.x + 8.0f + ratio * (canvasSize.x - 16.0f);
-				const ImU32 color = eventIndex == m_selectedEvent
+				const float x = timeToX(event.time);
+				const bool selected = eventIndex == m_selectedEvent;
+				const bool hot = eventIndex == hoveredEvent || eventIndex == m_draggedTimelineEvent;
+				const ImU32 color = selected
 					? IM_COL32(255, 210, 90, 255)
-					: IM_COL32(90, 210, 255, 255);
+					: (hot ? IM_COL32(140, 230, 255, 255) : IM_COL32(90, 210, 255, 255));
 				drawList->AddTriangleFilled(
 					ImVec2(x, trackY - 20.0f),
 					ImVec2(x - 8.0f, trackY - 5.0f),
@@ -1679,43 +1762,46 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 			}
 
 			const float currentRatio = std::clamp(m_model->GetAnimationTimeSeconds() / duration, 0.0f, 1.0f);
-			const float currentX = min.x + 8.0f + currentRatio * (canvasSize.x - 16.0f);
+			const float currentX = timelineStartX + currentRatio * timelineWidth;
 			drawList->AddLine(ImVec2(currentX, min.y), ImVec2(currentX, max.y), IM_COL32(255, 110, 110, 255), 2.0f);
+		}
 
-			if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		int FindTimelineEventAtPosition(
+			const ImVec2& canvasMin,
+			const ImVec2& canvasSize,
+			float duration,
+			const std::string& currentAnimation,
+			const ImVec2& position) const
+		{
+			const float timelineStartX = canvasMin.x + 8.0f;
+			const float timelineWidth = canvasSize.x - 16.0f;
+			const float trackY = canvasMin.y + canvasSize.y * 0.55f;
+			if (position.y < trackY - 28.0f || position.y > trackY + 42.0f)
 			{
-				const float mouseX = ImGui::GetIO().MousePos.x;
-				int nearestEvent = -1;
-				float nearestDistance = 10.0f;
-				for (int eventIndex = 0; eventIndex < static_cast<int>(m_events.size()); ++eventIndex)
-				{
-					const AnimationEvent& event = m_events[static_cast<size_t>(eventIndex)];
-					if (currentAnimation != event.animation)
-					{
-						continue;
-					}
+				return -1;
+			}
 
-					const float x = min.x + 8.0f + std::clamp(event.time / duration, 0.0f, 1.0f) * (canvasSize.x - 16.0f);
-					const float distance = std::fabs(mouseX - x);
-					if (distance < nearestDistance)
-					{
-						nearestDistance = distance;
-						nearestEvent = eventIndex;
-					}
+			int nearestEvent = -1;
+			float nearestDistance = 12.0f;
+			for (int eventIndex = 0; eventIndex < static_cast<int>(m_events.size()); ++eventIndex)
+			{
+				const AnimationEvent& event = m_events[static_cast<size_t>(eventIndex)];
+				if (currentAnimation != event.animation)
+				{
+					continue;
 				}
 
-				if (nearestEvent >= 0)
+				const float ratio = std::clamp(event.time / duration, 0.0f, 1.0f);
+				const float x = timelineStartX + ratio * timelineWidth;
+				const float distance = std::fabs(position.x - x);
+				if (distance < nearestDistance)
 				{
-					m_selectedEvent = nearestEvent;
-				}
-				else
-				{
-					const float ratio = std::clamp((mouseX - min.x - 8.0f) / (canvasSize.x - 16.0f), 0.0f, 1.0f);
-					const EventHistoryState beforeEdit = CaptureEventState();
-					AddEventAtTime(ratio * duration);
-					CommitEventEdit(beforeEdit);
+					nearestDistance = distance;
+					nearestEvent = eventIndex;
 				}
 			}
+
+			return nearestEvent;
 		}
 
 		void DrawEventPanel()
@@ -1951,12 +2037,14 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		std::vector<AnimationEvent> m_lastSavedEvents;
 		std::vector<EventHistoryState> m_undoStack;
 		std::vector<EventHistoryState> m_redoStack;
+		EventHistoryState m_timelineDragStartState;
 		std::string m_modelPath;
 		std::string m_defaultSavePath;
 		std::string m_status;
 		std::string m_imguiIniPath;
 		std::chrono::steady_clock::time_point m_lastTick{};
 		int m_selectedEvent{ -1 };
+		int m_draggedTimelineEvent{ -1 };
 		bool m_isPlaying{};
 		bool m_hasPendingResize{};
 		bool m_hasUnsavedChanges{};
@@ -1971,6 +2059,7 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 		float m_cameraPitch{ XMConvertToRadians(15.0f) };
 		float m_cameraDistance{ 4.0f };
 		XMFLOAT3 m_cameraTarget{ 0.0f, 1.0f, 0.0f };
+		float m_timelineContextTime{};
 		float m_modelRotation{};
 	};
 
