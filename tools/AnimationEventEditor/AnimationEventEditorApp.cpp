@@ -854,6 +854,7 @@ namespace
 			const float timelineStartX = min.x + 8.0f;
 			const float timelineWidth = canvasSize.x - 16.0f;
 			const float trackY = min.y + canvasSize.y * 0.55f;
+			constexpr float DragStartThresholdPixels = 4.0f;
 			const std::string currentAnimation = GetCurrentAnimationName();
 
 			auto timeToX = [&](float time)
@@ -883,7 +884,9 @@ namespace
 					m_selectedEvent = hoveredEvent;
 					m_draggedTimelineEvent = hoveredEvent;
 					m_timelineDragStartState = CaptureEventState();
-					m_isPlaying = false;
+					m_timelineDragStartMouseX = io.MousePos.x;
+					m_timelineDragStartTime = m_events[static_cast<size_t>(hoveredEvent)].time;
+					m_timelineDragMoved = false;
 				}
 				else
 				{
@@ -895,15 +898,30 @@ namespace
 			{
 				if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) || m_draggedTimelineEvent >= static_cast<int>(m_events.size()))
 				{
-					CommitEventEdit(m_timelineDragStartState);
+					if (m_timelineDragMoved)
+					{
+						CommitEventEdit(m_timelineDragStartState);
+					}
 					m_draggedTimelineEvent = -1;
+					m_timelineDragMoved = false;
 				}
 				else
 				{
-					AnimationEvent& draggedEvent = m_events[static_cast<size_t>(m_draggedTimelineEvent)];
-					draggedEvent.time = mouseXToTime(io.MousePos.x);
-					m_selectedEvent = m_draggedTimelineEvent;
-					m_model->SetAnimationTimeSeconds(draggedEvent.time);
+					const float mouseDeltaX = io.MousePos.x - m_timelineDragStartMouseX;
+					if (!m_timelineDragMoved && std::fabs(mouseDeltaX) >= DragStartThresholdPixels)
+					{
+						m_timelineDragMoved = true;
+						m_isPlaying = false;
+					}
+
+					if (m_timelineDragMoved)
+					{
+						AnimationEvent& draggedEvent = m_events[static_cast<size_t>(m_draggedTimelineEvent)];
+						const float timeDelta = (mouseDeltaX / timelineWidth) * duration;
+						draggedEvent.time = std::clamp(m_timelineDragStartTime + timeDelta, 0.0f, duration);
+						m_selectedEvent = m_draggedTimelineEvent;
+						m_model->SetAnimationTimeSeconds(draggedEvent.time);
+					}
 				}
 			}
 
@@ -1264,6 +1282,7 @@ namespace
 		bool m_pendingLayoutReset{};
 		bool m_mouseOverEditorPanel{};
 		bool m_mouseOverEditorPanelThisFrame{};
+		bool m_timelineDragMoved{};
 		UINT m_pendingResizeWidth{ WindowWidth };
 		UINT m_pendingResizeHeight{ WindowHeight };
 		CameraDragMode m_cameraDragMode{ CameraDragMode::None };
@@ -1273,6 +1292,8 @@ namespace
 		float m_cameraDistance{ 4.0f };
 		XMFLOAT3 m_cameraTarget{ 0.0f, 1.0f, 0.0f };
 		float m_timelineContextTime{};
+		float m_timelineDragStartMouseX{};
+		float m_timelineDragStartTime{};
 		float m_modelRotation{};
 	};
 
