@@ -112,6 +112,7 @@ if exist "$(OutDir)assimp-vc143-mt.dll" copy /Y "$(OutDir)assimp-vc143-mt.dll" "
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorApp.cpp" />
     <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.cpp" />
     <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorLayout.cpp" />
     <ClCompile Include="tools\AnimationEventEditor\AnimationEventJson.cpp" />
@@ -148,6 +149,7 @@ if exist "$(OutDir)assimp-vc143-mt.dll" copy /Y "$(OutDir)assimp-vc143-mt.dll" "
     <ClCompile Include="src\Rendering\Pipelines\TexturedPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorApp.h" />
     <ClInclude Include="tools\AnimationEventEditor\AnimationEventData.h" />
     <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.h" />
     <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorLayout.h" />
