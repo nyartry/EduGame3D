@@ -36,3 +36,12 @@ The original Visual Studio output is also here:
 7. Choose `File > Save Events`.
 
 The editor saves `.anim_events.json` files.
+
+When an FBX is opened, the editor also looks for a sibling `.anim_events.json` file and loads it automatically.
+
+## Editing
+
+- `Edit > Undo` / `Ctrl+Z` reverts event edits.
+- `Edit > Redo` / `Ctrl+Y` reapplies reverted event edits.
+- `File > Open Events...` loads an existing `.anim_events.json` for the current model.
+- `View > Reset Layout` restores the default panel arrangement and rewrites the saved ImGui layout.

@@ -15,9 +15,11 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <cwchar>
 #include <filesystem>
 #include <fstream>
@@ -42,6 +44,59 @@ namespace
 	constexpr UINT WindowHeight = 900;
 	constexpr DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	constexpr UINT ImGuiSrvDescriptorCount = 64;
+	constexpr size_t MaxUndoStates = 100;
+	constexpr std::string_view DefaultImGuiLayoutIni = R"ini([Window][WindowOverViewport_11111111]
+Pos=0,19
+Size=1920,990
+Collapsed=0
+
+[Window][Debug##Default]
+Pos=60,60
+Size=400,400
+Collapsed=0
+
+[Window][Asset]
+Pos=0,19
+Size=358,756
+Collapsed=0
+DockId=0x00000005,1
+
+[Window][Viewport Controls]
+Pos=0,19
+Size=358,756
+Collapsed=0
+DockId=0x00000005,0
+
+[Window][Timeline]
+Pos=361,777
+Size=1559,232
+Collapsed=0
+DockId=0x00000004,0
+
+[Window][Event Properties]
+Pos=1548,19
+Size=372,756
+Collapsed=0
+DockId=0x00000008,0
+
+[Window][Status]
+Pos=0,777
+Size=359,232
+Collapsed=0
+DockId=0x00000003,0
+
+[Docking][Data]
+DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
+  DockNode      ID=0x00000001 Parent=0x08BD597D SizeRef=1920,756 Split=X
+    DockNode    ID=0x00000005 Parent=0x00000001 SizeRef=358,756 Selected=0xF0D94A78
+    DockNode    ID=0x00000006 Parent=0x00000001 SizeRef=1560,756 Split=X
+      DockNode  ID=0x00000007 Parent=0x00000006 SizeRef=1186,756 CentralNode=1
+      DockNode  ID=0x00000008 Parent=0x00000006 SizeRef=372,756 Selected=0xFA1CB93A
+  DockNode      ID=0x00000002 Parent=0x08BD597D SizeRef=1920,232 Split=X Selected=0x4F89F0DC
+    DockNode    ID=0x00000003 Parent=0x00000002 SizeRef=359,232 Selected=0x96319633
+    DockNode    ID=0x00000004 Parent=0x00000002 SizeRef=1559,232 Selected=0x4F89F0DC
+
+)ini";
 
 	template <size_t Count>
 	void CopyText(char (&destination)[Count], std::string_view text)
@@ -164,6 +219,31 @@ namespace
 		return WideToUtf8(fileName.data());
 	}
 
+	std::optional<std::string> ShowOpenEventDialog(HWND hwnd, const std::string& initialPath)
+	{
+		std::array<wchar_t, MAX_PATH> fileName{};
+		const std::wstring wideInitialPath = Utf8ToWide(initialPath);
+		if (!wideInitialPath.empty())
+		{
+			wcsncpy_s(fileName.data(), fileName.size(), wideInitialPath.c_str(), _TRUNCATE);
+		}
+
+		OPENFILENAMEW openFileName{};
+		openFileName.lStructSize = sizeof(openFileName);
+		openFileName.hwndOwner = hwnd;
+		openFileName.lpstrFilter = L"Animation event files (*.anim_events.json)\0*.anim_events.json\0JSON files (*.json)\0*.json\0All files (*.*)\0*.*\0";
+		openFileName.lpstrFile = fileName.data();
+		openFileName.nMaxFile = static_cast<DWORD>(fileName.size());
+		openFileName.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+
+		if (!GetOpenFileNameW(&openFileName))
+		{
+			return std::nullopt;
+		}
+
+		return WideToUtf8(fileName.data());
+	}
+
 	std::string MakeDefaultEventPath(const std::string& fbxPath)
 	{
 		std::filesystem::path path = std::filesystem::path(fbxPath);
@@ -210,6 +290,29 @@ namespace
 		return std::string(utf8Path.begin(), utf8Path.end());
 	}
 
+	bool WriteDefaultImGuiLayoutIni(const std::string& path)
+	{
+		std::ofstream file(path, std::ios::binary | std::ios::trunc);
+		if (!file)
+		{
+			return false;
+		}
+
+		file.write(DefaultImGuiLayoutIni.data(), static_cast<std::streamsize>(DefaultImGuiLayoutIni.size()));
+		return file.good();
+	}
+
+	void EnsureDefaultImGuiLayoutIniExists(const std::string& path)
+	{
+		std::error_code error;
+		if (std::filesystem::exists(path, error))
+		{
+			return;
+		}
+
+		WriteDefaultImGuiLayoutIni(path);
+	}
+
 	XMMATRIX BuildViewProjection(float yaw, float pitch, float distance, UINT width, UINT height)
 	{
 		const float aspect = height == 0 ? 1.0f : static_cast<float>(width) / static_cast<float>(height);
@@ -235,6 +338,510 @@ namespace
 		char bone[96]{};
 		char cue[128]{};
 	};
+
+	struct AnimationEventFileData
+	{
+		std::string sourceFbx;
+		std::vector<AnimationEvent> events;
+	};
+
+	struct EventHistoryState
+	{
+		std::vector<AnimationEvent> events;
+		int selectedEvent{ -1 };
+	};
+
+	bool AnimationEventEquals(const AnimationEvent& left, const AnimationEvent& right)
+	{
+		return left.time == right.time
+			&& std::strcmp(left.animation, right.animation) == 0
+			&& std::strcmp(left.type, right.type) == 0
+			&& std::strcmp(left.name, right.name) == 0
+			&& std::strcmp(left.bone, right.bone) == 0
+			&& std::strcmp(left.cue, right.cue) == 0;
+	}
+
+	bool AnimationEventListsEqual(const std::vector<AnimationEvent>& left, const std::vector<AnimationEvent>& right)
+	{
+		if (left.size() != right.size())
+		{
+			return false;
+		}
+
+		for (size_t index = 0; index < left.size(); ++index)
+		{
+			if (!AnimationEventEquals(left[index], right[index]))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	class AnimationEventJsonParser
+	{
+	public:
+		explicit AnimationEventJsonParser(std::string_view text)
+			: m_text(text)
+		{
+		}
+
+		bool Parse(AnimationEventFileData& output, std::string& error)
+		{
+			SkipWhitespace();
+			if (!Consume('{'))
+			{
+				return Fail("Expected root object.", error);
+			}
+
+			while (true)
+			{
+				SkipWhitespace();
+				if (Consume('}'))
+				{
+					return true;
+				}
+
+				std::string key;
+				if (!ParseString(key, error))
+				{
+					return false;
+				}
+				if (!Consume(':'))
+				{
+					return Fail("Expected ':' after object key.", error);
+				}
+
+				if (key == "sourceFbx")
+				{
+					if (!ParseString(output.sourceFbx, error))
+					{
+						return false;
+					}
+				}
+				else if (key == "events")
+				{
+					if (!ParseEventsArray(output.events, error))
+					{
+						return false;
+					}
+				}
+				else if (!SkipValue(error))
+				{
+					return false;
+				}
+
+				SkipWhitespace();
+				if (Consume(','))
+				{
+					continue;
+				}
+				if (Peek() != '}')
+				{
+					return Fail("Expected ',' or '}' in root object.", error);
+				}
+			}
+		}
+
+	private:
+		void SkipWhitespace()
+		{
+			while (m_position < m_text.size() && std::isspace(static_cast<unsigned char>(m_text[m_position])) != 0)
+			{
+				++m_position;
+			}
+		}
+
+		char Peek()
+		{
+			SkipWhitespace();
+			return m_position < m_text.size() ? m_text[m_position] : '\0';
+		}
+
+		bool Consume(char expected)
+		{
+			SkipWhitespace();
+			if (m_position >= m_text.size() || m_text[m_position] != expected)
+			{
+				return false;
+			}
+			++m_position;
+			return true;
+		}
+
+		bool ParseString(std::string& output, std::string& error)
+		{
+			SkipWhitespace();
+			if (m_position >= m_text.size() || m_text[m_position] != '"')
+			{
+				return Fail("Expected string.", error);
+			}
+			++m_position;
+			output.clear();
+
+			while (m_position < m_text.size())
+			{
+				const char character = m_text[m_position++];
+				if (character == '"')
+				{
+					return true;
+				}
+
+				if (character != '\\')
+				{
+					output.push_back(character);
+					continue;
+				}
+
+				if (m_position >= m_text.size())
+				{
+					return Fail("Invalid escape sequence.", error);
+				}
+
+				const char escaped = m_text[m_position++];
+				switch (escaped)
+				{
+				case '"':
+				case '\\':
+				case '/':
+					output.push_back(escaped);
+					break;
+				case 'n':
+					output.push_back('\n');
+					break;
+				case 'r':
+					output.push_back('\r');
+					break;
+				case 't':
+					output.push_back('\t');
+					break;
+				default:
+					return Fail("Unsupported string escape sequence.", error);
+				}
+			}
+
+			return Fail("Unterminated string.", error);
+		}
+
+		bool ParseNumber(float& output, std::string& error)
+		{
+			SkipWhitespace();
+			const size_t begin = m_position;
+			if (m_position < m_text.size() && (m_text[m_position] == '-' || m_text[m_position] == '+'))
+			{
+				++m_position;
+			}
+			while (m_position < m_text.size() && std::isdigit(static_cast<unsigned char>(m_text[m_position])) != 0)
+			{
+				++m_position;
+			}
+			if (m_position < m_text.size() && m_text[m_position] == '.')
+			{
+				++m_position;
+				while (m_position < m_text.size() && std::isdigit(static_cast<unsigned char>(m_text[m_position])) != 0)
+				{
+					++m_position;
+				}
+			}
+			if (m_position < m_text.size() && (m_text[m_position] == 'e' || m_text[m_position] == 'E'))
+			{
+				++m_position;
+				if (m_position < m_text.size() && (m_text[m_position] == '-' || m_text[m_position] == '+'))
+				{
+					++m_position;
+				}
+				while (m_position < m_text.size() && std::isdigit(static_cast<unsigned char>(m_text[m_position])) != 0)
+				{
+					++m_position;
+				}
+			}
+
+			if (begin == m_position)
+			{
+				return Fail("Expected number.", error);
+			}
+
+			try
+			{
+				output = std::stof(std::string(m_text.substr(begin, m_position - begin)));
+			}
+			catch (const std::exception&)
+			{
+				return Fail("Invalid number.", error);
+			}
+			return true;
+		}
+
+		bool ParseEventsArray(std::vector<AnimationEvent>& events, std::string& error)
+		{
+			if (!Consume('['))
+			{
+				return Fail("Expected events array.", error);
+			}
+
+			events.clear();
+			while (true)
+			{
+				SkipWhitespace();
+				if (Consume(']'))
+				{
+					return true;
+				}
+
+				AnimationEvent event{};
+				if (!ParseEventObject(event, error))
+				{
+					return false;
+				}
+				events.push_back(event);
+
+				SkipWhitespace();
+				if (Consume(','))
+				{
+					continue;
+				}
+				if (Peek() != ']')
+				{
+					return Fail("Expected ',' or ']' in events array.", error);
+				}
+			}
+		}
+
+		bool ParseEventObject(AnimationEvent& event, std::string& error)
+		{
+			if (!Consume('{'))
+			{
+				return Fail("Expected event object.", error);
+			}
+
+			while (true)
+			{
+				SkipWhitespace();
+				if (Consume('}'))
+				{
+					return true;
+				}
+
+				std::string key;
+				if (!ParseString(key, error))
+				{
+					return false;
+				}
+				if (!Consume(':'))
+				{
+					return Fail("Expected ':' after event key.", error);
+				}
+
+				if (key == "animation")
+				{
+					std::string value;
+					if (!ParseString(value, error))
+					{
+						return false;
+					}
+					CopyText(event.animation, value);
+				}
+				else if (key == "time")
+				{
+					if (!ParseNumber(event.time, error))
+					{
+						return false;
+					}
+					event.time = std::max(0.0f, event.time);
+				}
+				else if (key == "type")
+				{
+					std::string value;
+					if (!ParseString(value, error))
+					{
+						return false;
+					}
+					CopyText(event.type, value);
+				}
+				else if (key == "name")
+				{
+					std::string value;
+					if (!ParseString(value, error))
+					{
+						return false;
+					}
+					CopyText(event.name, value);
+				}
+				else if (key == "bone")
+				{
+					std::string value;
+					if (!ParseString(value, error))
+					{
+						return false;
+					}
+					CopyText(event.bone, value);
+				}
+				else if (key == "cue")
+				{
+					std::string value;
+					if (!ParseString(value, error))
+					{
+						return false;
+					}
+					CopyText(event.cue, value);
+				}
+				else if (!SkipValue(error))
+				{
+					return false;
+				}
+
+				SkipWhitespace();
+				if (Consume(','))
+				{
+					continue;
+				}
+				if (Peek() != '}')
+				{
+					return Fail("Expected ',' or '}' in event object.", error);
+				}
+			}
+		}
+
+		bool SkipValue(std::string& error)
+		{
+			SkipWhitespace();
+			const char valueStart = Peek();
+			if (valueStart == '"')
+			{
+				std::string ignored;
+				return ParseString(ignored, error);
+			}
+			if (valueStart == '{')
+			{
+				return SkipObject(error);
+			}
+			if (valueStart == '[')
+			{
+				return SkipArray(error);
+			}
+			if (std::isdigit(static_cast<unsigned char>(valueStart)) != 0 || valueStart == '-' || valueStart == '+')
+			{
+				float ignored{};
+				return ParseNumber(ignored, error);
+			}
+			if (ConsumeLiteral("true") || ConsumeLiteral("false") || ConsumeLiteral("null"))
+			{
+				return true;
+			}
+
+			return Fail("Unsupported JSON value.", error);
+		}
+
+		bool SkipObject(std::string& error)
+		{
+			if (!Consume('{'))
+			{
+				return false;
+			}
+
+			while (true)
+			{
+				SkipWhitespace();
+				if (Consume('}'))
+				{
+					return true;
+				}
+
+				std::string key;
+				if (!ParseString(key, error))
+				{
+					return false;
+				}
+				if (!Consume(':') || !SkipValue(error))
+				{
+					return false;
+				}
+				SkipWhitespace();
+				if (Consume(','))
+				{
+					continue;
+				}
+				if (Peek() != '}')
+				{
+					return Fail("Expected ',' or '}' while skipping object.", error);
+				}
+			}
+		}
+
+		bool SkipArray(std::string& error)
+		{
+			if (!Consume('['))
+			{
+				return false;
+			}
+
+			while (true)
+			{
+				SkipWhitespace();
+				if (Consume(']'))
+				{
+					return true;
+				}
+				if (!SkipValue(error))
+				{
+					return false;
+				}
+				SkipWhitespace();
+				if (Consume(','))
+				{
+					continue;
+				}
+				if (Peek() != ']')
+				{
+					return Fail("Expected ',' or ']' while skipping array.", error);
+				}
+			}
+		}
+
+		bool ConsumeLiteral(std::string_view literal)
+		{
+			SkipWhitespace();
+			if (m_text.substr(m_position, literal.size()) != literal)
+			{
+				return false;
+			}
+			m_position += literal.size();
+			return true;
+		}
+
+		bool Fail(std::string_view message, std::string& error) const
+		{
+			std::ostringstream stream;
+			stream << message << " Offset " << m_position << ".";
+			error = stream.str();
+			return false;
+		}
+
+		std::string_view m_text;
+		size_t m_position{};
+	};
+
+	std::optional<AnimationEventFileData> LoadAnimationEventFile(const std::string& path, std::string& error)
+	{
+		std::ifstream file(path, std::ios::binary);
+		if (!file)
+		{
+			error = "Could not open file.";
+			return std::nullopt;
+		}
+
+		const std::string text{
+			std::istreambuf_iterator<char>(file),
+			std::istreambuf_iterator<char>() };
+		AnimationEventFileData data;
+		AnimationEventJsonParser parser(text);
+		if (!parser.Parse(data, error))
+		{
+			return std::nullopt;
+		}
+		return data;
+	}
 
 	class AnimationEventEditorApp
 	{
@@ -282,6 +889,7 @@ namespace
 
 			ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
+			ApplyPendingLayoutReset();
 			ImGui::NewFrame();
 			DrawUi();
 			ImGui::Render();
@@ -303,9 +911,77 @@ namespace
 			LoadModel(*selectedPath);
 		}
 
+		void OpenEvents()
+		{
+			if (m_model == nullptr)
+			{
+				return;
+			}
+
+			const std::optional<std::string> selectedPath = ShowOpenEventDialog(m_hwnd, m_defaultSavePath);
+			if (!selectedPath)
+			{
+				return;
+			}
+
+			LoadEvents(*selectedPath);
+		}
+
 		void SaveDefaultEvents()
 		{
 			SaveEvents(m_defaultSavePath);
+		}
+
+		void Undo()
+		{
+			if (m_undoStack.empty())
+			{
+				return;
+			}
+
+			PushRedoState(CaptureEventState());
+			const EventHistoryState previousState = m_undoStack.back();
+			m_undoStack.pop_back();
+			RestoreEventState(previousState);
+			UpdateDirtyFlag();
+			m_status = "Undo.";
+		}
+
+		void Redo()
+		{
+			if (m_redoStack.empty())
+			{
+				return;
+			}
+
+			PushUndoState(CaptureEventState());
+			const EventHistoryState nextState = m_redoStack.back();
+			m_redoStack.pop_back();
+			RestoreEventState(nextState);
+			UpdateDirtyFlag();
+			m_status = "Redo.";
+		}
+
+		bool CanUndo() const
+		{
+			return !m_undoStack.empty();
+		}
+
+		bool CanRedo() const
+		{
+			return !m_redoStack.empty();
+		}
+
+		void ResetLayout()
+		{
+			if (!WriteDefaultImGuiLayoutIni(m_imguiIniPath))
+			{
+				m_status = "Layout reset failed: could not write imgui.ini.";
+				return;
+			}
+
+			m_pendingLayoutReset = true;
+			m_status = "Layout reset to the saved default editor arrangement.";
 		}
 
 		void RequestResize(UINT width, UINT height)
@@ -351,6 +1027,18 @@ namespace
 			return true;
 		}
 
+		void ApplyPendingLayoutReset()
+		{
+			if (!m_pendingLayoutReset)
+			{
+				return;
+			}
+
+			ImGui::LoadIniSettingsFromMemory(DefaultImGuiLayoutIni.data(), DefaultImGuiLayoutIni.size());
+			ImGui::SaveIniSettingsToDisk(m_imguiIniPath.c_str());
+			m_pendingLayoutReset = false;
+		}
+
 		void CreateImGuiContext()
 		{
 			D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
@@ -370,6 +1058,7 @@ namespace
 			ImGuiIO& io = ImGui::GetIO();
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 			m_imguiIniPath = PathToUtf8String(MakeEditorSettingsDirectory() / L"imgui.ini");
+			EnsureDefaultImGuiLayoutIniExists(m_imguiIniPath);
 			io.IniFilename = m_imguiIniPath.c_str();
 			ImGui::StyleColorsDark();
 
@@ -471,14 +1160,57 @@ namespace
 
 				std::ostringstream stream;
 				stream << "Loaded " << path << " with " << m_model->GetModelData().animations.size() << " animation(s).";
+				std::error_code existsError;
+				if (std::filesystem::exists(m_defaultSavePath, existsError))
+				{
+					std::string loadError;
+					const std::optional<AnimationEventFileData> eventData = LoadAnimationEventFile(m_defaultSavePath, loadError);
+					if (eventData)
+					{
+						m_events = eventData->events;
+						stream << " Loaded " << m_events.size() << " event(s) from " << m_defaultSavePath << ".";
+					}
+					else
+					{
+						stream << " Event load failed: " << loadError;
+					}
+				}
+				else
+				{
+					stream << " No existing event file found.";
+				}
+				ResetHistoryToSavedState();
 				m_status = stream.str();
 			}
 			catch (const std::exception& exception)
 			{
 				m_model.reset();
 				m_boneNames.clear();
+				m_events.clear();
+				m_selectedEvent = -1;
+				ResetHistoryToSavedState();
 				m_status = std::string("Load failed: ") + exception.what();
 			}
+		}
+
+		void LoadEvents(const std::string& path)
+		{
+			std::string error;
+			const std::optional<AnimationEventFileData> eventData = LoadAnimationEventFile(path, error);
+			if (!eventData)
+			{
+				m_status = "Event load failed: " + error + " (" + path + ")";
+				return;
+			}
+
+			m_events = eventData->events;
+			m_selectedEvent = -1;
+			m_defaultSavePath = path;
+			ResetHistoryToSavedState();
+
+			std::ostringstream stream;
+			stream << "Loaded " << m_events.size() << " event(s): " << path;
+			m_status = stream.str();
 		}
 
 		void RebuildBoneList()
@@ -542,6 +1274,7 @@ namespace
 
 		void DrawUi()
 		{
+			HandleShortcuts();
 			ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 			DrawMainMenu();
 			DrawAssetPanel();
@@ -549,6 +1282,24 @@ namespace
 			DrawTimelinePanel();
 			DrawEventPanel();
 			DrawStatusPanel();
+		}
+
+		void HandleShortcuts()
+		{
+			const ImGuiIO& io = ImGui::GetIO();
+			if (!io.KeyCtrl || ImGui::IsAnyItemActive())
+			{
+				return;
+			}
+
+			if (ImGui::IsKeyPressed(ImGuiKey_Z, false))
+			{
+				Undo();
+			}
+			else if (ImGui::IsKeyPressed(ImGuiKey_Y, false))
+			{
+				Redo();
+			}
 		}
 
 		void DrawMainMenu()
@@ -563,6 +1314,10 @@ namespace
 				if (ImGui::MenuItem("Open FBX..."))
 				{
 					OpenFbx();
+				}
+				if (ImGui::MenuItem("Open Events...", nullptr, false, m_model != nullptr))
+				{
+					OpenEvents();
 				}
 				if (ImGui::MenuItem("Save Events", "Ctrl+S", false, m_model != nullptr))
 				{
@@ -583,12 +1338,34 @@ namespace
 				ImGui::EndMenu();
 			}
 
+			if (ImGui::BeginMenu("Edit"))
+			{
+				if (ImGui::MenuItem("Undo", "Ctrl+Z", false, CanUndo()))
+				{
+					Undo();
+				}
+				if (ImGui::MenuItem("Redo", "Ctrl+Y", false, CanRedo()))
+				{
+					Redo();
+				}
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("View"))
+			{
+				if (ImGui::MenuItem("Reset Layout"))
+				{
+					ResetLayout();
+				}
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndMainMenuBar();
 		}
 
 		void DrawAssetPanel()
 		{
-			SetInitialWindowRect(16.0f, 56.0f, 340.0f, 300.0f);
+			SetInitialWindowRect(0.0f, 19.0f, 358.0f, 756.0f);
 			ImGui::Begin("Asset");
 			if (ImGui::Button("Open FBX"))
 			{
@@ -630,7 +1407,7 @@ namespace
 
 		void DrawViewportPanel()
 		{
-			SetInitialWindowRect(16.0f, 376.0f, 360.0f, 176.0f);
+			SetInitialWindowRect(0.0f, 19.0f, 358.0f, 756.0f);
 			ImGui::Begin("Viewport Controls");
 			ImGui::SliderAngle("Camera Yaw", &m_cameraYaw, -180.0f, 180.0f);
 			ImGui::SliderAngle("Camera Pitch", &m_cameraPitch, -15.0f, 60.0f);
@@ -642,8 +1419,7 @@ namespace
 
 		void DrawTimelinePanel()
 		{
-			const ImGuiViewport* viewport = ImGui::GetMainViewport();
-			SetInitialWindowRect(392.0f, std::max(56.0f, viewport->WorkSize.y - 264.0f), viewport->WorkSize.x - 424.0f, 232.0f);
+			SetInitialWindowRect(361.0f, 777.0f, 1559.0f, 232.0f);
 			ImGui::Begin("Timeline");
 			if (m_model == nullptr)
 			{
@@ -678,13 +1454,17 @@ namespace
 
 			if (ImGui::Button("Add Event At Current Time"))
 			{
+				const EventHistoryState beforeEdit = CaptureEventState();
 				AddEventAtTime(currentTime);
+				CommitEventEdit(beforeEdit);
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Delete Selected") && IsSelectedEventValid())
 			{
+				const EventHistoryState beforeEdit = CaptureEventState();
 				m_events.erase(m_events.begin() + m_selectedEvent);
 				m_selectedEvent = -1;
+				CommitEventEdit(beforeEdit);
 			}
 
 			DrawTimelineCanvas(duration);
@@ -774,15 +1554,16 @@ namespace
 				else
 				{
 					const float ratio = std::clamp((mouseX - min.x - 8.0f) / (canvasSize.x - 16.0f), 0.0f, 1.0f);
+					const EventHistoryState beforeEdit = CaptureEventState();
 					AddEventAtTime(ratio * duration);
+					CommitEventEdit(beforeEdit);
 				}
 			}
 		}
 
 		void DrawEventPanel()
 		{
-			const ImGuiViewport* viewport = ImGui::GetMainViewport();
-			SetInitialWindowRect(std::max(392.0f, viewport->WorkSize.x - 388.0f), 56.0f, 372.0f, 300.0f);
+			SetInitialWindowRect(1548.0f, 19.0f, 372.0f, 756.0f);
 			ImGui::Begin("Event Properties");
 			if (!IsSelectedEventValid())
 			{
@@ -791,10 +1572,12 @@ namespace
 				return;
 			}
 
+			const EventHistoryState beforeEdit = CaptureEventState();
 			AnimationEvent& event = m_events[static_cast<size_t>(m_selectedEvent)];
+			bool edited = false;
 			ImGui::Text("Animation: %s", event.animation);
-			ImGui::DragFloat("Time", &event.time, 0.005f, 0.0f, m_model ? m_model->GetCurrentAnimationDurationSeconds() : 999.0f, "%.3f s");
-			ImGui::InputText("Name", event.name, sizeof(event.name));
+			edited |= ImGui::DragFloat("Time", &event.time, 0.005f, 0.0f, m_model ? m_model->GetCurrentAnimationDurationSeconds() : 999.0f, "%.3f s");
+			edited |= ImGui::InputText("Name", event.name, sizeof(event.name));
 
 			const char* eventTypes[] =
 			{
@@ -817,6 +1600,7 @@ namespace
 			if (ImGui::Combo("Type", &selectedType, eventTypes, static_cast<int>(std::size(eventTypes))))
 			{
 				CopyText(event.type, eventTypes[selectedType]);
+				edited = true;
 			}
 
 			if (ImGui::BeginCombo("Bone", event.bone[0] == '\0' ? "(none)" : event.bone))
@@ -824,6 +1608,7 @@ namespace
 				if (ImGui::Selectable("(none)", event.bone[0] == '\0'))
 				{
 					event.bone[0] = '\0';
+					edited = true;
 				}
 				for (const std::string& boneName : m_boneNames)
 				{
@@ -831,20 +1616,25 @@ namespace
 					if (ImGui::Selectable(boneName.c_str(), selected))
 					{
 						CopyText(event.bone, boneName);
+						edited = true;
 					}
 				}
 				ImGui::EndCombo();
 			}
 
-			ImGui::InputText("Cue", event.cue, sizeof(event.cue));
+			edited |= ImGui::InputText("Cue", event.cue, sizeof(event.cue));
+			if (edited)
+			{
+				CommitEventEdit(beforeEdit);
+			}
 			ImGui::End();
 		}
 
 		void DrawStatusPanel()
 		{
-			const ImGuiViewport* viewport = ImGui::GetMainViewport();
-			SetInitialWindowRect(16.0f, std::max(568.0f, viewport->WorkSize.y - 136.0f), 360.0f, 112.0f);
+			SetInitialWindowRect(0.0f, 777.0f, 359.0f, 232.0f);
 			ImGui::Begin("Status");
+			ImGui::Text("Events: %s", m_hasUnsavedChanges ? "Unsaved changes" : "Saved");
 			ImGui::TextWrapped("%s", m_status.c_str());
 			if (!m_defaultSavePath.empty())
 			{
@@ -910,10 +1700,74 @@ namespace
 			file << "}\n";
 
 			m_defaultSavePath = path;
+			m_lastSavedEvents = m_events;
+			UpdateDirtyFlag();
 			m_status = "Saved events: " + path;
 		}
 
-		static void SetInitialWindowRect(float x, float y, float width, float height)
+		EventHistoryState CaptureEventState() const
+		{
+			EventHistoryState state;
+			state.events = m_events;
+			state.selectedEvent = m_selectedEvent;
+			return state;
+		}
+
+		void RestoreEventState(const EventHistoryState& state)
+		{
+			m_events = state.events;
+			m_selectedEvent = state.selectedEvent;
+			if (!IsSelectedEventValid())
+			{
+				m_selectedEvent = -1;
+			}
+		}
+
+		void CommitEventEdit(const EventHistoryState& beforeEdit)
+		{
+			const EventHistoryState afterEdit = CaptureEventState();
+			if (AnimationEventListsEqual(beforeEdit.events, afterEdit.events) && beforeEdit.selectedEvent == afterEdit.selectedEvent)
+			{
+				return;
+			}
+
+			PushUndoState(beforeEdit);
+			m_redoStack.clear();
+			UpdateDirtyFlag();
+		}
+
+		void PushUndoState(const EventHistoryState& state)
+		{
+			m_undoStack.push_back(state);
+			if (m_undoStack.size() > MaxUndoStates)
+			{
+				m_undoStack.erase(m_undoStack.begin());
+			}
+		}
+
+		void PushRedoState(const EventHistoryState& state)
+		{
+			m_redoStack.push_back(state);
+			if (m_redoStack.size() > MaxUndoStates)
+			{
+				m_redoStack.erase(m_redoStack.begin());
+			}
+		}
+
+		void ResetHistoryToSavedState()
+		{
+			m_undoStack.clear();
+			m_redoStack.clear();
+			m_lastSavedEvents = m_events;
+			UpdateDirtyFlag();
+		}
+
+		void UpdateDirtyFlag()
+		{
+			m_hasUnsavedChanges = !AnimationEventListsEqual(m_events, m_lastSavedEvents);
+		}
+
+		void SetInitialWindowRect(float x, float y, float width, float height)
 		{
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();
 			const float safeWidth = std::max(180.0f, std::min(width, viewport->WorkSize.x - 16.0f));
@@ -935,6 +1789,9 @@ namespace
 		std::unique_ptr<SkinnedModel> m_model;
 		std::vector<std::string> m_boneNames;
 		std::vector<AnimationEvent> m_events;
+		std::vector<AnimationEvent> m_lastSavedEvents;
+		std::vector<EventHistoryState> m_undoStack;
+		std::vector<EventHistoryState> m_redoStack;
 		std::string m_modelPath;
 		std::string m_defaultSavePath;
 		std::string m_status;
@@ -943,6 +1800,8 @@ namespace
 		int m_selectedEvent{ -1 };
 		bool m_isPlaying{};
 		bool m_hasPendingResize{};
+		bool m_hasUnsavedChanges{};
+		bool m_pendingLayoutReset{};
 		UINT m_pendingResizeWidth{ WindowWidth };
 		UINT m_pendingResizeHeight{ WindowHeight };
 		float m_playbackSpeed{ 1.0f };
@@ -982,6 +1841,16 @@ namespace
 			if ((GetKeyState(VK_CONTROL) & 0x8000) != 0 && wParam == 'O' && GApp != nullptr)
 			{
 				GApp->OpenFbx();
+				return 0;
+			}
+			if ((GetKeyState(VK_CONTROL) & 0x8000) != 0 && wParam == 'Z' && GApp != nullptr)
+			{
+				GApp->Undo();
+				return 0;
+			}
+			if ((GetKeyState(VK_CONTROL) & 0x8000) != 0 && wParam == 'Y' && GApp != nullptr)
+			{
+				GApp->Redo();
 				return 0;
 			}
 			if ((GetKeyState(VK_CONTROL) & 0x8000) != 0 && wParam == 'S' && GApp != nullptr)
