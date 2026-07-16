@@ -865,8 +865,19 @@ namespace
 				m_model->SetAnimationTimeSeconds(0.0f);
 			}
 			ImGui::SameLine();
-			ImGui::SetNextItemWidth(120.0f);
-			ImGui::SliderFloat("Speed", &m_playbackSpeed, 0.1f, 2.0f);
+			ImGui::TextUnformatted("Speed");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(96.0f);
+			if (ImGui::InputFloat("##SpeedInput", &m_playbackSpeed, 0.1f, 0.5f, "%.3f"))
+			{
+				m_playbackSpeed = std::clamp(m_playbackSpeed, 0.1f, 2.0f);
+			}
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(160.0f);
+			if (ImGui::SliderFloat("##SpeedSlider", &m_playbackSpeed, 0.1f, 2.0f, "%.3f"))
+			{
+				m_playbackSpeed = std::clamp(m_playbackSpeed, 0.1f, 2.0f);
+			}
 
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::SliderFloat("Time", &currentTime, 0.0f, duration, "%.3f s"))
