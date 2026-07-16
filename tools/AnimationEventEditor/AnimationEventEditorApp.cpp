@@ -45,6 +45,57 @@ namespace
 	constexpr UINT ImGuiSrvDescriptorCount = 64;
 	constexpr size_t MaxUndoStates = 100;
 
+	void AddGridStrip(
+		std::vector<Vertex>& vertices,
+		float minX,
+		float maxX,
+		float minZ,
+		float maxZ,
+		const std::array<float, 4>& color)
+	{
+		constexpr float GridY = -0.01f;
+		const Vertex v0{ { minX, GridY, minZ }, { color[0], color[1], color[2], color[3] } };
+		const Vertex v1{ { maxX, GridY, minZ }, { color[0], color[1], color[2], color[3] } };
+		const Vertex v2{ { maxX, GridY, maxZ }, { color[0], color[1], color[2], color[3] } };
+		const Vertex v3{ { minX, GridY, maxZ }, { color[0], color[1], color[2], color[3] } };
+
+		vertices.push_back(v0);
+		vertices.push_back(v1);
+		vertices.push_back(v2);
+		vertices.push_back(v0);
+		vertices.push_back(v2);
+		vertices.push_back(v3);
+	}
+
+	std::vector<Vertex> CreateViewportGridVertices()
+	{
+		constexpr float GridExtent = 4.0f;
+		constexpr float GridStep = 0.5f;
+		constexpr float MinorThickness = 0.004f;
+		constexpr float MajorThickness = 0.008f;
+		constexpr int GridLineCount = static_cast<int>((GridExtent * 2.0f) / GridStep);
+		constexpr std::array<float, 4> MinorColor{ 0.115f, 0.17f, 0.22f, 1.0f };
+		constexpr std::array<float, 4> MajorColor{ 0.17f, 0.25f, 0.32f, 1.0f };
+		constexpr std::array<float, 4> CenterColor{ 0.22f, 0.32f, 0.40f, 1.0f };
+
+		std::vector<Vertex> vertices;
+		vertices.reserve(static_cast<size_t>(GridLineCount + 1) * 12);
+
+		for (int line = 0; line <= GridLineCount; ++line)
+		{
+			const float offset = -GridExtent + static_cast<float>(line) * GridStep;
+			const bool isCenter = std::fabs(offset) < 0.001f;
+			const bool isMajor = line % 2 == 0;
+			const float halfThickness = (isCenter || isMajor ? MajorThickness : MinorThickness) * 0.5f;
+			const std::array<float, 4>& color = isCenter ? CenterColor : (isMajor ? MajorColor : MinorColor);
+
+			AddGridStrip(vertices, offset - halfThickness, offset + halfThickness, -GridExtent, GridExtent, color);
+			AddGridStrip(vertices, -GridExtent, GridExtent, offset - halfThickness, offset + halfThickness, color);
+		}
+
+		return vertices;
+	}
+
 	XMMATRIX BuildViewProjection(float yaw, float pitch, float distance, const XMFLOAT3& targetPosition, UINT width, UINT height)
 	{
 		const float aspect = height == 0 ? 1.0f : static_cast<float>(width) / static_cast<float>(height);
@@ -70,6 +121,7 @@ namespace
 		{
 			m_hwnd = hwnd;
 			m_renderer.Initialize(hwnd, WindowWidth, WindowHeight);
+			m_viewportGrid.Initialize(m_renderer.GetDevice(), CreateViewportGridVertices());
 			CreateImGuiContext();
 			m_lastTick = std::chrono::steady_clock::now();
 			m_status = "Open an FBX file to begin.";
@@ -108,6 +160,7 @@ namespace
 				m_renderer.GetWidth(),
 				m_renderer.GetHeight());
 			m_renderer.BeginFrame(viewProjection);
+			m_renderer.Draw(m_viewportGrid, XMMatrixIdentity());
 			if (m_model != nullptr)
 			{
 				m_model->SetRotationY(m_modelRotation);
@@ -954,6 +1007,7 @@ namespace
 			}
 
 			drawList->AddRectFilled(min, max, IM_COL32(18, 24, 32, 240));
+
 			drawList->AddRect(min, max, IM_COL32(80, 105, 130, 255));
 
 			drawList->AddLine(ImVec2(timelineStartX, trackY), ImVec2(timelineStartX + timelineWidth, trackY), IM_COL32(130, 150, 170, 255), 2.0f);
@@ -1259,6 +1313,7 @@ namespace
 
 		HWND m_hwnd{};
 		Dx12Renderer m_renderer;
+		VertexBuffer m_viewportGrid;
 		ComPtr<ID3D12DescriptorHeap> m_imguiSrvHeap;
 		std::array<bool, ImGuiSrvDescriptorCount> m_imguiSrvDescriptorAllocated{};
 		UINT m_imguiSrvDescriptorSize{};
