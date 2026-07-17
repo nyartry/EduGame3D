@@ -1,6 +1,7 @@
 #include "Framework/Models/ModelLoader.h"
 
 #include "Framework/Animation/MeshTangentCalculator.h"
+#include "Framework/Assets/AssetPathResolver.h"
 #include "Framework/Models/ModelTextureResolver.h"
 
 #include <assimp/Importer.hpp>
@@ -80,9 +81,11 @@ namespace
 
 bool ModelLoader::Load(const std::string& filePath, ModelData& modelData)
 {
+	const std::filesystem::path resolvedFilePath = AssetPathResolver::Resolve(filePath);
+	const std::string resolvedPath = AssetPathResolver::ResolveUtf8(filePath);
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(
-		filePath,
+		resolvedPath,
 			aiProcess_Triangulate |
 			aiProcess_JoinIdenticalVertices |
 			aiProcess_ConvertToLeftHanded |
@@ -97,7 +100,7 @@ bool ModelLoader::Load(const std::string& filePath, ModelData& modelData)
 
 	modelData.texturedMeshes.clear();
 
-	const std::filesystem::path modelDirectory = std::filesystem::path(filePath).parent_path();
+	const std::filesystem::path modelDirectory = resolvedFilePath.parent_path();
 	const ModelTextureResolver textureResolver(modelDirectory);
 
 	for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)

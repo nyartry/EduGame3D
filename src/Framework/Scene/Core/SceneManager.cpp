@@ -1,6 +1,6 @@
 #include "Framework/Scene/Core/SceneManager.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderResourceLifetime.h"
 #include "Framework/Rendering/Core/IRenderer.h"
 
 #include <algorithm>
@@ -14,23 +14,22 @@ namespace
 	constexpr float MinimumLoadingSeconds = 0.75f;
 	constexpr float FadeOutSeconds = 0.45f;
 	constexpr float FadeInSeconds = 0.45f;
-	constexpr std::uint32_t RetiredSceneKeepAliveFrames = Dx12Renderer::FrameCount + 1;
+}
+
+SceneManager::~SceneManager()
+{
+	ClearActiveScenes();
 }
 
 void SceneManager::Initialize(
 	IRenderDevice& renderDevice,
-	IAudioService* audio,
-	IEffectService* effects,
-	IUiService* ui,
+	IRenderResourceLifetime& resourceLifetime,
 	std::uint32_t width,
 	std::uint32_t height)
 {
-	m_context.renderDevice = &renderDevice;
-	m_context.audio = audio;
-	m_context.effects = effects;
-	m_context.ui = ui;
-	m_context.width = width;
-	m_context.height = height;
+	m_resourceLifetime = &resourceLifetime;
+	m_width = width;
+	m_height = height;
 	m_loadingOverlay.Initialize(renderDevice, width, height);
 	m_fadeOverlay.Initialize(renderDevice, 1);
 }
@@ -53,15 +52,11 @@ bool SceneManager::LoadScene(const std::string& name, SceneLoadType loadType, Sc
 		return false;
 	}
 
-	if (loadMode == SceneLoadMode::Single && loadType == SceneLoadType::Synchronous)
-	{
-		ClearActiveScenes();
-	}
-
 	if (loadType == SceneLoadType::Synchronous)
 	{
 		std::unique_ptr<IScene> scene = sceneFactory->second();
-		scene->Load(m_context);
+		scene->Prepare();
+		scene->Activate();
 		CommitLoadedScene(std::move(scene), loadMode);
 		return true;
 	}
@@ -76,8 +71,6 @@ bool SceneManager::LoadScene(const std::string& name, SceneLoadType loadType, Sc
 
 void SceneManager::Update(float deltaTime, const Input& input)
 {
-	ReleaseRetiredScenes();
-
 	if (m_pendingLoad != nullptr)
 	{
 		m_pendingLoad->elapsedTime += deltaTime;
@@ -133,7 +126,20 @@ void SceneManager::Update(float deltaTime, const Input& input)
 	}
 }
 
-void SceneManager::Render(IRenderer& renderer) const
+void SceneManager::RenderWorld(IRenderer& renderer) const
+{
+	if (m_pendingLoad != nullptr && m_pendingLoad->phase == PendingLoadPhase::Loading)
+	{
+		return;
+	}
+
+	for (const std::unique_ptr<IScene>& scene : m_activeScenes)
+	{
+		scene->RenderWorld(renderer);
+	}
+}
+
+void SceneManager::RenderOverlay(IRenderer& renderer) const
 {
 	if (m_pendingLoad != nullptr && m_pendingLoad->phase == PendingLoadPhase::Loading)
 	{
@@ -143,7 +149,7 @@ void SceneManager::Render(IRenderer& renderer) const
 
 	for (const std::unique_ptr<IScene>& scene : m_activeScenes)
 	{
-		scene->Render(renderer);
+		scene->RenderOverlay(renderer);
 	}
 
 	if (m_pendingLoad != nullptr)
@@ -152,14 +158,14 @@ void SceneManager::Render(IRenderer& renderer) const
 	}
 }
 
-XMMATRIX SceneManager::GetViewProjectionMatrix() const
+RenderView SceneManager::GetRenderView() const
 {
 	if (m_activeScenes.empty())
 	{
-		return XMMatrixIdentity();
+		return {};
 	}
 
-	return m_activeScenes.back()->GetViewProjectionMatrix();
+	return m_activeScenes.back()->GetRenderView();
 }
 
 bool SceneManager::IsLoading() const
@@ -180,35 +186,20 @@ void SceneManager::RetireActiveScenes()
 {
 	for (std::unique_ptr<IScene>& scene : m_activeScenes)
 	{
-		m_retiredScenes.push_back({ std::move(scene), RetiredSceneKeepAliveFrames });
-	}
-	m_activeScenes.clear();
-}
-
-void SceneManager::ReleaseRetiredScenes()
-{
-	for (RetiredScene& retiredScene : m_retiredScenes)
-	{
-		if (retiredScene.framesRemaining > 0)
+		std::shared_ptr<IScene> retiredScene(std::move(scene));
+		if (m_resourceLifetime != nullptr)
 		{
-			--retiredScene.framesRemaining;
+			m_resourceLifetime->DeferRelease([retiredScene]()
+			{
+				retiredScene->Unload();
+			});
+		}
+		else
+		{
+			retiredScene->Unload();
 		}
 	}
-
-	const auto removeBegin = std::remove_if(
-		m_retiredScenes.begin(),
-		m_retiredScenes.end(),
-		[](RetiredScene& retiredScene)
-		{
-			if (retiredScene.framesRemaining > 0)
-			{
-				return false;
-			}
-
-			retiredScene.scene->Unload();
-			return true;
-		});
-	m_retiredScenes.erase(removeBegin, m_retiredScenes.end());
+	m_activeScenes.clear();
 }
 
 void SceneManager::CommitLoadedScene(std::unique_ptr<IScene> scene, SceneLoadMode mode)
@@ -223,15 +214,17 @@ void SceneManager::CommitLoadedScene(std::unique_ptr<IScene> scene, SceneLoadMod
 
 void SceneManager::StartPendingLoad()
 {
-	RetireActiveScenes();
+	if (m_pendingLoad->mode == SceneLoadMode::Single)
+	{
+		RetireActiveScenes();
+	}
 	m_pendingLoad->phase = PendingLoadPhase::Loading;
 	m_pendingLoad->elapsedTime = 0.0f;
-	const SceneLoadContext context = m_context;
 	const SceneFactory factory = m_pendingLoad->factory;
-	m_pendingLoad->future = std::async(std::launch::async, [context, factory]()
+	m_pendingLoad->future = std::async(std::launch::async, [factory]()
 	{
 		std::unique_ptr<IScene> scene = factory();
-		scene->Load(context);
+		scene->Prepare();
 		return scene;
 	});
 }
@@ -254,6 +247,7 @@ void SceneManager::PollAsyncLoad()
 	}
 
 	std::unique_ptr<IScene> scene = m_pendingLoad->future.get();
+	scene->Activate();
 	CommitLoadedScene(std::move(scene), m_pendingLoad->mode);
 	m_pendingLoad->phase = PendingLoadPhase::FadeIn;
 	m_pendingLoad->elapsedTime = 0.0f;
@@ -264,6 +258,6 @@ void SceneManager::UpdateFadeOverlay(float alpha)
 {
 	const XMFLOAT4 color{ 0.0f, 0.0f, 0.0f, alpha };
 	m_fadeOverlay.Clear();
-	m_fadeOverlay.DrawRectangle(0.0f, 0.0f, static_cast<float>(m_context.width), static_cast<float>(m_context.height), color);
+	m_fadeOverlay.DrawRectangle(0.0f, 0.0f, static_cast<float>(m_width), static_cast<float>(m_height), color);
 	m_fadeOverlay.Upload();
 }

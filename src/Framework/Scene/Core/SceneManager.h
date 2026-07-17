@@ -14,6 +14,10 @@
 #include <unordered_map>
 #include <vector>
 
+class IRenderDevice;
+class IRenderer;
+class IRenderResourceLifetime;
+
 enum class SceneLoadType
 {
 	Synchronous,
@@ -30,25 +34,15 @@ class SceneManager
 {
 public:
 	using SceneFactory = std::function<std::unique_ptr<IScene>()>;
+	~SceneManager();
 
 	void Initialize(
 		IRenderDevice& renderDevice,
-		IAudioService* audio,
-		IEffectService* effects,
-		IUiService* ui,
+		IRenderResourceLifetime& resourceLifetime,
 		std::uint32_t width,
 		std::uint32_t height);
 
 	void RegisterScene(const std::string& name, SceneFactory factory);
-
-	template <typename TScene>
-	void AddScene(const std::string& name)
-	{
-		RegisterScene(name, []()
-		{
-			return std::make_unique<TScene>();
-		});
-	}
 
 	bool LoadScene(
 		const std::string& name,
@@ -56,9 +50,10 @@ public:
 		SceneLoadMode loadMode = SceneLoadMode::Single);
 
 	void Update(float deltaTime, const Input& input);
-	void Render(IRenderer& renderer) const;
+	void RenderWorld(IRenderer& renderer) const;
+	void RenderOverlay(IRenderer& renderer) const;
 
-	DirectX::XMMATRIX GetViewProjectionMatrix() const;
+	RenderView GetRenderView() const;
 	bool IsLoading() const;
 
 private:
@@ -78,24 +73,18 @@ private:
 		PendingLoadPhase phase{ PendingLoadPhase::FadeOut };
 	};
 
-	struct RetiredScene
-	{
-		std::unique_ptr<IScene> scene;
-		std::uint32_t framesRemaining{};
-	};
-
 	void ClearActiveScenes();
 	void RetireActiveScenes();
-	void ReleaseRetiredScenes();
 	void CommitLoadedScene(std::unique_ptr<IScene> scene, SceneLoadMode mode);
 	void StartPendingLoad();
 	void PollAsyncLoad();
 	void UpdateFadeOverlay(float alpha);
 
-	SceneLoadContext m_context{};
+	IRenderResourceLifetime* m_resourceLifetime{};
+	std::uint32_t m_width{};
+	std::uint32_t m_height{};
 	std::unordered_map<std::string, SceneFactory> m_sceneFactories;
 	std::vector<std::unique_ptr<IScene>> m_activeScenes;
-	std::vector<RetiredScene> m_retiredScenes;
 	std::unique_ptr<PendingLoad> m_pendingLoad;
 	LoadingOverlay m_loadingOverlay;
 	SpriteBatch m_fadeOverlay;

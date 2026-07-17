@@ -26,15 +26,14 @@ namespace
 	constexpr float ProbeButtonX = 32.0f;
 	constexpr float ProbeButtonY = 32.0f;
 	constexpr float ProbeButtonWidth = 270.0f;
-	constexpr float ProbeButtonHeight = 70.0f;
 	constexpr float SampleButtonY = 32.0f;
 	constexpr float SampleButtonWidth = 145.0f;
-	constexpr float SampleButtonHeight = 70.0f;
 	constexpr float SampleButtonGap = 12.0f;
 	constexpr float SampleButtonX0 = ProbeButtonX + ProbeButtonWidth + 28.0f;
 	constexpr float SampleButtonX1 = SampleButtonX0 + SampleButtonWidth + SampleButtonGap;
 	constexpr float SampleButtonX2 = SampleButtonX1 + SampleButtonWidth + SampleButtonGap;
 	constexpr float SampleButtonX3 = SampleButtonX2 + SampleButtonWidth + SampleButtonGap;
+	constexpr std::string_view SampleButtonIds[] = { "sample-a", "sample-b", "sample-c", "sample-d" };
 
 	constexpr std::string_view TitleMarkup = R"(
 <rml>
@@ -47,6 +46,7 @@ namespace
 			border-color: rgb(121, 255, 166); padding: 0;
 		}
 		#probe:hover { background-color: rgb(45, 132, 74); border-color: rgb(255, 220, 99); }
+		#probe.flashed { background-color: rgb(128, 82, 24); border-color: rgb(255, 220, 99); }
 		.sample-button {
 			position: absolute; top: 32px; width: 145px; height: 70px;
 			padding: 0; border-width: 3px;
@@ -59,6 +59,10 @@ namespace
 		#sample-c:hover { background-color: rgb(117, 39, 62); border-color: rgb(255, 174, 194); }
 		#sample-d { left: 801px; background-color: rgb(27, 36, 56); border-color: rgb(184, 204, 230); }
 		#sample-d:hover { background-color: rgb(47, 59, 86); border-color: rgb(255, 255, 255); }
+		#sample-a.selected { background-color: rgb(14, 122, 102); border-color: rgb(121, 255, 229); }
+		#sample-b.selected { background-color: rgb(14, 122, 102); border-color: rgb(121, 255, 229); }
+		#sample-c.selected { background-color: rgb(14, 122, 102); border-color: rgb(121, 255, 229); }
+		#sample-d.selected { background-color: rgb(14, 122, 102); border-color: rgb(121, 255, 229); }
 		#menu { position: absolute; left: 430px; top: 418px; width: 420px; }
 		#menu button {
 			display: block; width: 420px; height: 58px; margin-bottom: 18px;
@@ -79,27 +83,34 @@ namespace
 </body>
 </rml>
 )";
-
-	bool IsPointerInside(const Input& input, float x, float y, float width, float height)
-	{
-		return input.WasLeftMousePressed() &&
-			input.IsMouseInsideClient() &&
-			static_cast<float>(input.GetMouseX()) >= x &&
-			static_cast<float>(input.GetMouseX()) <= x + width &&
-			static_cast<float>(input.GetMouseY()) >= y &&
-			static_cast<float>(input.GetMouseY()) <= y + height;
-	}
 }
 
-void TitleScene::Load(const SceneLoadContext& context)
+TitleScene::TitleScene(
+	IRenderDevice& renderDevice,
+	IAudioService& audio,
+	IUiService& ui,
+	std::uint32_t width,
+	std::uint32_t height)
+	: m_renderDevice(renderDevice)
+	, m_audio(audio)
+	, m_ui(ui)
+	, m_width(width)
+	, m_height(height)
 {
-	m_width = context.width;
-	m_height = context.height;
-	m_audio = context.audio;
-	m_batch.Initialize(*context.renderDevice, 4096);
-	if (context.ui != nullptr)
+}
+
+void TitleScene::Activate()
+{
+	m_batch.Initialize(m_renderDevice, 4096);
+	m_uiDocument = m_ui.CreateDocument("title", m_width, m_height, TitleMarkup);
+	if (m_uiDocument != nullptr)
 	{
-		m_uiDocument = context.ui->CreateDocument("title", m_width, m_height, TitleMarkup);
+		m_uiDocument->WatchClick("probe");
+		m_uiDocument->WatchClick("start");
+		for (const std::string_view id : SampleButtonIds)
+		{
+			m_uiDocument->WatchClick(id);
+		}
 	}
 	RebuildBatch();
 }
@@ -113,17 +124,21 @@ void TitleScene::Update(float deltaTime, const Input& input)
 {
 	m_elapsedTime += deltaTime;
 	m_probeButtonFlashTime = std::max(0.0f, m_probeButtonFlashTime - deltaTime);
-	if (m_audio != nullptr)
-	{
-		m_audio->PlayBgm(GameContent::TitleBgm);
-	}
+	m_audio.PlayBgm(GameContent::TitleBgm);
 
-	if (m_uiDocument != nullptr && input.IsMouseInsideClient())
+	if (m_uiDocument != nullptr)
 	{
-		m_uiDocument->ProcessPointerMove(input.GetMouseX(), input.GetMouseY());
-		if (input.WasLeftMousePressed())
+		if (input.IsMouseInsideClient())
 		{
-			m_uiDocument->ProcessPointerButtonDown(0);
+			m_uiDocument->ProcessPointerMove(input.GetMouseX(), input.GetMouseY());
+			if (input.WasLeftMousePressed())
+			{
+				m_uiDocument->ProcessPointerButtonDown(0);
+			}
+		}
+		else
+		{
+			m_uiDocument->ProcessPointerLeave();
 		}
 		if (input.WasLeftMouseReleased())
 		{
@@ -131,95 +146,64 @@ void TitleScene::Update(float deltaTime, const Input& input)
 		}
 	}
 
-	const float width = static_cast<float>(m_width);
-	const float height = static_cast<float>(m_height);
-	const float startButtonLeft = width * 0.5f - 210.0f;
-	const float startButtonTop = height * 0.58f;
-	const bool clickedProbeButton = IsPointerInside(input, ProbeButtonX, ProbeButtonY, ProbeButtonWidth, ProbeButtonHeight);
-	const bool clickedStartButton = IsPointerInside(input, startButtonLeft, startButtonTop, 420.0f, 58.0f);
+	const bool clickedProbeButton = m_uiDocument != nullptr && m_uiDocument->ConsumeClick("probe");
+	const bool clickedStartButton = m_uiDocument != nullptr && m_uiDocument->ConsumeClick("start");
 
 	if (clickedProbeButton)
 	{
-		if (m_audio != nullptr)
-		{
-			m_audio->PlaySe(GameContent::ButtonSe);
-		}
+		m_audio.PlaySe(GameContent::ButtonSe);
 		++m_probeButtonClickCount;
 		m_probeButtonFlashTime = 0.35f;
-		if (m_uiDocument != nullptr)
-		{
-			m_uiDocument->SetElementStyle("probe", "background-color", "rgb(128, 82, 24)");
-			m_uiDocument->SetElementStyle("probe", "border-color", "rgb(255, 220, 99)");
-		}
 	}
-	else if (m_probeButtonFlashTime <= 0.0f && m_uiDocument != nullptr)
+	if (m_uiDocument != nullptr)
 	{
-		m_uiDocument->SetElementStyle("probe", "background-color", "rgb(34, 96, 55)");
-		m_uiDocument->SetElementStyle("probe", "border-color", "rgb(121, 255, 166)");
+		m_uiDocument->SetElementClass("probe", "flashed", m_probeButtonFlashTime > 0.0f);
 	}
 
 	int clickedSampleButton = 0;
-	const float sampleXs[] = { SampleButtonX0, SampleButtonX1, SampleButtonX2, SampleButtonX3 };
-	for (int index = 0; index < 4; ++index)
+	if (m_uiDocument != nullptr)
 	{
-		if (IsPointerInside(input, sampleXs[index], SampleButtonY, SampleButtonWidth, SampleButtonHeight))
+		for (int index = 0; index < 4; ++index)
 		{
-			clickedSampleButton = index + 1;
-			break;
+			if (m_uiDocument->ConsumeClick(SampleButtonIds[index]))
+			{
+				clickedSampleButton = index + 1;
+				break;
+			}
 		}
 	}
 
 	if (clickedSampleButton != 0 && m_uiDocument != nullptr)
 	{
-		if (m_audio != nullptr)
-		{
-			m_audio->PlaySe(GameContent::ButtonSe);
-		}
+		m_audio.PlaySe(GameContent::ButtonSe);
 		m_selectedSampleButton = clickedSampleButton;
 		++m_sampleButtonClickCount;
 
-		const std::string_view ids[] = { "sample-a", "sample-b", "sample-c", "sample-d" };
-		const std::string_view normalBackgrounds[] =
-		{
-			"rgb(22, 65, 105)", "rgb(77, 47, 15)", "rgb(75, 28, 42)", "rgb(27, 36, 56)"
-		};
-		const std::string_view normalBorders[] =
-		{
-			"rgb(74, 190, 255)", "rgb(255, 183, 72)", "rgb(255, 102, 139)", "rgb(184, 204, 230)"
-		};
 		for (int index = 0; index < 4; ++index)
 		{
-			const bool selected = index + 1 == clickedSampleButton;
-			m_uiDocument->SetElementStyle(
-				ids[index],
-				"background-color",
-				selected ? "rgb(14, 122, 102)" : normalBackgrounds[index]);
-			m_uiDocument->SetElementStyle(
-				ids[index],
-				"border-color",
-				selected ? "rgb(121, 255, 229)" : normalBorders[index]);
+			m_uiDocument->SetElementClass(SampleButtonIds[index], "selected", index + 1 == clickedSampleButton);
 		}
 	}
 
 	if (GameActions::WasPressed(input, GameAction::Confirm) || clickedStartButton)
 	{
-		if (!m_startRequested && m_audio != nullptr)
+		if (!m_startRequested)
 		{
-			m_audio->PlaySe(GameContent::ButtonSe);
+			m_audio.PlaySe(GameContent::ButtonSe);
 		}
 		m_startRequested = true;
 	}
 	RebuildBatch();
 }
 
-void TitleScene::Render(IRenderer& renderer) const
+void TitleScene::RenderOverlay(IRenderer& renderer) const
 {
 	m_batch.Render(renderer);
 }
 
-XMMATRIX TitleScene::GetViewProjectionMatrix() const
+RenderView TitleScene::GetRenderView() const
 {
-	return XMMatrixIdentity();
+	return {};
 }
 
 std::string TitleScene::GetRequestedSceneName() const

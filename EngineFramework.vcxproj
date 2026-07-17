@@ -34,7 +34,7 @@
       <PreprocessorDefinitions>_DEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;RMLUI_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;$(ProjectDir)third_party\rmlui\include;$(ProjectDir)third_party\rmlui\backends;$(ProjectDir)third_party\effekseer\include;$(ProjectDir)third_party\directxtk12\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <PreBuildEvent><Command>powershell -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)tools\check_architecture.ps1" -RepositoryRoot "$(ProjectDir)"</Command></PreBuildEvent>
+    <PreBuildEvent><Command>powershell -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)tools\check_architecture.ps1" -RepositoryRoot "$(MSBuildProjectDirectory)"</Command></PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -42,7 +42,7 @@
       <PreprocessorDefinitions>NDEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;RMLUI_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;$(ProjectDir)third_party\rmlui\include;$(ProjectDir)third_party\rmlui\backends;$(ProjectDir)third_party\effekseer\include;$(ProjectDir)third_party\directxtk12\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <PreBuildEvent><Command>powershell -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)tools\check_architecture.ps1" -RepositoryRoot "$(ProjectDir)"</Command></PreBuildEvent>
+    <PreBuildEvent><Command>powershell -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)tools\check_architecture.ps1" -RepositoryRoot "$(MSBuildProjectDirectory)"</Command></PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup><ClCompile Include="src\Framework\**\*.cpp" /></ItemGroup>
   <ItemGroup><ClInclude Include="src\Framework\**\*.h" /></ItemGroup>

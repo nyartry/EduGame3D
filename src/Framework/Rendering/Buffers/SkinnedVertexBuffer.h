@@ -2,22 +2,27 @@
 
 #include "Framework/Models/SkinnedModelData.h"
 
-#include <Windows.h>
-#include <wrl/client.h>
-
-#include <d3d12.h>
+#include <cstdint>
+#include <memory>
 #include <vector>
+
+class RenderResourceAccess;
 
 class SkinnedVertexBuffer
 {
 public:
-	void Initialize(ID3D12Device* device, const std::vector<SkinnedVertex>& vertices);
-	void Bind(ID3D12GraphicsCommandList* commandList) const;
+	SkinnedVertexBuffer();
+	~SkinnedVertexBuffer();
+	SkinnedVertexBuffer(SkinnedVertexBuffer&&) noexcept;
+	SkinnedVertexBuffer& operator=(SkinnedVertexBuffer&&) noexcept;
+	SkinnedVertexBuffer(const SkinnedVertexBuffer&) = delete;
+	SkinnedVertexBuffer& operator=(const SkinnedVertexBuffer&) = delete;
 
-	UINT GetVertexCount() const;
+	std::uint32_t GetVertexCount() const;
 
 private:
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_resource;
-	D3D12_VERTEX_BUFFER_VIEW m_view{};
-	UINT m_vertexCount{};
+	struct Impl;
+	std::unique_ptr<Impl> m_impl;
+
+	friend class RenderResourceAccess;
 };

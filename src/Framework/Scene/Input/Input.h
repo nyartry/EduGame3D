@@ -39,7 +39,7 @@ public:
 	int GetMouseY() const;
 
 private:
-	friend class Win32InputBackend;
+	friend class InputWriter;
 
 	static constexpr std::size_t KeyCount = static_cast<std::size_t>(InputKey::Count);
 	static constexpr std::size_t ToIndex(InputKey key) { return static_cast<std::size_t>(key); }

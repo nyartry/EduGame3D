@@ -5,11 +5,13 @@
 #include <RmlUi/Core.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/FontEngineInterface.h>
 #include <RmlUi/Core/Log.h>
 #include <RmlUi/Core/SystemInterface.h>
 
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 namespace
@@ -155,6 +157,23 @@ namespace
 	EngineRmlSystemInterface EngineRmlSystem;
 	EngineRmlFontEngine EngineRmlFont;
 
+	class ClickListener final : public Rml::EventListener
+	{
+	public:
+		void ProcessEvent(Rml::Event&) override
+		{
+			m_clicked = true;
+		}
+
+		bool Consume()
+		{
+			return std::exchange(m_clicked, false);
+		}
+
+	private:
+		bool m_clicked{};
+	};
+
 	class RmlUiDocument final : public IUiDocument
 	{
 	public:
@@ -197,6 +216,14 @@ namespace
 			}
 		}
 
+		void ProcessPointerLeave() override
+		{
+			if (m_context != nullptr)
+			{
+				m_context->ProcessMouseLeave();
+			}
+		}
+
 		void ProcessPointerButtonDown(int button) override
 		{
 			if (m_context != nullptr)
@@ -213,7 +240,33 @@ namespace
 			}
 		}
 
-		void SetElementStyle(std::string_view elementId, std::string_view property, std::string_view value) override
+		void WatchClick(std::string_view elementId) override
+		{
+			if (m_document == nullptr)
+			{
+				return;
+			}
+
+			const std::string id(elementId);
+			if (m_clickListeners.contains(id))
+			{
+				return;
+			}
+			if (Rml::Element* element = m_document->GetElementById(id))
+			{
+				auto listener = std::make_unique<ClickListener>();
+				element->AddEventListener("click", listener.get());
+				m_clickListeners.emplace(id, std::move(listener));
+			}
+		}
+
+		bool ConsumeClick(std::string_view elementId) override
+		{
+			const auto iterator = m_clickListeners.find(std::string(elementId));
+			return iterator != m_clickListeners.end() && iterator->second->Consume();
+		}
+
+		void SetElementClass(std::string_view elementId, std::string_view className, bool enabled) override
 		{
 			if (m_document == nullptr)
 			{
@@ -221,7 +274,7 @@ namespace
 			}
 			if (Rml::Element* element = m_document->GetElementById(Rml::String(elementId)))
 			{
-				element->SetProperty(Rml::String(property), Rml::String(value));
+				element->SetClass(Rml::String(className), enabled);
 			}
 		}
 
@@ -258,6 +311,7 @@ namespace
 		RmlUiSpriteRenderInterface m_renderer;
 		Rml::Context* m_context{};
 		Rml::ElementDocument* m_document{};
+		std::unordered_map<std::string, std::unique_ptr<ClickListener>> m_clickListeners;
 	};
 }
 

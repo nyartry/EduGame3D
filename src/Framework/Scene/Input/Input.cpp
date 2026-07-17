@@ -1,4 +1,5 @@
 #include "Framework/Scene/Input/Input.h"
+#include "Framework/Scene/Input/InputWriter.h"
 
 bool Input::IsDown(InputKey key) const
 {
@@ -76,4 +77,19 @@ void Input::SetPointer(bool leftButtonDown, bool insideClient, int x, int y)
 	m_mouseInsideClient = insideClient;
 	m_mouseX = x;
 	m_mouseY = y;
+}
+
+void InputWriter::BeginFrame(Input& input)
+{
+	input.BeginFrame();
+}
+
+void InputWriter::SetKey(Input& input, InputKey key, bool isDown)
+{
+	input.SetKey(key, isDown);
+}
+
+void InputWriter::SetPointer(Input& input, bool leftButtonDown, bool insideClient, int x, int y)
+{
+	input.SetPointer(leftButtonDown, insideClient, x, y);
 }

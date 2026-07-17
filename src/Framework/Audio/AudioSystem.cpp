@@ -1,11 +1,16 @@
 #include "Framework/Audio/AudioSystem.h"
+#include "Framework/Assets/AssetPathResolver.h"
+
+#include <Audio.h>
+#include <Windows.h>
 
 #include <algorithm>
 #include <exception>
-#include <filesystem>
-#include <system_error>
-
-#include <Windows.h>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 using namespace DirectX;
 
@@ -25,196 +30,163 @@ namespace
 		OutputDebugStringW(L"\n");
 	}
 
-	std::filesystem::path GetExecutableDirectory()
+	std::wstring ResolveAssetPath(std::string_view path)
 	{
-		wchar_t modulePath[MAX_PATH]{};
-		const DWORD length = GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-		if (length == 0 || length >= MAX_PATH)
+		return AssetPathResolver::Resolve(path).wstring();
+	}
+
+	class BgmPlayer
+	{
+	public:
+		void Register(std::string_view id, std::string_view path)
 		{
-			return {};
+			m_tracks[std::string(id)].path = ResolveAssetPath(path);
 		}
 
-		return std::filesystem::path(modulePath).parent_path();
-	}
-
-	bool TryResolvePath(const std::filesystem::path& candidate, std::wstring& resolvedPath)
-	{
-		std::error_code error;
-		if (!std::filesystem::exists(candidate, error))
+		void Load(AudioEngine& engine)
 		{
-			return false;
+			for (auto& [id, track] : m_tracks)
+			{
+				(void)id;
+				DebugLogAudio(std::wstring(L"Loading BGM: ") + track.path);
+				track.effect = std::make_unique<SoundEffect>(&engine, track.path.c_str());
+				track.instance = track.effect->CreateInstance();
+				track.instance->SetVolume(m_volume);
+			}
 		}
 
-		const std::filesystem::path absolutePath = std::filesystem::absolute(candidate, error);
-		resolvedPath = error ? candidate.wstring() : absolutePath.wstring();
-		return true;
-	}
-}
+		void SetVolume(float volume)
+		{
+			m_volume = std::clamp(volume, 0.0f, 1.0f);
+			for (auto& [id, track] : m_tracks)
+			{
+				(void)id;
+				if (track.instance != nullptr)
+				{
+					track.instance->SetVolume(m_volume);
+				}
+			}
+		}
 
-std::wstring AudioPlayerBase::ToWidePath(const char* path)
-{
-	std::wstring widePath;
-	while (*path != '\0')
-	{
-		widePath.push_back(static_cast<wchar_t>(*path));
-		++path;
-	}
-	return widePath;
-}
+		void Play(std::string_view id)
+		{
+			if (m_hasCurrent && m_currentId == id)
+			{
+				auto currentTrack = m_tracks.find(std::string(id));
+				if (currentTrack != m_tracks.end() && currentTrack->second.instance != nullptr &&
+					currentTrack->second.instance->GetState() != PLAYING)
+				{
+					currentTrack->second.instance->SetVolume(m_volume);
+					currentTrack->second.instance->Play(true);
+				}
+				return;
+			}
 
-std::wstring AudioPlayerBase::ResolveAssetPath(const char* path)
-{
-	const std::filesystem::path relativePath{ ToWidePath(path) };
-	std::wstring resolvedPath;
-	if (relativePath.is_absolute() && TryResolvePath(relativePath, resolvedPath))
-	{
-		return resolvedPath;
-	}
+			Stop();
+			auto track = m_tracks.find(std::string(id));
+			if (track == m_tracks.end() || track->second.instance == nullptr)
+			{
+				return;
+			}
+			track->second.instance->SetVolume(m_volume);
+			track->second.instance->Play(true);
+			m_currentId = id;
+			m_hasCurrent = true;
+		}
 
-	std::error_code error;
-	std::filesystem::path roots[] =
-	{
-		std::filesystem::current_path(error),
-		GetExecutableDirectory()
+		void Stop()
+		{
+			if (!m_hasCurrent)
+			{
+				return;
+			}
+			auto track = m_tracks.find(m_currentId);
+			if (track != m_tracks.end() && track->second.instance != nullptr)
+			{
+				track->second.instance->Stop();
+			}
+			m_hasCurrent = false;
+		}
+
+	private:
+		struct Track
+		{
+			std::wstring path;
+			std::unique_ptr<SoundEffect> effect;
+			std::unique_ptr<SoundEffectInstance> instance;
+		};
+		std::unordered_map<std::string, Track> m_tracks;
+		std::string m_currentId;
+		bool m_hasCurrent{};
+		float m_volume{ 0.45f };
 	};
 
-	for (const std::filesystem::path& root : roots)
+	class SePlayer
 	{
-		if (root.empty())
+	public:
+		void Register(std::string_view id, std::string_view path)
 		{
-			continue;
+			m_clips[std::string(id)].path = ResolveAssetPath(path);
 		}
 
-		std::filesystem::path searchRoot = root;
-		for (int depth = 0; depth < 6 && !searchRoot.empty(); ++depth)
+		void Load(AudioEngine& engine)
 		{
-			if (TryResolvePath(searchRoot / relativePath, resolvedPath))
+			for (auto& [id, clip] : m_clips)
 			{
-				return resolvedPath;
+				(void)id;
+				DebugLogAudio(std::wstring(L"Loading SE: ") + clip.path);
+				clip.effect = std::make_unique<SoundEffect>(&engine, clip.path.c_str());
 			}
+		}
 
-			const std::filesystem::path parent = searchRoot.parent_path();
-			if (parent == searchRoot)
+		void SetVolume(float volume) { m_volume = std::clamp(volume, 0.0f, 1.0f); }
+
+		void Play(std::string_view id)
+		{
+			auto clip = m_clips.find(std::string(id));
+			if (clip != m_clips.end() && clip->second.effect != nullptr)
 			{
-				break;
+				clip->second.effect->Play(m_volume, 0.0f, 0.0f);
 			}
-			searchRoot = parent;
 		}
-	}
 
-	DebugLogAudio(std::wstring(L"Asset not found: ") + relativePath.wstring());
-	return relativePath.wstring();
-}
-
-void BgmPlayer::Register(std::string_view id, std::string_view path)
-{
-	const std::string ownedPath(path);
-	m_tracks[std::string(id)].path = ResolveAssetPath(ownedPath.c_str());
-}
-
-bool BgmPlayer::Load(AudioEngine& engine)
-{
-	for (auto& [id, track] : m_tracks)
-	{
-		(void)id;
-		DebugLogAudio(std::wstring(L"Loading BGM: ") + track.path);
-		track.effect = std::make_unique<SoundEffect>(&engine, track.path.c_str());
-		track.instance = track.effect->CreateInstance();
-		track.instance->SetVolume(m_volume);
-	}
-
-	return true;
-}
-
-void BgmPlayer::SetVolume(float volume)
-{
-	m_volume = std::clamp(volume, 0.0f, 1.0f);
-	for (auto& [id, track] : m_tracks)
-	{
-		(void)id;
-		if (track.instance != nullptr)
+	private:
+		struct Clip
 		{
-			track.instance->SetVolume(m_volume);
-		}
-	}
+			std::wstring path;
+			std::unique_ptr<SoundEffect> effect;
+		};
+		std::unordered_map<std::string, Clip> m_clips;
+		float m_volume{ 0.78f };
+	};
 }
 
-void BgmPlayer::Play(std::string_view id)
+struct AudioSystem::Impl
 {
-	if (m_hasCurrent && m_currentId == id)
-	{
-		auto currentTrack = m_tracks.find(std::string(id));
-		if (currentTrack != m_tracks.end() &&
-			currentTrack->second.instance != nullptr &&
-			currentTrack->second.instance->GetState() != PLAYING)
-		{
-			currentTrack->second.instance->SetVolume(m_volume);
-			currentTrack->second.instance->Play(true);
-		}
-		return;
-	}
+	std::unique_ptr<AudioEngine> engine;
+	BgmPlayer bgmPlayer;
+	SePlayer sePlayer;
+	bool available{};
+	bool comInitialized{};
+};
 
-	Stop();
-
-	auto track = m_tracks.find(std::string(id));
-	if (track == m_tracks.end() || track->second.instance == nullptr)
-	{
-		return;
-	}
-
-	track->second.instance->SetVolume(m_volume);
-	track->second.instance->Play(true);
-	m_currentId = id;
-	m_hasCurrent = true;
+AudioSystem::AudioSystem()
+	: m_impl(std::make_unique<Impl>())
+{
 }
 
-void BgmPlayer::Stop()
+AudioSystem::~AudioSystem()
 {
-	if (!m_hasCurrent)
+	if (m_impl == nullptr)
 	{
 		return;
 	}
-
-	auto track = m_tracks.find(m_currentId);
-	if (track != m_tracks.end() && track->second.instance != nullptr)
+	m_impl->bgmPlayer.Stop();
+	m_impl->engine.reset();
+	if (m_impl->comInitialized)
 	{
-		track->second.instance->Stop();
+		CoUninitialize();
 	}
-	m_hasCurrent = false;
-}
-
-void SePlayer::Register(std::string_view id, std::string_view path)
-{
-	const std::string ownedPath(path);
-	m_clips[std::string(id)].path = ResolveAssetPath(ownedPath.c_str());
-}
-
-bool SePlayer::Load(AudioEngine& engine)
-{
-	for (auto& [id, clip] : m_clips)
-	{
-		(void)id;
-		DebugLogAudio(std::wstring(L"Loading SE: ") + clip.path);
-		clip.effect = std::make_unique<SoundEffect>(&engine, clip.path.c_str());
-	}
-
-	return true;
-}
-
-void SePlayer::SetVolume(float volume)
-{
-	m_volume = std::clamp(volume, 0.0f, 1.0f);
-}
-
-void SePlayer::Play(std::string_view id)
-{
-	auto clip = m_clips.find(std::string(id));
-	if (clip == m_clips.end() || clip->second.effect == nullptr)
-	{
-		return;
-	}
-
-	clip->second.effect->Play(m_volume, 0.0f, 0.0f);
 }
 
 bool AudioSystem::Initialize()
@@ -224,23 +196,17 @@ bool AudioSystem::Initialize()
 		const HRESULT comResult = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 		if (SUCCEEDED(comResult))
 		{
-			m_comInitialized = true;
-			DebugLogAudio("COM initialized for audio.");
+			m_impl->comInitialized = true;
 		}
-		else if (comResult == RPC_E_CHANGED_MODE)
+		else if (comResult != RPC_E_CHANGED_MODE)
 		{
-			DebugLogAudio("COM was already initialized with another threading model.");
-		}
-		else
-		{
-			DebugLogAudio("COM initialization failed for audio.");
 			throw std::runtime_error("CoInitializeEx");
 		}
 
-		m_engine = std::make_unique<AudioEngine>();
-		m_bgmPlayer.Load(*m_engine);
-		m_sePlayer.Load(*m_engine);
-		m_available = true;
+		m_impl->engine = std::make_unique<AudioEngine>();
+		m_impl->bgmPlayer.Load(*m_impl->engine);
+		m_impl->sePlayer.Load(*m_impl->engine);
+		m_impl->available = true;
 		DebugLogAudio("AudioSystem initialized.");
 		return true;
 	}
@@ -248,87 +214,27 @@ bool AudioSystem::Initialize()
 	{
 		DebugLogAudio("AudioSystem initialization failed.");
 		DebugLogAudio(ex.what());
-		m_bgmPlayer.Stop();
-		m_engine.reset();
-		m_available = false;
+		m_impl->bgmPlayer.Stop();
+		m_impl->engine.reset();
+		m_impl->available = false;
 		return false;
-	}
-}
-
-AudioSystem::~AudioSystem()
-{
-	m_bgmPlayer.Stop();
-	m_engine.reset();
-	if (m_comInitialized)
-	{
-		CoUninitialize();
-		m_comInitialized = false;
 	}
 }
 
 void AudioSystem::Update()
 {
-	if (m_engine == nullptr)
+	if (m_impl->engine != nullptr && !m_impl->engine->Update())
 	{
-		return;
-	}
-
-	if (!m_engine->Update())
-	{
-		m_engine->Reset();
+		m_impl->engine->Reset();
 	}
 }
 
-void AudioSystem::RegisterBgm(std::string_view id, std::string_view assetPath)
-{
-	m_bgmPlayer.Register(id, assetPath);
-}
-
-void AudioSystem::RegisterSe(std::string_view id, std::string_view assetPath)
-{
-	m_sePlayer.Register(id, assetPath);
-}
-
-void AudioSystem::PlayBgm(std::string_view id)
-{
-	if (m_available)
-	{
-		m_bgmPlayer.Play(id);
-	}
-}
-
-void AudioSystem::StopBgm()
-{
-	m_bgmPlayer.Stop();
-}
-
-void AudioSystem::PlaySe(std::string_view id)
-{
-	if (m_available)
-	{
-		m_sePlayer.Play(id);
-	}
-}
-
-void AudioSystem::SetMasterVolume(float volume)
-{
-	if (m_engine != nullptr)
-	{
-		m_engine->SetMasterVolume(std::clamp(volume, 0.0f, 1.0f));
-	}
-}
-
-void AudioSystem::SetBgmVolume(float volume)
-{
-	m_bgmPlayer.SetVolume(volume);
-}
-
-void AudioSystem::SetSeVolume(float volume)
-{
-	m_sePlayer.SetVolume(volume);
-}
-
-bool AudioSystem::IsAvailable() const
-{
-	return m_available;
-}
+void AudioSystem::RegisterBgm(std::string_view id, std::string_view assetPath) { m_impl->bgmPlayer.Register(id, assetPath); }
+void AudioSystem::RegisterSe(std::string_view id, std::string_view assetPath) { m_impl->sePlayer.Register(id, assetPath); }
+void AudioSystem::PlayBgm(std::string_view id) { if (m_impl->available) m_impl->bgmPlayer.Play(id); }
+void AudioSystem::StopBgm() { m_impl->bgmPlayer.Stop(); }
+void AudioSystem::PlaySe(std::string_view id) { if (m_impl->available) m_impl->sePlayer.Play(id); }
+void AudioSystem::SetMasterVolume(float volume) { if (m_impl->engine != nullptr) m_impl->engine->SetMasterVolume(std::clamp(volume, 0.0f, 1.0f)); }
+void AudioSystem::SetBgmVolume(float volume) { m_impl->bgmPlayer.SetVolume(volume); }
+void AudioSystem::SetSeVolume(float volume) { m_impl->sePlayer.SetVolume(volume); }
+bool AudioSystem::IsAvailable() const { return m_impl->available; }

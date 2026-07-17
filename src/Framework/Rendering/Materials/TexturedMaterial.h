@@ -1,32 +1,22 @@
 #pragma once
 
-#include "Framework/Rendering/Materials/Texture2D.h"
+#include <memory>
 
-#include <Windows.h>
-#include <wrl/client.h>
-
-#include <d3d12.h>
-#include <string>
+class RenderResourceAccess;
 
 class TexturedMaterial
 {
 public:
-	void Initialize(
-		ID3D12Device* device,
-		const std::string& baseColorTexturePath,
-		const std::string& opacityTexturePath,
-		const std::string& normalTexturePath);
-	void Bind(ID3D12GraphicsCommandList* commandList, UINT rootParameterIndex) const;
+	TexturedMaterial();
+	~TexturedMaterial();
+	TexturedMaterial(TexturedMaterial&&) noexcept;
+	TexturedMaterial& operator=(TexturedMaterial&&) noexcept;
+	TexturedMaterial(const TexturedMaterial&) = delete;
+	TexturedMaterial& operator=(const TexturedMaterial&) = delete;
 
 private:
-	static constexpr UINT TextureCount = 3;
+	struct Impl;
+	std::unique_ptr<Impl> m_impl;
 
-	void LoadTextures(ID3D12Device* device, const std::string& baseColorTexturePath, const std::string& opacityTexturePath, const std::string& normalTexturePath);
-	void CreateDescriptorHeap(ID3D12Device* device);
-	void CreateShaderResourceViews(ID3D12Device* device);
-
-	Texture2D m_baseColorTexture;
-	Texture2D m_opacityTexture;
-	Texture2D m_normalTexture;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvHeap;
+	friend class RenderResourceAccess;
 };

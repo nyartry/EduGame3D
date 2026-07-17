@@ -5,6 +5,7 @@
 
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Core/IRenderer.h"
+#include "Framework/Rendering/Core/IRenderResourceLifetime.h"
 #include "Framework/Rendering/Pipelines/BasicColorPipeline.h"
 #include "Framework/Rendering/Pipelines/SkinnedTexturedPipeline.h"
 #include "Framework/Rendering/Pipelines/SpritePipeline.h"
@@ -16,6 +17,7 @@
 #include <d3d12.h>
 #include <DirectXMath.h>
 #include <dxgi1_6.h>
+#include <functional>
 #include <vector>
 
 class TexturedMaterial;
@@ -24,7 +26,7 @@ class SpriteMaterial;
 class SpriteVertexBuffer;
 class TexturedVertexBuffer;
 
-class Dx12Renderer final : public IRenderDevice, public IRenderer
+class Dx12Renderer final : public IRenderDevice, public IRenderer, public IRenderResourceLifetime
 {
 public:
 	static constexpr UINT FrameCount = 2;
@@ -76,6 +78,7 @@ public:
 		const std::string& normalTexturePath) override;
 	void EndFrame();
 	void WaitForGpu();
+	void DeferRelease(std::function<void()> release) override;
 	ID3D12Device* GetDevice() const;
 	ID3D12CommandQueue* GetCommandQueue() const;
 	ID3D12GraphicsCommandList* GetCommandList() const;
@@ -89,6 +92,13 @@ private:
 	void UpdateClearColor();
 	void MoveToNextFrame();
 	void FlushGpu();
+	void CollectDeferredReleases();
+
+	struct DeferredRelease
+	{
+		UINT64 fenceValue{};
+		std::function<void()> release;
+	};
 
 	HWND m_hwnd{};
 	UINT m_width{};
@@ -116,4 +126,5 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
 	std::array<UINT64, FrameCount> m_fenceValues{};
 	UINT64 m_nextFenceValue{ 1 };
+	std::vector<DeferredRelease> m_deferredReleases;
 };

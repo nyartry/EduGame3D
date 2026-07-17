@@ -12,16 +12,24 @@
 #include <string_view>
 
 class IAudioService;
+class IRenderDevice;
 
 class TitleScene : public IScene
 {
 public:
-	void Load(const SceneLoadContext& context) override;
+	TitleScene(
+		IRenderDevice& renderDevice,
+		IAudioService& audio,
+		IUiService& ui,
+		std::uint32_t width,
+		std::uint32_t height);
+
+	void Activate() override;
 	void Unload() override;
 	void Update(float deltaTime, const Input& input) override;
-	void Render(IRenderer& renderer) const override;
+	void RenderOverlay(IRenderer& renderer) const override;
 
-	DirectX::XMMATRIX GetViewProjectionMatrix() const override;
+	RenderView GetRenderView() const override;
 	std::string GetRequestedSceneName() const override;
 	bool ShouldLoadRequestedSceneAsync() const override;
 
@@ -30,7 +38,9 @@ private:
 	void DrawCenteredText(std::string_view text, float centerY, float pixelSize, const DirectX::XMFLOAT4& color);
 
 	SpriteBatch m_batch;
-	IAudioService* m_audio{};
+	IRenderDevice& m_renderDevice;
+	IAudioService& m_audio;
+	IUiService& m_ui;
 	std::unique_ptr<IUiDocument> m_uiDocument;
 	std::uint32_t m_width{};
 	std::uint32_t m_height{};

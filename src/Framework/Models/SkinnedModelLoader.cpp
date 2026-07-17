@@ -1,6 +1,7 @@
 #include "Framework/Models/SkinnedModelLoader.h"
 
 #include "Framework/Animation/MeshTangentCalculator.h"
+#include "Framework/Assets/AssetPathResolver.h"
 #include "Framework/Models/ModelTextureResolver.h"
 #include "Framework/Animation/RootMotionPolicy.h"
 
@@ -486,9 +487,11 @@ namespace
 
 bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& modelData)
 {
+	const std::filesystem::path resolvedFilePath = AssetPathResolver::Resolve(filePath);
+	const std::string resolvedPath = AssetPathResolver::ResolveUtf8(filePath);
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(
-		filePath,
+		resolvedPath,
 			aiProcess_Triangulate |
 			aiProcess_JoinIdenticalVertices |
 			aiProcess_LimitBoneWeights |
@@ -501,7 +504,7 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 		return false;
 	}
 
-	LogSceneScaleDiagnostics(filePath, scene);
+	LogSceneScaleDiagnostics(resolvedPath, scene);
 
 	modelData = SkinnedModelData{};
 	aiMatrix4x4 rootInverseTransform = scene->mRootNode->mTransformation;
@@ -511,7 +514,7 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 	std::unordered_map<std::string, int> boneMap;
 	AddBoneRecursive(scene->mRootNode, -1, modelData.bones, boneMap);
 
-	const std::filesystem::path modelDirectory = std::filesystem::path(filePath).parent_path();
+	const std::filesystem::path modelDirectory = resolvedFilePath.parent_path();
 	const ModelTextureResolver textureResolver(modelDirectory);
 
 	for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
@@ -601,9 +604,10 @@ bool SkinnedModelLoader::Load(const std::string& filePath, SkinnedModelData& mod
 
 bool SkinnedModelLoader::LoadAnimation(const std::string& filePath, const std::string& animationName, SkinnedModelData& modelData)
 {
+	const std::string resolvedPath = AssetPathResolver::ResolveUtf8(filePath);
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(
-		filePath,
+		resolvedPath,
 		aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_LimitBoneWeights |

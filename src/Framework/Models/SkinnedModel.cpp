@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <memory>
 #include <sstream>
@@ -23,8 +24,7 @@ namespace
 
 	void WriteDebugLog(const std::string& message)
 	{
-		OutputDebugStringA(message.c_str());
-		OutputDebugStringA("\n");
+		std::clog << message << '\n';
 	}
 
 	XMMATRIX LoadMatrix(const XMFLOAT4X4& matrix)

@@ -1,26 +1,22 @@
 #pragma once
 
-#include "Framework/Rendering/Materials/Texture2D.h"
+#include <memory>
 
-#include <Windows.h>
-#include <wrl/client.h>
-
-#include <d3d12.h>
-#include <string>
-#include <vector>
+class RenderResourceAccess;
 
 class SpriteMaterial
 {
 public:
-	void InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha);
-	void InitializeTexture(ID3D12Device* device, const std::string& texturePath, bool useSrgb = false);
-	void InitializePixels(ID3D12Device* device, const std::vector<UINT8>& rgbaPixels, UINT width, UINT height, bool useSrgb = false);
-	void Bind(ID3D12GraphicsCommandList* commandList, UINT rootParameterIndex) const;
+	SpriteMaterial();
+	~SpriteMaterial();
+	SpriteMaterial(SpriteMaterial&&) noexcept;
+	SpriteMaterial& operator=(SpriteMaterial&&) noexcept;
+	SpriteMaterial(const SpriteMaterial&) = delete;
+	SpriteMaterial& operator=(const SpriteMaterial&) = delete;
 
 private:
-	void CreateDescriptorHeap(ID3D12Device* device);
-	void CreateShaderResourceView(ID3D12Device* device);
+	struct Impl;
+	std::unique_ptr<Impl> m_impl;
 
-	Texture2D m_texture;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvHeap;
+	friend class RenderResourceAccess;
 };

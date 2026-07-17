@@ -13,9 +13,12 @@ public:
 	virtual ~IUiDocument() = default;
 
 	virtual void ProcessPointerMove(int x, int y) = 0;
+	virtual void ProcessPointerLeave() = 0;
 	virtual void ProcessPointerButtonDown(int button) = 0;
 	virtual void ProcessPointerButtonUp(int button) = 0;
-	virtual void SetElementStyle(std::string_view elementId, std::string_view property, std::string_view value) = 0;
+	virtual void WatchClick(std::string_view elementId) = 0;
+	virtual bool ConsumeClick(std::string_view elementId) = 0;
+	virtual void SetElementClass(std::string_view elementId, std::string_view className, bool enabled) = 0;
 	virtual void RenderTo(SpriteBatch& batch) = 0;
 	virtual bool IsLoaded() const = 0;
 	virtual std::uint32_t GetLastRenderedTriangleCount() const = 0;

@@ -2,30 +2,30 @@
 
 #include "Framework/Rendering/Geometry/SpriteVertex.h"
 
-#include <Windows.h>
-#include <wrl/client.h>
-
-#include <d3d12.h>
+#include <cstdint>
+#include <memory>
 #include <vector>
+
+class RenderResourceAccess;
 
 class SpriteVertexBuffer
 {
 public:
-	void Initialize(ID3D12Device* device, UINT vertexCapacity);
-	void Update(const std::vector<SpriteVertex>& vertices);
-	void Bind(ID3D12GraphicsCommandList* commandList) const;
+	SpriteVertexBuffer();
+	~SpriteVertexBuffer();
+	SpriteVertexBuffer(SpriteVertexBuffer&&) noexcept;
+	SpriteVertexBuffer& operator=(SpriteVertexBuffer&&) noexcept;
+	SpriteVertexBuffer(const SpriteVertexBuffer&) = delete;
+	SpriteVertexBuffer& operator=(const SpriteVertexBuffer&) = delete;
 
-	UINT GetVertexCount() const;
-	UINT GetVertexCapacity() const;
+	void Update(const std::vector<SpriteVertex>& vertices);
+
+	std::uint32_t GetVertexCount() const;
+	std::uint32_t GetVertexCapacity() const;
 
 private:
-	static constexpr UINT DynamicBufferCopies = 3;
+	struct Impl;
+	std::unique_ptr<Impl> m_impl;
 
-	ID3D12Device* m_device{};
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_resource;
-	D3D12_VERTEX_BUFFER_VIEW m_view{};
-	UINT m_vertexCount{};
-	UINT m_capacity{};
-	UINT m_slotSize{};
-	UINT m_nextSlot{};
+	friend class RenderResourceAccess;
 };

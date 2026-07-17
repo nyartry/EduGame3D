@@ -30,4 +30,4 @@ Open `DirectX12OpenCampusGame.sln` in Visual Studio 2022, then build and run wit
 
 ## Dependency check
 
-`tools/check_architecture.ps1` prevents Game from directly depending on Win32, DX12, RmlUi, Effekseer, or Assimp implementation types. It runs automatically when `EngineFramework` builds.
+`tools/check_architecture.ps1` prevents Game from directly or transitively depending on Win32, DX12, RmlUi, Effekseer, Assimp, or other backend implementation types. It runs automatically when `EngineFramework` builds.

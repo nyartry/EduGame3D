@@ -82,21 +82,21 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 		return 1;
 	}
 
-	Game game;
 	AudioSystem audio;
 	Dx12Renderer renderer;
 	EffekseerEffectSystem effects;
 	RmlUiService ui;
+	Game game(renderer, audio, effects, effects, ui, WindowWidth, WindowHeight);
 	SceneManager scenes;
 	Input input;
 	Win32InputBackend inputBackend;
 
 	renderer.Initialize(window, WindowWidth, WindowHeight);
-	effects.Initialize(renderer.GetDevice(), renderer.GetCommandQueue());
-	game.RegisterContent(audio, effects);
+	effects.Initialize(renderer);
+	game.RegisterContent();
 	audio.Initialize();
 	ui.Initialize();
-	scenes.Initialize(renderer, &audio, &effects, &ui, WindowWidth, WindowHeight);
+	scenes.Initialize(renderer, renderer, WindowWidth, WindowHeight);
 	game.RegisterScenes(scenes);
 	scenes.LoadScene(std::string(game.GetInitialSceneName()), SceneLoadType::Synchronous, SceneLoadMode::Single);
 
@@ -120,8 +120,15 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 		lastTickTime = now;
 		scenes.Update(deltaTime, input);
 		audio.Update();
-		renderer.BeginFrame(scenes.GetViewProjectionMatrix());
-		scenes.Render(renderer);
+		effects.Update(deltaTime);
+		const RenderView renderView = scenes.GetRenderView();
+		renderer.BeginFrame(renderView.GetViewProjection());
+		scenes.RenderWorld(renderer);
+		if (renderView.effectsEnabled)
+		{
+			effects.Render(renderer, renderView.view, renderView.projection);
+		}
+		scenes.RenderOverlay(renderer);
 		renderer.EndFrame();
 
 		++fpsFrameCount;

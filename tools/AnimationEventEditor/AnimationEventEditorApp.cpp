@@ -121,7 +121,7 @@ namespace
 		{
 			m_hwnd = hwnd;
 			m_renderer.Initialize(hwnd, WindowWidth, WindowHeight);
-			m_viewportGrid.Initialize(m_renderer.GetDevice(), CreateViewportGridVertices());
+			m_renderer.CreateVertexBuffer(m_viewportGrid, CreateViewportGridVertices());
 			CreateImGuiContext();
 			m_lastTick = std::chrono::steady_clock::now();
 			m_status = "Open an FBX file to begin.";

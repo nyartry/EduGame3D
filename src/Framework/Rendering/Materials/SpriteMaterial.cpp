@@ -1,53 +1,106 @@
 #include "Framework/Rendering/Materials/SpriteMaterial.h"
 
 #include "Framework/Common/Common.h"
+#include "Framework/Rendering/Core/RenderResourceAccess.h"
+#include "Framework/Rendering/Materials/Texture2D.h"
 
-#include <stdexcept>
+#include <Windows.h>
+#include <wrl/client.h>
 
-void SpriteMaterial::InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha)
+#include <d3d12.h>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+struct SpriteMaterial::Impl
 {
-	m_texture.InitializeSolidColor(device, red, green, blue, alpha, false);
-	CreateDescriptorHeap(device);
-	CreateShaderResourceView(device);
-}
-
-void SpriteMaterial::InitializeTexture(ID3D12Device* device, const std::string& texturePath, bool useSrgb)
-{
-	m_texture.Initialize(device, texturePath, useSrgb);
-	CreateDescriptorHeap(device);
-	CreateShaderResourceView(device);
-}
-
-void SpriteMaterial::InitializePixels(ID3D12Device* device, const std::vector<UINT8>& rgbaPixels, UINT width, UINT height, bool useSrgb)
-{
-	const size_t minimumByteCount = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
-	if (rgbaPixels.size() < minimumByteCount)
+	void CreateDescriptorHeap(ID3D12Device* device)
 	{
-		throw std::runtime_error("Sprite pixel data is smaller than the requested texture size.");
+		D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
+		heapDesc.NumDescriptors = 1;
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		ThrowIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&srvHeap)));
 	}
 
-	m_texture.InitializeFromPixels(device, rgbaPixels.data(), width, height, useSrgb);
-	CreateDescriptorHeap(device);
-	CreateShaderResourceView(device);
+	void CreateShaderResourceView(ID3D12Device* device)
+	{
+		texture.CreateShaderResourceView(device, srvHeap->GetCPUDescriptorHandleForHeapStart());
+	}
+
+	Texture2D texture;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvHeap;
+};
+
+SpriteMaterial::SpriteMaterial()
+	: m_impl(std::make_unique<Impl>())
+{
 }
 
-void SpriteMaterial::Bind(ID3D12GraphicsCommandList* commandList, UINT rootParameterIndex) const
+SpriteMaterial::~SpriteMaterial() = default;
+SpriteMaterial::SpriteMaterial(SpriteMaterial&&) noexcept = default;
+SpriteMaterial& SpriteMaterial::operator=(SpriteMaterial&&) noexcept = default;
+
+void RenderResourceAccess::InitializeSolidColor(
+	SpriteMaterial& material,
+	ID3D12Device* device,
+	std::uint8_t red,
+	std::uint8_t green,
+	std::uint8_t blue,
+	std::uint8_t alpha)
 {
-	ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap.Get() };
-	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-	commandList->SetGraphicsRootDescriptorTable(rootParameterIndex, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
+	if (material.m_impl == nullptr)
+	{
+		material.m_impl = std::make_unique<SpriteMaterial::Impl>();
+	}
+	material.m_impl->texture.InitializeSolidColor(device, red, green, blue, alpha, false);
+	material.m_impl->CreateDescriptorHeap(device);
+	material.m_impl->CreateShaderResourceView(device);
 }
 
-void SpriteMaterial::CreateDescriptorHeap(ID3D12Device* device)
+void RenderResourceAccess::InitializeTexture(
+	SpriteMaterial& material,
+	ID3D12Device* device,
+	const std::string& texturePath,
+	bool useSrgb)
 {
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
-	heapDesc.NumDescriptors = 1;
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ThrowIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_srvHeap)));
+	if (material.m_impl == nullptr)
+	{
+		material.m_impl = std::make_unique<SpriteMaterial::Impl>();
+	}
+	material.m_impl->texture.Initialize(device, texturePath, useSrgb);
+	material.m_impl->CreateDescriptorHeap(device);
+	material.m_impl->CreateShaderResourceView(device);
 }
 
-void SpriteMaterial::CreateShaderResourceView(ID3D12Device* device)
+void RenderResourceAccess::InitializePixels(
+	SpriteMaterial& material,
+	ID3D12Device* device,
+	const std::vector<std::uint8_t>& rgbaPixels,
+	std::uint32_t width,
+	std::uint32_t height,
+	bool useSrgb)
 {
-	m_texture.CreateShaderResourceView(device, m_srvHeap->GetCPUDescriptorHandleForHeapStart());
+	if (material.m_impl == nullptr)
+	{
+		material.m_impl = std::make_unique<SpriteMaterial::Impl>();
+	}
+	material.m_impl->texture.InitializeFromPixels(device, rgbaPixels.data(), width, height, useSrgb);
+	material.m_impl->CreateDescriptorHeap(device);
+	material.m_impl->CreateShaderResourceView(device);
+}
+
+void RenderResourceAccess::Bind(
+	const SpriteMaterial& material,
+	ID3D12GraphicsCommandList* commandList,
+	std::uint32_t rootParameterIndex)
+{
+	if (material.m_impl == nullptr || material.m_impl->srvHeap == nullptr)
+	{
+		return;
+	}
+	ID3D12DescriptorHeap* heaps[] = { material.m_impl->srvHeap.Get() };
+	commandList->SetDescriptorHeaps(1, heaps);
+	commandList->SetGraphicsRootDescriptorTable(rootParameterIndex, material.m_impl->srvHeap->GetGPUDescriptorHandleForHeapStart());
 }

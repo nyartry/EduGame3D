@@ -1,6 +1,7 @@
 #include "Framework/Platform/Win32/Win32InputBackend.h"
 
 #include "Framework/Scene/Input/Input.h"
+#include "Framework/Scene/Input/InputWriter.h"
 
 namespace
 {
@@ -30,11 +31,11 @@ namespace
 
 void Win32InputBackend::Update(HWND window, Input& input) const
 {
-	input.BeginFrame();
+	InputWriter::BeginFrame(input);
 	for (std::size_t index = 0; index < static_cast<std::size_t>(InputKey::Count); ++index)
 	{
 		const InputKey key = static_cast<InputKey>(index);
-		input.SetKey(key, (GetAsyncKeyState(ToVirtualKey(key)) & 0x8000) != 0);
+		InputWriter::SetKey(input, key, (GetAsyncKeyState(ToVirtualKey(key)) & 0x8000) != 0);
 	}
 
 	POINT cursorPosition{};
@@ -53,7 +54,8 @@ void Win32InputBackend::Update(HWND window, Input& input) const
 		}
 	}
 
-	input.SetPointer(
+	InputWriter::SetPointer(
+		input,
 		(GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0,
 		insideClient,
 		cursorPosition.x,

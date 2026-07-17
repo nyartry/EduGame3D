@@ -34,74 +34,87 @@ namespace
 	constexpr XMFLOAT4 TriangleColor{ 1.0f, 0.76f, 0.24f, 0.90f };
 }
 
-void GameScene::Load(const SceneLoadContext& context)
+GameScene::GameScene(
+	IRenderDevice& renderDevice,
+	IAudioService& audio,
+	IEffectPlayer& effects,
+	std::uint32_t width,
+	std::uint32_t height)
+	: m_renderDevice(renderDevice)
+	, m_audio(audio)
+	, m_effects(effects)
+	, m_width(width)
+	, m_height(height)
 {
-	m_audio = context.audio;
-	m_effects = context.effects;
-	const float aspectRatio = static_cast<float>(context.width) / static_cast<float>(context.height);
+}
+
+void GameScene::Activate()
+{
+	const float aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
 
 	auto followCamera = std::make_unique<FollowCamera>();
 	followCamera->SetLens(XMConvertToRadians(CameraFovYDegrees), aspectRatio, CameraNearZ, CameraFarZ);
 	m_followCamera = followCamera.get();
 	m_camera = std::move(followCamera);
 
-	m_ground.Initialize(*context.renderDevice);
+	m_ground.Initialize(m_renderDevice);
 	m_originCube.SetPosition(PlatformCubePosition.x, PlatformCubePosition.y, PlatformCubePosition.z);
 	m_originCube.SetGround(&m_ground);
 	m_originCube.SetSurfaceCollisionEnabled(true);
 	m_originCube.SetGroundCollisionEnabled(false);
 	m_originCube.SetGravityEnabled(false);
-	m_originCube.Initialize(*context.renderDevice);
+	m_originCube.Initialize(m_renderDevice);
 	m_primitiveSprites[0] = SpriteShapeFactory::CreateRect(
-		*context.renderDevice,
+		m_renderDevice,
 		310.0f,
 		28.0f,
 		72.0f,
 		72.0f,
 		SquareColor);
 	m_primitiveSprites[1] = SpriteShapeFactory::CreateRect(
-		*context.renderDevice,
+		m_renderDevice,
 		394.0f,
 		42.0f,
 		116.0f,
 		44.0f,
 		RectColor);
 	m_primitiveSprites[2] = SpriteShapeFactory::CreateTriangle(
-		*context.renderDevice,
+		m_renderDevice,
 		526.0f,
 		28.0f,
 		72.0f,
 		72.0f,
 		TriangleColor);
 	m_generatedImageSprite.InitializeTexture(
-		*context.renderDevice,
+		m_renderDevice,
 		GeneratedImageTexturePath,
 		42.0f,
-		static_cast<float>(context.height) - 202.0f,
+		static_cast<float>(m_height) - 202.0f,
 		160.0f,
 		160.0f);
-	m_jumpParticles.Initialize(*context.renderDevice);
-	m_hudOverlay.Initialize(*context.renderDevice, context.width, context.height);
+	m_jumpParticles.Initialize(m_renderDevice);
+	m_hudOverlay.Initialize(m_renderDevice, m_width, m_height);
 
+	m_collisionBodies.clear();
 	m_actors.clear();
 	auto player = std::make_unique<OrcPlayer>();
 	player->SetGround(&m_ground);
 	player->AddLandingSurface(&m_originCube);
-	m_player = player.get();
-	m_followTarget = player.get();
-	m_actors.push_back(std::move(player));
-	m_actors.push_back(std::make_unique<AnimatedCubeObject>());
-	m_actors.push_back(std::make_unique<DavenPlayer>());
-	m_actors.push_back(std::make_unique<NathanWalker>());
-	//m_actors.push_back(std::make_unique<ForestGoddessPlayer>());
+	m_player = &AddActor(std::move(player));
+	m_followTarget = m_player;
+	AddActor(std::make_unique<AnimatedCubeObject>());
+	AddActor(std::make_unique<DavenPlayer>());
+	AddActor(std::make_unique<NathanWalker>());
+	//AddActor(std::make_unique<ForestGoddessPlayer>());
 	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
-		actor->Initialize(*context.renderDevice);
+		actor->Initialize(m_renderDevice);
 	}
 }
 
 void GameScene::Unload()
 {
+	m_collisionBodies.clear();
 	m_actors.clear();
 	m_camera.reset();
 	m_followCamera = nullptr;
@@ -111,10 +124,7 @@ void GameScene::Unload()
 
 void GameScene::Update(float deltaTime, const Input& input)
 {
-	if (m_audio != nullptr)
-	{
-		m_audio->PlayBgm(GameContent::GameBgm);
-	}
+	m_audio.PlayBgm(GameContent::GameBgm);
 
 	if (m_player != nullptr)
 	{
@@ -132,16 +142,9 @@ void GameScene::Update(float deltaTime, const Input& input)
 		XMFLOAT3 effectPosition = m_player->GetLastJumpStartPosition();
 		effectPosition.y += 0.02f;
 		m_jumpParticles.Emit(effectPosition);
-		if (m_effects != nullptr)
-		{
-			m_effects->Play(GameContent::JumpEffect, effectPosition, 0.35f);
-		}
+		m_effects.Play(GameContent::JumpEffect, effectPosition, 0.35f);
 	}
 	m_jumpParticles.Update(deltaTime);
-	if (m_effects != nullptr)
-	{
-		m_effects->Update(deltaTime);
-	}
 	m_hudOverlay.Update(deltaTime);
 
 	if (m_followCamera != nullptr && m_followTarget != nullptr)
@@ -151,7 +154,7 @@ void GameScene::Update(float deltaTime, const Input& input)
 	m_camera->Update(deltaTime, input);
 }
 
-void GameScene::Render(IRenderer& renderer) const
+void GameScene::RenderWorld(IRenderer& renderer) const
 {
 	m_ground.Draw(renderer);
 	m_originCube.Draw(renderer);
@@ -159,14 +162,11 @@ void GameScene::Render(IRenderer& renderer) const
 	{
 		actor->Draw(renderer);
 	}
-	if (m_followCamera != nullptr)
-	{
-		if (m_effects != nullptr)
-		{
-			m_effects->Render(renderer, m_followCamera->GetViewMatrix(), m_followCamera->GetProjectionMatrix());
-		}
-	}
 	m_jumpParticles.Render(renderer);
+}
+
+void GameScene::RenderOverlay(IRenderer& renderer) const
+{
 	for (const Sprite& primitiveSprite : m_primitiveSprites)
 	{
 		primitiveSprite.Render(renderer);
@@ -175,9 +175,13 @@ void GameScene::Render(IRenderer& renderer) const
 	m_hudOverlay.Render(renderer);
 }
 
-XMMATRIX GameScene::GetViewProjectionMatrix() const
+RenderView GameScene::GetRenderView() const
 {
-	return m_camera->GetViewProjectionMatrix();
+	if (m_camera == nullptr)
+	{
+		return {};
+	}
+	return { m_camera->GetViewMatrix(), m_camera->GetProjectionMatrix(), true };
 }
 
 XMFLOAT3 GameScene::GetCameraFollowPosition()
@@ -200,19 +204,12 @@ void GameScene::ResolvePlayerBodyCollisions()
 		bool resolvedAny = false;
 		resolvedAny |= ResolveCollisionBodyAgainst(playerBody, m_originCube);
 
-		for (const std::unique_ptr<Actor>& actor : m_actors)
+		for (const CollisionBody* body : m_collisionBodies)
 		{
-			if (actor.get() == m_player)
+			if (body == &playerBody)
 			{
 				continue;
 			}
-
-			const CollisionBody* body = dynamic_cast<const CollisionBody*>(actor.get());
-			if (body == nullptr)
-			{
-				continue;
-			}
-
 			resolvedAny |= ResolveCollisionBodyAgainst(playerBody, *body);
 		}
 

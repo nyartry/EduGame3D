@@ -6,31 +6,34 @@
 #include "Framework/Rendering/Buffers/SpriteVertexBuffer.h"
 #include "Framework/Rendering/Materials/TexturedMaterial.h"
 #include "Framework/Rendering/Buffers/TexturedVertexBuffer.h"
+#include "Framework/Rendering/Core/RenderResourceAccess.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <utility>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 
 void Dx12Renderer::CreateVertexBuffer(VertexBuffer& buffer, const std::vector<Vertex>& vertices)
 {
-	buffer.Initialize(m_device.Get(), vertices);
+	RenderResourceAccess::Initialize(buffer, m_device.Get(), vertices);
 }
 
 void Dx12Renderer::CreateTexturedVertexBuffer(TexturedVertexBuffer& buffer, const std::vector<TexturedVertex>& vertices)
 {
-	buffer.Initialize(m_device.Get(), vertices);
+	RenderResourceAccess::Initialize(buffer, m_device.Get(), vertices);
 }
 
 void Dx12Renderer::CreateSkinnedVertexBuffer(SkinnedVertexBuffer& buffer, const std::vector<SkinnedVertex>& vertices)
 {
-	buffer.Initialize(m_device.Get(), vertices);
+	RenderResourceAccess::Initialize(buffer, m_device.Get(), vertices);
 }
 
 void Dx12Renderer::CreateSpriteVertexBuffer(SpriteVertexBuffer& buffer, std::uint32_t vertexCapacity)
 {
-	buffer.Initialize(m_device.Get(), static_cast<UINT>(vertexCapacity));
+	RenderResourceAccess::Initialize(buffer, m_device.Get(), vertexCapacity);
 }
 
 void Dx12Renderer::CreateSolidColorSpriteMaterial(
@@ -40,12 +43,12 @@ void Dx12Renderer::CreateSolidColorSpriteMaterial(
 	std::uint8_t blue,
 	std::uint8_t alpha)
 {
-	material.InitializeSolidColor(m_device.Get(), red, green, blue, alpha);
+	RenderResourceAccess::InitializeSolidColor(material, m_device.Get(), red, green, blue, alpha);
 }
 
 void Dx12Renderer::CreateTextureSpriteMaterial(SpriteMaterial& material, const std::string& texturePath, bool useSrgb)
 {
-	material.InitializeTexture(m_device.Get(), texturePath, useSrgb);
+	RenderResourceAccess::InitializeTexture(material, m_device.Get(), texturePath, useSrgb);
 }
 
 void Dx12Renderer::CreatePixelSpriteMaterial(
@@ -55,7 +58,7 @@ void Dx12Renderer::CreatePixelSpriteMaterial(
 	std::uint32_t height,
 	bool useSrgb)
 {
-	material.InitializePixels(m_device.Get(), rgbaPixels, width, height, useSrgb);
+	RenderResourceAccess::InitializePixels(material, m_device.Get(), rgbaPixels, width, height, useSrgb);
 }
 
 void Dx12Renderer::CreateTexturedMaterial(
@@ -64,7 +67,7 @@ void Dx12Renderer::CreateTexturedMaterial(
 	const std::string& opacityTexturePath,
 	const std::string& normalTexturePath)
 {
-	material.Initialize(m_device.Get(), baseColorTexturePath, opacityTexturePath, normalTexturePath);
+	RenderResourceAccess::Initialize(material, m_device.Get(), baseColorTexturePath, opacityTexturePath, normalTexturePath);
 }
 
 namespace
@@ -74,6 +77,13 @@ namespace
 
 Dx12Renderer::~Dx12Renderer()
 {
+	WaitForGpu();
+	CollectDeferredReleases();
+	for (DeferredRelease& deferred : m_deferredReleases)
+	{
+		deferred.release();
+	}
+	m_deferredReleases.clear();
 	if (m_fenceEvent != nullptr)
 	{
 		CloseHandle(m_fenceEvent);
@@ -185,7 +195,7 @@ void Dx12Renderer::Draw(const VertexBuffer& vertexBuffer, const XMMATRIX& world)
 	const XMMATRIX worldViewProjection = world * viewProjection;
 	const D3D12_GPU_VIRTUAL_ADDRESS sceneConstantsAddress = m_basicColorPipeline.UpdateWorldViewProjection(worldViewProjection);
 	m_commandList->SetGraphicsRootConstantBufferView(0, sceneConstantsAddress);
-	vertexBuffer.Bind(m_commandList.Get());
+	RenderResourceAccess::Bind(vertexBuffer, m_commandList.Get());
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
@@ -196,7 +206,7 @@ void Dx12Renderer::DrawScreen(const VertexBuffer& vertexBuffer, const XMMATRIX& 
 
 	const D3D12_GPU_VIRTUAL_ADDRESS sceneConstantsAddress = m_basicColorPipeline.UpdateWorldViewProjection(world);
 	m_commandList->SetGraphicsRootConstantBufferView(0, sceneConstantsAddress);
-	vertexBuffer.Bind(m_commandList.Get());
+	RenderResourceAccess::Bind(vertexBuffer, m_commandList.Get());
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
@@ -209,8 +219,8 @@ void Dx12Renderer::DrawTextured(const TexturedVertexBuffer& vertexBuffer, const 
 	const XMMATRIX worldViewProjection = world * viewProjection;
 	const D3D12_GPU_VIRTUAL_ADDRESS sceneConstantsAddress = m_texturedPipeline.UpdateWorldViewProjection(worldViewProjection);
 	m_commandList->SetGraphicsRootConstantBufferView(0, sceneConstantsAddress);
-	material.Bind(m_commandList.Get(), 1);
-	vertexBuffer.Bind(m_commandList.Get());
+	RenderResourceAccess::Bind(material, m_commandList.Get(), 1);
+	RenderResourceAccess::Bind(vertexBuffer, m_commandList.Get());
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
@@ -226,8 +236,8 @@ void Dx12Renderer::DrawSprites(const SpriteVertexBuffer& vertexBuffer, const Spr
 
 	const D3D12_GPU_VIRTUAL_ADDRESS constantsAddress = m_spritePipeline.UpdateScreenSize(m_width, m_height);
 	m_commandList->SetGraphicsRootConstantBufferView(0, constantsAddress);
-	material.Bind(m_commandList.Get(), 1);
-	vertexBuffer.Bind(m_commandList.Get());
+	RenderResourceAccess::Bind(material, m_commandList.Get(), 1);
+	RenderResourceAccess::Bind(vertexBuffer, m_commandList.Get());
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
@@ -243,7 +253,7 @@ void Dx12Renderer::DrawSkinnedTextured(
 {
 	m_commandList->SetPipelineState(m_skinnedTexturedPipeline.GetPipelineState());
 	m_skinnedTexturedPipeline.Bind(m_commandList.Get());
-	material.Bind(m_commandList.Get(), 2);
+	RenderResourceAccess::Bind(material, m_commandList.Get(), 2);
 
 	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
 	const XMMATRIX worldViewProjection = world * viewProjection;
@@ -256,7 +266,7 @@ void Dx12Renderer::DrawSkinnedTextured(
 		modelScale);
 	m_commandList->SetGraphicsRootConstantBufferView(0, constantBufferViews.sceneConstants);
 	m_commandList->SetGraphicsRootConstantBufferView(1, constantBufferViews.boneConstants);
-	vertexBuffer.Bind(m_commandList.Get());
+	RenderResourceAccess::Bind(vertexBuffer, m_commandList.Get());
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
@@ -283,6 +293,23 @@ void Dx12Renderer::EndFrame()
 void Dx12Renderer::WaitForGpu()
 {
 	FlushGpu();
+}
+
+void Dx12Renderer::DeferRelease(std::function<void()> release)
+{
+	if (!release)
+	{
+		return;
+	}
+
+	const UINT64 latestSubmittedFence = m_nextFenceValue > 1 ? m_nextFenceValue - 1 : 0;
+	if (m_fence == nullptr || latestSubmittedFence == 0 || m_fence->GetCompletedValue() >= latestSubmittedFence)
+	{
+		release();
+		return;
+	}
+
+	m_deferredReleases.push_back({ latestSubmittedFence, std::move(release) });
 }
 
 ID3D12Device* Dx12Renderer::GetDevice() const
@@ -485,6 +512,7 @@ void Dx12Renderer::MoveToNextFrame()
 		ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent));
 		WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
 	}
+	CollectDeferredReleases();
 
 }
 
@@ -504,4 +532,28 @@ void Dx12Renderer::FlushGpu()
 	{
 		frameFenceValue = fenceValue;
 	}
+	CollectDeferredReleases();
+}
+
+void Dx12Renderer::CollectDeferredReleases()
+{
+	if (m_fence == nullptr)
+	{
+		return;
+	}
+
+	const UINT64 completedFence = m_fence->GetCompletedValue();
+	const auto removeBegin = std::remove_if(
+		m_deferredReleases.begin(),
+		m_deferredReleases.end(),
+		[completedFence](DeferredRelease& deferred)
+		{
+			if (deferred.fenceValue > completedFence)
+			{
+				return false;
+			}
+			deferred.release();
+			return true;
+		});
+	m_deferredReleases.erase(removeBegin, m_deferredReleases.end());
 }

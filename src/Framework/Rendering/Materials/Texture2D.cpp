@@ -1,5 +1,6 @@
 #include "Framework/Rendering/Materials/Texture2D.h"
 
+#include "Framework/Assets/AssetPathResolver.h"
 #include "Framework/Common/Common.h"
 #include "Framework/Rendering/Core/Dx12BufferHelper.h"
 
@@ -13,25 +14,6 @@ using Microsoft::WRL::ComPtr;
 
 namespace
 {
-	std::wstring ToWideString(const std::string& text)
-	{
-		if (text.empty())
-		{
-			return {};
-		}
-
-		const int length = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, nullptr, 0);
-		if (length == 0)
-		{
-			throw std::runtime_error("Failed to convert texture path.");
-		}
-
-		std::wstring wideText(static_cast<size_t>(length), L'\0');
-		MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wideText.data(), length);
-		wideText.pop_back();
-		return wideText;
-	}
-
 	void EnsureComInitialized()
 	{
 		const HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
@@ -54,12 +36,12 @@ namespace
 		return factory;
 	}
 
-	std::vector<UINT8> LoadPixelsWithWic(const std::string& filePath, UINT& width, UINT& height)
+	std::vector<UINT8> LoadPixelsWithWic(const std::filesystem::path& filePath, UINT& width, UINT& height)
 	{
 		ComPtr<IWICImagingFactory2> factory = CreateWicFactory();
 		ComPtr<IWICBitmapDecoder> decoder;
 		ThrowIfFailed(factory->CreateDecoderFromFilename(
-			ToWideString(filePath).c_str(),
+			filePath.c_str(),
 			nullptr,
 			GENERIC_READ,
 			WICDecodeMetadataCacheOnLoad,
@@ -117,7 +99,7 @@ void Texture2D::Initialize(ID3D12Device* device, const std::string& filePath, bo
 	{
 		UINT width = 0;
 		UINT height = 0;
-		const std::vector<UINT8> pixels = LoadPixelsWithWic(filePath, width, height);
+		const std::vector<UINT8> pixels = LoadPixelsWithWic(AssetPathResolver::Resolve(filePath), width, height);
 		if (width == 0 || height == 0)
 		{
 			throw std::runtime_error("Texture has invalid dimensions: " + filePath);

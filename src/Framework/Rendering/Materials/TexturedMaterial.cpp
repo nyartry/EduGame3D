@@ -1,76 +1,116 @@
 #include "Framework/Rendering/Materials/TexturedMaterial.h"
 
 #include "Framework/Common/Common.h"
+#include "Framework/Rendering/Core/RenderResourceAccess.h"
+#include "Framework/Rendering/Materials/Texture2D.h"
 
-void TexturedMaterial::Initialize(
+#include <Windows.h>
+#include <wrl/client.h>
+
+#include <d3d12.h>
+#include <memory>
+#include <string>
+#include <utility>
+
+struct TexturedMaterial::Impl
+{
+	static constexpr std::uint32_t TextureCount = 3;
+
+	void LoadTextures(
+		ID3D12Device* device,
+		const std::string& baseColorTexturePath,
+		const std::string& opacityTexturePath,
+		const std::string& normalTexturePath)
+	{
+		if (baseColorTexturePath.empty())
+		{
+			baseColorTexture.InitializeSolidColor(device, 255, 255, 255, 255, true);
+		}
+		else
+		{
+			baseColorTexture.Initialize(device, baseColorTexturePath, true);
+		}
+
+		if (opacityTexturePath.empty())
+		{
+			opacityTexture.InitializeSolidColor(device, 255, 255, 255, 255, false);
+		}
+		else
+		{
+			opacityTexture.Initialize(device, opacityTexturePath, false);
+		}
+
+		if (normalTexturePath.empty())
+		{
+			normalTexture.InitializeSolidColor(device, 128, 128, 255, 255, false);
+		}
+		else
+		{
+			normalTexture.Initialize(device, normalTexturePath, false);
+		}
+	}
+
+	void CreateDescriptorHeap(ID3D12Device* device)
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
+		heapDesc.NumDescriptors = TextureCount;
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		ThrowIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&srvHeap)));
+	}
+
+	void CreateShaderResourceViews(ID3D12Device* device)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE handle = srvHeap->GetCPUDescriptorHandleForHeapStart();
+		const UINT descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		baseColorTexture.CreateShaderResourceView(device, handle);
+		handle.ptr += descriptorSize;
+		opacityTexture.CreateShaderResourceView(device, handle);
+		handle.ptr += descriptorSize;
+		normalTexture.CreateShaderResourceView(device, handle);
+	}
+
+	Texture2D baseColorTexture;
+	Texture2D opacityTexture;
+	Texture2D normalTexture;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvHeap;
+};
+
+TexturedMaterial::TexturedMaterial()
+	: m_impl(std::make_unique<Impl>())
+{
+}
+
+TexturedMaterial::~TexturedMaterial() = default;
+TexturedMaterial::TexturedMaterial(TexturedMaterial&&) noexcept = default;
+TexturedMaterial& TexturedMaterial::operator=(TexturedMaterial&&) noexcept = default;
+
+void RenderResourceAccess::Initialize(
+	TexturedMaterial& material,
 	ID3D12Device* device,
 	const std::string& baseColorTexturePath,
 	const std::string& opacityTexturePath,
 	const std::string& normalTexturePath)
 {
-	LoadTextures(device, baseColorTexturePath, opacityTexturePath, normalTexturePath);
-	CreateDescriptorHeap(device);
-	CreateShaderResourceViews(device);
+	if (material.m_impl == nullptr)
+	{
+		material.m_impl = std::make_unique<TexturedMaterial::Impl>();
+	}
+	material.m_impl->LoadTextures(device, baseColorTexturePath, opacityTexturePath, normalTexturePath);
+	material.m_impl->CreateDescriptorHeap(device);
+	material.m_impl->CreateShaderResourceViews(device);
 }
 
-void TexturedMaterial::Bind(ID3D12GraphicsCommandList* commandList, UINT rootParameterIndex) const
+void RenderResourceAccess::Bind(
+	const TexturedMaterial& material,
+	ID3D12GraphicsCommandList* commandList,
+	std::uint32_t rootParameterIndex)
 {
-	ID3D12DescriptorHeap* descriptorHeaps[] = { m_srvHeap.Get() };
-	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-	commandList->SetGraphicsRootDescriptorTable(rootParameterIndex, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
-}
-
-void TexturedMaterial::LoadTextures(
-	ID3D12Device* device,
-	const std::string& baseColorTexturePath,
-	const std::string& opacityTexturePath,
-	const std::string& normalTexturePath)
-{
-	if (baseColorTexturePath.empty())
+	if (material.m_impl == nullptr || material.m_impl->srvHeap == nullptr)
 	{
-		m_baseColorTexture.InitializeSolidColor(device, 255, 255, 255, 255, true);
+		return;
 	}
-	else
-	{
-		m_baseColorTexture.Initialize(device, baseColorTexturePath, true);
-	}
-
-	if (opacityTexturePath.empty())
-	{
-		m_opacityTexture.InitializeSolidColor(device, 255, 255, 255, 255, false);
-	}
-	else
-	{
-		m_opacityTexture.Initialize(device, opacityTexturePath, false);
-	}
-
-	if (normalTexturePath.empty())
-	{
-		m_normalTexture.InitializeSolidColor(device, 128, 128, 255, 255, false);
-	}
-	else
-	{
-		m_normalTexture.Initialize(device, normalTexturePath, false);
-	}
-}
-
-void TexturedMaterial::CreateDescriptorHeap(ID3D12Device* device)
-{
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
-	heapDesc.NumDescriptors = TextureCount;
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ThrowIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_srvHeap)));
-}
-
-void TexturedMaterial::CreateShaderResourceViews(ID3D12Device* device)
-{
-	const UINT descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	D3D12_CPU_DESCRIPTOR_HANDLE handle = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
-
-	m_baseColorTexture.CreateShaderResourceView(device, handle);
-	handle.ptr += descriptorSize;
-	m_opacityTexture.CreateShaderResourceView(device, handle);
-	handle.ptr += descriptorSize;
-	m_normalTexture.CreateShaderResourceView(device, handle);
+	ID3D12DescriptorHeap* heaps[] = { material.m_impl->srvHeap.Get() };
+	commandList->SetDescriptorHeaps(1, heaps);
+	commandList->SetGraphicsRootDescriptorTable(rootParameterIndex, material.m_impl->srvHeap->GetGPUDescriptorHandleForHeapStart());
 }

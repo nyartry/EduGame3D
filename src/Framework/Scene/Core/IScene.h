@@ -3,23 +3,20 @@
 #include "Framework/Scene/Input/Input.h"
 
 #include <DirectXMath.h>
-#include <cstdint>
 #include <string>
 
-class IAudioService;
-class IEffectService;
-class IRenderDevice;
 class IRenderer;
-class IUiService;
 
-struct SceneLoadContext
+struct RenderView
 {
-	IRenderDevice* renderDevice{};
-	IAudioService* audio{};
-	IEffectService* effects{};
-	IUiService* ui{};
-	std::uint32_t width{};
-	std::uint32_t height{};
+	DirectX::XMMATRIX view{ DirectX::XMMatrixIdentity() };
+	DirectX::XMMATRIX projection{ DirectX::XMMatrixIdentity() };
+	bool effectsEnabled{};
+
+	DirectX::XMMATRIX GetViewProjection() const
+	{
+		return view * projection;
+	}
 };
 
 class IScene
@@ -27,12 +24,17 @@ class IScene
 public:
 	virtual ~IScene() = default;
 
-	virtual void Load(const SceneLoadContext& context) = 0;
+	// Prepare runs on a worker thread during asynchronous transitions and must
+	// only perform CPU-side work owned by the scene.
+	virtual void Prepare() {}
+	// Activate always runs on the main thread and may create GPU/UI resources.
+	virtual void Activate() = 0;
 	virtual void Unload() {}
 	virtual void Update(float deltaTime, const Input& input) = 0;
-	virtual void Render(IRenderer& renderer) const = 0;
+	virtual void RenderWorld(IRenderer& renderer) const { (void)renderer; }
+	virtual void RenderOverlay(IRenderer& renderer) const { (void)renderer; }
 
-	virtual DirectX::XMMATRIX GetViewProjectionMatrix() const = 0;
+	virtual RenderView GetRenderView() const = 0;
 	virtual std::string GetRequestedSceneName() const { return {}; }
 	virtual bool ShouldLoadRequestedSceneAsync() const { return false; }
 };

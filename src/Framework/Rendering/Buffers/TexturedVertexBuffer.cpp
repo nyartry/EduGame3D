@@ -2,73 +2,114 @@
 
 #include "Framework/Common/Common.h"
 #include "Framework/Rendering/Core/Dx12BufferHelper.h"
+#include "Framework/Rendering/Core/RenderResourceAccess.h"
+
+#include <Windows.h>
+#include <wrl/client.h>
 
 #include <cstring>
+#include <d3d12.h>
+#include <memory>
+#include <utility>
 
-void TexturedVertexBuffer::Initialize(ID3D12Device* device, const std::vector<TexturedVertex>& vertices)
+struct TexturedVertexBuffer::Impl
 {
-	const UINT bufferSize = static_cast<UINT>(vertices.size() * sizeof(TexturedVertex));
+	static constexpr std::uint32_t DynamicBufferCopies = 3;
 
-	m_device = device;
-	m_resource = Dx12BufferHelper::CreateUploadBufferWithData(device, vertices.data(), bufferSize);
-	m_vertexCount = static_cast<UINT>(vertices.size());
-	m_capacity = m_vertexCount;
-	m_dynamicSlotSize = bufferSize;
+	void EnsureDynamicResource()
+	{
+		if (usesDynamicCopies)
+		{
+			return;
+		}
 
-	m_view.BufferLocation = m_resource->GetGPUVirtualAddress();
-	m_view.StrideInBytes = sizeof(TexturedVertex);
-	m_view.SizeInBytes = bufferSize;
+		dynamicSlotSize = static_cast<std::uint32_t>(capacity * sizeof(TexturedVertex));
+		resource = Dx12BufferHelper::CreateUploadBuffer(
+			device,
+			static_cast<UINT64>(dynamicSlotSize) * DynamicBufferCopies);
+		nextDynamicSlot = 0;
+		usesDynamicCopies = true;
+	}
+
+	void WriteVertices(const std::vector<TexturedVertex>& vertices, std::uint32_t bufferOffset)
+	{
+		void* mappedData = nullptr;
+		const D3D12_RANGE readRange{ 0, 0 };
+		ThrowIfFailed(resource->Map(0, &readRange, &mappedData));
+		std::memcpy(
+			static_cast<std::uint8_t*>(mappedData) + bufferOffset,
+			vertices.data(),
+			vertices.size() * sizeof(TexturedVertex));
+		resource->Unmap(0, nullptr);
+	}
+
+	ID3D12Device* device{};
+	Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+	D3D12_VERTEX_BUFFER_VIEW view{};
+	std::uint32_t vertexCount{};
+	std::uint32_t capacity{};
+	std::uint32_t dynamicSlotSize{};
+	std::uint32_t nextDynamicSlot{};
+	bool usesDynamicCopies{};
+};
+
+TexturedVertexBuffer::TexturedVertexBuffer()
+	: m_impl(std::make_unique<Impl>())
+{
 }
+
+TexturedVertexBuffer::~TexturedVertexBuffer() = default;
+TexturedVertexBuffer::TexturedVertexBuffer(TexturedVertexBuffer&&) noexcept = default;
+TexturedVertexBuffer& TexturedVertexBuffer::operator=(TexturedVertexBuffer&&) noexcept = default;
 
 void TexturedVertexBuffer::Update(const std::vector<TexturedVertex>& vertices)
 {
-	const UINT vertexCount = static_cast<UINT>(vertices.size());
-	if (vertexCount > m_capacity)
+	if (m_impl == nullptr || vertices.size() > m_impl->capacity)
 	{
 		return;
 	}
 
-	EnsureDynamicResource();
-	const UINT bufferSize = static_cast<UINT>(vertices.size() * sizeof(TexturedVertex));
-	const UINT bufferOffset = m_nextDynamicSlot * m_dynamicSlotSize;
-	m_nextDynamicSlot = (m_nextDynamicSlot + 1) % DynamicBufferCopies;
-	WriteVertices(vertices, bufferOffset);
+	m_impl->EnsureDynamicResource();
+	const std::uint32_t bufferSize = static_cast<std::uint32_t>(vertices.size() * sizeof(TexturedVertex));
+	const std::uint32_t bufferOffset = m_impl->nextDynamicSlot * m_impl->dynamicSlotSize;
+	m_impl->nextDynamicSlot = (m_impl->nextDynamicSlot + 1) % Impl::DynamicBufferCopies;
+	m_impl->WriteVertices(vertices, bufferOffset);
 
-	m_vertexCount = vertexCount;
-	m_view.BufferLocation = m_resource->GetGPUVirtualAddress() + bufferOffset;
-	m_view.SizeInBytes = bufferSize;
+	m_impl->vertexCount = static_cast<std::uint32_t>(vertices.size());
+	m_impl->view.BufferLocation = m_impl->resource->GetGPUVirtualAddress() + bufferOffset;
+	m_impl->view.SizeInBytes = bufferSize;
 }
 
-void TexturedVertexBuffer::Bind(ID3D12GraphicsCommandList* commandList) const
+std::uint32_t TexturedVertexBuffer::GetVertexCount() const
 {
-	commandList->IASetVertexBuffers(0, 1, &m_view);
+	return m_impl == nullptr ? 0 : m_impl->vertexCount;
 }
 
-UINT TexturedVertexBuffer::GetVertexCount() const
+void RenderResourceAccess::Initialize(
+	TexturedVertexBuffer& buffer,
+	ID3D12Device* device,
+	const std::vector<TexturedVertex>& vertices)
 {
-	return m_vertexCount;
-}
-
-void TexturedVertexBuffer::EnsureDynamicResource()
-{
-	if (m_usesDynamicCopies)
+	if (buffer.m_impl == nullptr)
 	{
-		return;
+		buffer.m_impl = std::make_unique<TexturedVertexBuffer::Impl>();
 	}
 
-	m_dynamicSlotSize = static_cast<UINT>(m_capacity * sizeof(TexturedVertex));
-	m_resource = Dx12BufferHelper::CreateUploadBuffer(
-		m_device,
-		static_cast<UINT64>(m_dynamicSlotSize) * DynamicBufferCopies);
-	m_nextDynamicSlot = 0;
-	m_usesDynamicCopies = true;
+	const std::uint32_t bufferSize = static_cast<std::uint32_t>(vertices.size() * sizeof(TexturedVertex));
+	buffer.m_impl->device = device;
+	buffer.m_impl->resource = Dx12BufferHelper::CreateUploadBufferWithData(device, vertices.data(), bufferSize);
+	buffer.m_impl->vertexCount = static_cast<std::uint32_t>(vertices.size());
+	buffer.m_impl->capacity = buffer.m_impl->vertexCount;
+	buffer.m_impl->dynamicSlotSize = bufferSize;
+	buffer.m_impl->view.BufferLocation = buffer.m_impl->resource->GetGPUVirtualAddress();
+	buffer.m_impl->view.StrideInBytes = sizeof(TexturedVertex);
+	buffer.m_impl->view.SizeInBytes = bufferSize;
 }
 
-void TexturedVertexBuffer::WriteVertices(const std::vector<TexturedVertex>& vertices, UINT bufferOffset)
+void RenderResourceAccess::Bind(const TexturedVertexBuffer& buffer, ID3D12GraphicsCommandList* commandList)
 {
-	UINT8* mappedData = nullptr;
-	D3D12_RANGE readRange{};
-	ThrowIfFailed(m_resource->Map(0, &readRange, reinterpret_cast<void**>(&mappedData)));
-	memcpy(mappedData + bufferOffset, vertices.data(), vertices.size() * sizeof(TexturedVertex));
-	m_resource->Unmap(0, nullptr);
+	if (buffer.m_impl != nullptr)
+	{
+		commandList->IASetVertexBuffers(0, 1, &buffer.m_impl->view);
+	}
 }
