@@ -104,7 +104,7 @@ void FollowCamera::SetLens(float fovYRadians, float aspectRatio, float nearZ, fl
 	m_farZ = farZ;
 }
 
-void FollowCamera::SetFollowTarget(const XMFLOAT3& position, float rotationY)
+void FollowCamera::SetTarget(const XMFLOAT3& position, float rotationY)
 {
 	m_targetPosition = position;
 	m_targetRotationY = rotationY;

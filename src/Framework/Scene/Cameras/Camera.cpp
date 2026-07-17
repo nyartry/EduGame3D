@@ -43,6 +43,11 @@ void Camera::SetLens(float fovYRadians, float aspectRatio, float nearZ, float fa
 	m_farZ = farZ;
 }
 
+void Camera::SetTarget(const XMFLOAT3& position, float)
+{
+	SetTarget(position.x, position.y, position.z);
+}
+
 void Camera::SetPosition(float x, float y, float z)
 {
 	m_position = XMFLOAT3{ x, y, z };

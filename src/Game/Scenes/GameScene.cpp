@@ -11,7 +11,8 @@
 #include "Game/Gameplay/Player.h"
 #include "Framework/Models/SkinnedMeshActor.h"
 #include "Framework/Rendering/Sprites/SpriteShapeFactory.h"
-
+#include "Framework/Scene/Cameras/Camera.h"
+#include "Framework/Scene/Cameras/FollowCamera.h"
 #include <memory>
 
 using namespace DirectX;
@@ -137,7 +138,7 @@ void GameScene::Update(float deltaTime, const Input& input)
 
 	if (m_followCamera != nullptr && m_followTarget != nullptr)
 	{
-		m_followCamera->SetFollowTarget(GetCameraFollowPosition(), m_followTarget->GetRotationY());
+		m_followCamera->SetTarget(GetCameraFollowPosition(), m_followTarget->GetRotationY());
 	}
 	m_camera->Update(deltaTime, input);
 }

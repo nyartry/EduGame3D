@@ -8,12 +8,12 @@ class FollowCamera : public ICamera
 {
 public:
 	void Update(float deltaTime, const Input& input) override;
+	void SetTarget(const DirectX::XMFLOAT3& position, float rotationY) override;
 	void SetLens(float fovYRadians, float aspectRatio, float nearZ, float farZ) override;
-	void SetFollowTarget(const DirectX::XMFLOAT3& position, float rotationY);
 
 	DirectX::XMFLOAT3 GetForwardXZ() const override;
-	DirectX::XMMATRIX GetViewMatrix() const;
-	DirectX::XMMATRIX GetProjectionMatrix() const;
+	DirectX::XMMATRIX GetViewMatrix() const override;
+	DirectX::XMMATRIX GetProjectionMatrix() const override;
 	DirectX::XMMATRIX GetViewProjectionMatrix() const override;
 
 private:

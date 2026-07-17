@@ -8,7 +8,6 @@
 #include "Framework/Scene/Input/Input.h"
 #include "Framework/Gameplay/Actor.h"
 #include "Framework/Scene/Cameras/CameraFollowHeightLock.h"
-#include "Framework/Scene/Cameras/FollowCamera.h"
 #include "Game/UI/HudOverlay.h"
 #include "Framework/Scene/Cameras/ICamera.h"
 #include "Framework/Rendering/Sprites/Sprite.h"
@@ -42,7 +41,7 @@ private:
 
 	std::unique_ptr<ICamera> m_camera;
 	IAudioService* m_audio{};
-	FollowCamera* m_followCamera{};
+	ICamera* m_followCamera{};
 	Player* m_player{};
 	const SkinnedMeshActor* m_followTarget{};
 	CameraFollowHeightLock m_cameraFollowHeightLock;
