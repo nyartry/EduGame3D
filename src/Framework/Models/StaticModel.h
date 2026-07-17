@@ -5,24 +5,22 @@
 #include "Framework/Rendering/Materials/TexturedMaterial.h"
 #include "Framework/Rendering/Buffers/TexturedVertexBuffer.h"
 
-#include <Windows.h>
-
 #include <DirectXMath.h>
 #include <memory>
 #include <string>
 #include <vector>
 
-class Dx12Renderer;
-struct ID3D12Device;
+class IRenderDevice;
+class IRenderer;
 
 class StaticModel
 {
 public:
 	void Initialize(
-		ID3D12Device* device,
+		IRenderDevice& device,
 		const std::string& modelPath,
 		const ModelScaleSettings& scaleSettings = ModelScaleSettings::OriginalSize());
-	void Draw(Dx12Renderer& renderer) const;
+	void Draw(IRenderer& renderer) const;
 
 	void SetPosition(float x, float y, float z);
 	DirectX::XMFLOAT3 GetPosition() const;

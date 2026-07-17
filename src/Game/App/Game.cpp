@@ -1,65 +1,32 @@
 #include "Game/App/Game.h"
 
+#include "Framework/Audio/IAudioService.h"
+#include "Framework/Effects/IEffectService.h"
+#include "Framework/Scene/Core/SceneManager.h"
+#include "Game/Content/GameContent.h"
 #include "Game/Scenes/GameScene.h"
 #include "Game/Scenes/TitleScene.h"
 
-#include <cwchar>
-
-void Game::Initialize(HWND hwnd, UINT width, UINT height)
+namespace
 {
-	m_hwnd = hwnd;
-	m_audio.Initialize();
-	m_renderer.Initialize(hwnd, width, height);
-	m_sceneManager.Initialize(m_renderer.GetDevice(), m_renderer.GetCommandQueue(), &m_audio, width, height);
-	m_sceneManager.AddScene<GameScene>("Game");
-	m_sceneManager.AddScene<TitleScene>("Title");
-	m_sceneManager.LoadScene("Title", SceneLoadType::Synchronous, SceneLoadMode::Single);
-	m_lastTickTime = std::chrono::steady_clock::now();
-	m_fpsLastUpdate = std::chrono::steady_clock::now();
+	constexpr std::string_view InitialSceneName = "Title";
 }
 
-void Game::Tick()
+void Game::RegisterContent(IAudioService& audio, IEffectService& effects) const
 {
-	m_input.Update(m_hwnd);
-	const float deltaTime = CalculateDeltaTime();
-	m_sceneManager.Update(deltaTime, m_input);
-	m_audio.Update();
-	m_renderer.BeginFrame(m_sceneManager.GetViewProjectionMatrix());
-	m_sceneManager.Render(m_renderer);
-	m_renderer.EndFrame();
-	UpdateDebugTitle();
+	audio.RegisterBgm(GameContent::TitleBgm, GameContent::TitleBgmPath);
+	audio.RegisterBgm(GameContent::GameBgm, GameContent::GameBgmPath);
+	audio.RegisterSe(GameContent::ButtonSe, GameContent::ButtonSePath);
+	effects.RegisterEffect(GameContent::JumpEffect, GameContent::JumpEffectPath);
 }
 
-void Game::WaitForGpu()
+void Game::RegisterScenes(SceneManager& scenes) const
 {
-	m_renderer.WaitForGpu();
+	scenes.AddScene<GameScene>("Game");
+	scenes.AddScene<TitleScene>("Title");
 }
 
-void Game::UpdateDebugTitle()
+std::string_view Game::GetInitialSceneName() const
 {
-	++m_fpsFrameCount;
-
-	const auto now = std::chrono::steady_clock::now();
-	const float elapsedSeconds = std::chrono::duration<float>(now - m_fpsLastUpdate).count();
-	if (elapsedSeconds < 0.5f)
-	{
-		return;
-	}
-
-	const float fps = static_cast<float>(m_fpsFrameCount) / elapsedSeconds;
-	wchar_t title[128]{};
-	swprintf_s(title, L"DirectX12 Open Campus Game - FPS: %.1f", fps);
-	SetWindowText(m_hwnd, title);
-
-	m_fpsFrameCount = 0;
-	m_fpsLastUpdate = now;
+	return InitialSceneName;
 }
-
-float Game::CalculateDeltaTime()
-{
-	const auto now = std::chrono::steady_clock::now();
-	const float deltaTime = std::chrono::duration<float>(now - m_lastTickTime).count();
-	m_lastTickTime = now;
-	return deltaTime;
-}
-

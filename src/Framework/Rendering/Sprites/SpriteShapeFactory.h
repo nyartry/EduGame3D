@@ -3,17 +3,15 @@
 #include "Framework/Rendering/Sprites/Sprite.h"
 #include "Framework/Rendering/Sprites/Triangle.h"
 
-#include <Windows.h>
-
 #include <DirectXMath.h>
 
-struct ID3D12Device;
+class IRenderDevice;
 
 class SpriteShapeFactory
 {
 public:
 	static Sprite CreateRect(
-		ID3D12Device* device,
+		IRenderDevice& device,
 		float x,
 		float y,
 		float width,
@@ -21,7 +19,7 @@ public:
 		const DirectX::XMFLOAT4& color);
 
 	static Sprite CreateTriangle(
-		ID3D12Device* device,
+		IRenderDevice& device,
 		float x,
 		float y,
 		float width,

@@ -549,7 +549,7 @@ namespace
 			{
 				auto model = std::make_unique<SkinnedModel>();
 				model->Initialize(
-					m_renderer.GetDevice(),
+					m_renderer,
 					path,
 					ModelScaleSettings::NormalizeToHeight(2.0f),
 					SkinningMode::Cpu);

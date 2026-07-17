@@ -5,8 +5,8 @@
 class Rect : public SpriteShape
 {
 public:
-	Rect(UINT textureWidth, UINT textureHeight, const DirectX::XMFLOAT4& color);
+	Rect(std::uint32_t textureWidth, std::uint32_t textureHeight, const DirectX::XMFLOAT4& color);
 
 protected:
-	bool ContainsPixel(UINT x, UINT y) const override;
+	bool ContainsPixel(std::uint32_t x, std::uint32_t y) const override;
 };

@@ -1,6 +1,7 @@
 #include "Framework/Rendering/Sprites/SpriteBatch.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 
 #include <array>
 #include <cctype>
@@ -68,13 +69,13 @@ namespace
 	}
 }
 
-void SpriteBatch::Initialize(ID3D12Device* device, UINT maxQuadCount)
+void SpriteBatch::Initialize(IRenderDevice& device, std::uint32_t maxQuadCount)
 {
 	m_maxVertexCount = maxQuadCount * 6;
 	m_vertices.clear();
 	m_vertices.reserve(m_maxVertexCount);
-	m_vertexBuffer.Initialize(device, m_maxVertexCount);
-	m_whiteMaterial.InitializeSolidColor(device, 255, 255, 255, 255);
+	device.CreateSpriteVertexBuffer(m_vertexBuffer, m_maxVertexCount);
+	device.CreateSolidColorSpriteMaterial(m_whiteMaterial, 255, 255, 255, 255);
 }
 
 void SpriteBatch::Clear()
@@ -87,7 +88,7 @@ void SpriteBatch::Upload()
 	m_vertexBuffer.Update(m_vertices);
 }
 
-void SpriteBatch::Render(Dx12Renderer& renderer) const
+void SpriteBatch::Render(IRenderer& renderer) const
 {
 	if (m_vertexBuffer.GetVertexCount() == 0)
 	{

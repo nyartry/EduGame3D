@@ -1,14 +1,15 @@
 #include "Framework/Rendering/Sprites/Sprite.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 
 using namespace DirectX;
 
 void Sprite::Initialize(
-	ID3D12Device* device,
-	const std::vector<UINT8>& rgbaPixels,
-	UINT textureWidth,
-	UINT textureHeight,
+	IRenderDevice& device,
+	const std::vector<std::uint8_t>& rgbaPixels,
+	std::uint32_t textureWidth,
+	std::uint32_t textureHeight,
 	float x,
 	float y,
 	float width,
@@ -18,14 +19,14 @@ void Sprite::Initialize(
 	m_y = y;
 	m_width = width;
 	m_height = height;
-	m_vertexBuffer.Initialize(device, 6);
-	m_material.InitializePixels(device, rgbaPixels, textureWidth, textureHeight);
+	device.CreateSpriteVertexBuffer(m_vertexBuffer, 6);
+	device.CreatePixelSpriteMaterial(m_material, rgbaPixels, textureWidth, textureHeight);
 	m_initialized = true;
 	RebuildVertices();
 }
 
 void Sprite::InitializeTexture(
-	ID3D12Device* device,
+	IRenderDevice& device,
 	const std::string& texturePath,
 	float x,
 	float y,
@@ -37,8 +38,8 @@ void Sprite::InitializeTexture(
 	m_y = y;
 	m_width = width;
 	m_height = height;
-	m_vertexBuffer.Initialize(device, 6);
-	m_material.InitializeTexture(device, texturePath, useSrgb);
+	device.CreateSpriteVertexBuffer(m_vertexBuffer, 6);
+	device.CreateTextureSpriteMaterial(m_material, texturePath, useSrgb);
 	m_initialized = true;
 	RebuildVertices();
 }
@@ -63,7 +64,7 @@ void Sprite::SetTint(const XMFLOAT4& tint)
 	RebuildVertices();
 }
 
-void Sprite::Render(Dx12Renderer& renderer) const
+void Sprite::Render(IRenderer& renderer) const
 {
 	if (!m_initialized)
 	{

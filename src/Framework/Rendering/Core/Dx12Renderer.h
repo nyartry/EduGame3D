@@ -3,6 +3,8 @@
 #include <Windows.h>
 #include <wrl/client.h>
 
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 #include "Framework/Rendering/Pipelines/BasicColorPipeline.h"
 #include "Framework/Rendering/Pipelines/SkinnedTexturedPipeline.h"
 #include "Framework/Rendering/Pipelines/SpritePipeline.h"
@@ -22,7 +24,7 @@ class SpriteMaterial;
 class SpriteVertexBuffer;
 class TexturedVertexBuffer;
 
-class Dx12Renderer
+class Dx12Renderer final : public IRenderDevice, public IRenderer
 {
 public:
 	static constexpr UINT FrameCount = 2;
@@ -36,10 +38,10 @@ public:
 	void Initialize(HWND hwnd, UINT width, UINT height);
 	void Resize(UINT width, UINT height);
 	void BeginFrame(const DirectX::XMMATRIX& viewProjection);
-	void Draw(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world);
-	void DrawScreen(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world);
-	void DrawTextured(const TexturedVertexBuffer& vertexBuffer, const TexturedMaterial& material, const DirectX::XMMATRIX& world);
-	void DrawSprites(const SpriteVertexBuffer& vertexBuffer, const SpriteMaterial& material);
+	void Draw(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world) override;
+	void DrawScreen(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world) override;
+	void DrawTextured(const TexturedVertexBuffer& vertexBuffer, const TexturedMaterial& material, const DirectX::XMMATRIX& world) override;
+	void DrawSprites(const SpriteVertexBuffer& vertexBuffer, const SpriteMaterial& material) override;
 	void DrawSkinnedTextured(
 		const SkinnedVertexBuffer& vertexBuffer,
 		const TexturedMaterial& material,
@@ -48,14 +50,37 @@ public:
 		float modelCenterX,
 		float modelMinY,
 		float modelCenterZ,
-		float modelScale);
+		float modelScale) override;
+
+	void CreateVertexBuffer(VertexBuffer& buffer, const std::vector<Vertex>& vertices) override;
+	void CreateTexturedVertexBuffer(TexturedVertexBuffer& buffer, const std::vector<TexturedVertex>& vertices) override;
+	void CreateSkinnedVertexBuffer(SkinnedVertexBuffer& buffer, const std::vector<SkinnedVertex>& vertices) override;
+	void CreateSpriteVertexBuffer(SpriteVertexBuffer& buffer, std::uint32_t vertexCapacity) override;
+	void CreateSolidColorSpriteMaterial(
+		SpriteMaterial& material,
+		std::uint8_t red,
+		std::uint8_t green,
+		std::uint8_t blue,
+		std::uint8_t alpha) override;
+	void CreateTextureSpriteMaterial(SpriteMaterial& material, const std::string& texturePath, bool useSrgb) override;
+	void CreatePixelSpriteMaterial(
+		SpriteMaterial& material,
+		const std::vector<std::uint8_t>& rgbaPixels,
+		std::uint32_t width,
+		std::uint32_t height,
+		bool useSrgb) override;
+	void CreateTexturedMaterial(
+		TexturedMaterial& material,
+		const std::string& baseColorTexturePath,
+		const std::string& opacityTexturePath,
+		const std::string& normalTexturePath) override;
 	void EndFrame();
 	void WaitForGpu();
 	ID3D12Device* GetDevice() const;
 	ID3D12CommandQueue* GetCommandQueue() const;
 	ID3D12GraphicsCommandList* GetCommandList() const;
-	UINT GetWidth() const;
-	UINT GetHeight() const;
+	UINT GetWidth() const override;
+	UINT GetHeight() const override;
 
 private:
 	void LoadPipeline();

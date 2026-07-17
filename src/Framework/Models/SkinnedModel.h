@@ -8,39 +8,33 @@
 #include "Framework/Common/ModelScaleSettings.h"
 
 #include <DirectXMath.h>
-#include <Windows.h>
-
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
 
-class Dx12Renderer;
-struct ID3D12Device;
+class IRenderDevice;
+class IRenderer;
 
 class SkinnedModel
 {
 public:
 	void Initialize(
-		ID3D12Device* device,
+		IRenderDevice& device,
 		const std::string& modelPath,
 		const ModelScaleSettings& scaleSettings = ModelScaleSettings::OriginalSize(),
 		SkinningMode skinningMode = SkinningMode::Cpu);
 	void AddAnimation(const std::string& animationName, const std::string& animationPath);
 	void PlayAnimation(const std::string& animationName);
-#if defined(ANIMATION_EVENT_EDITOR_TOOL)
 	void PlayAnimationByIndex(size_t animationIndex);
-#endif
 	float GetAnimationDurationSeconds(const std::string& animationName) const;
-#if defined(ANIMATION_EVENT_EDITOR_TOOL)
 	float GetCurrentAnimationDurationSeconds() const;
 	float GetAnimationTimeSeconds() const;
 	size_t GetCurrentAnimationIndex() const;
 	const SkinnedModelData& GetModelData() const;
 	void SetAnimationTimeSeconds(float animationTimeSeconds);
-#endif
 	RootMotionDelta Update(float deltaTime);
-	void Draw(Dx12Renderer& renderer) const;
+	void Draw(IRenderer& renderer) const;
 
 	void SetPosition(float x, float y, float z);
 	void SetRotationY(float radians);

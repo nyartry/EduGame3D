@@ -1,10 +1,12 @@
 #include "Game/Scenes/GameScene.h"
 
 #include "Framework/Audio/IAudioService.h"
+#include "Framework/Effects/IEffectService.h"
 #include "Game/Gameplay/AnimatedCubeObject.h"
 #include "Framework/Gameplay/CollisionBody.h"
 #include "Game/Gameplay/DavenPlayer.h"
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 #include "Game/Gameplay/ForestGoddessPlayer.h"
 #include "Game/Gameplay/NathanWalker.h"
 #include "Game/Gameplay/OrcPlayer.h"
@@ -13,6 +15,7 @@
 #include "Framework/Rendering/Sprites/SpriteShapeFactory.h"
 #include "Framework/Scene/Cameras/Camera.h"
 #include "Framework/Scene/Cameras/FollowCamera.h"
+#include "Game/Content/GameContent.h"
 #include <memory>
 
 using namespace DirectX;
@@ -25,7 +28,6 @@ namespace
 	constexpr float CameraNearZ = 0.5f;
 	constexpr float CameraFarZ = 50.0f;
 	constexpr const char* GeneratedImageTexturePath = "Content\\Textures\\UI\\open_campus_crest.png";
-	constexpr const char* EffekseerSampleEffectPath = "Content\\Effects\\Effekseer\\Samples\\Laser01.efkefc";
 	constexpr XMFLOAT3 PlatformCubePosition{ 0.0f, 0.5f, 2.0f };
 	constexpr XMFLOAT4 RectColor{ 0.35f, 0.86f, 1.0f, 0.88f };
 	constexpr XMFLOAT4 SquareColor{ 0.92f, 0.36f, 0.78f, 0.88f };
@@ -35,6 +37,7 @@ namespace
 void GameScene::Load(const SceneLoadContext& context)
 {
 	m_audio = context.audio;
+	m_effects = context.effects;
 	const float aspectRatio = static_cast<float>(context.width) / static_cast<float>(context.height);
 
 	auto followCamera = std::make_unique<FollowCamera>();
@@ -42,45 +45,43 @@ void GameScene::Load(const SceneLoadContext& context)
 	m_followCamera = followCamera.get();
 	m_camera = std::move(followCamera);
 
-	m_ground.Initialize(context.device);
+	m_ground.Initialize(*context.renderDevice);
 	m_originCube.SetPosition(PlatformCubePosition.x, PlatformCubePosition.y, PlatformCubePosition.z);
 	m_originCube.SetGround(&m_ground);
 	m_originCube.SetSurfaceCollisionEnabled(true);
 	m_originCube.SetGroundCollisionEnabled(false);
 	m_originCube.SetGravityEnabled(false);
-	m_originCube.Initialize(context.device);
+	m_originCube.Initialize(*context.renderDevice);
 	m_primitiveSprites[0] = SpriteShapeFactory::CreateRect(
-		context.device,
+		*context.renderDevice,
 		310.0f,
 		28.0f,
 		72.0f,
 		72.0f,
 		SquareColor);
 	m_primitiveSprites[1] = SpriteShapeFactory::CreateRect(
-		context.device,
+		*context.renderDevice,
 		394.0f,
 		42.0f,
 		116.0f,
 		44.0f,
 		RectColor);
 	m_primitiveSprites[2] = SpriteShapeFactory::CreateTriangle(
-		context.device,
+		*context.renderDevice,
 		526.0f,
 		28.0f,
 		72.0f,
 		72.0f,
 		TriangleColor);
 	m_generatedImageSprite.InitializeTexture(
-		context.device,
+		*context.renderDevice,
 		GeneratedImageTexturePath,
 		42.0f,
 		static_cast<float>(context.height) - 202.0f,
 		160.0f,
 		160.0f);
-	m_effekseerEffects.Initialize(context.device, context.commandQueue);
-	m_effekseerEffects.LoadSampleEffect(EffekseerSampleEffectPath);
-	m_jumpParticles.Initialize(context.device);
-	m_hudOverlay.Initialize(context.device, context.width, context.height);
+	m_jumpParticles.Initialize(*context.renderDevice);
+	m_hudOverlay.Initialize(*context.renderDevice, context.width, context.height);
 
 	m_actors.clear();
 	auto player = std::make_unique<OrcPlayer>();
@@ -95,7 +96,7 @@ void GameScene::Load(const SceneLoadContext& context)
 	//m_actors.push_back(std::make_unique<ForestGoddessPlayer>());
 	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
-		actor->Initialize(context.device);
+		actor->Initialize(*context.renderDevice);
 	}
 }
 
@@ -112,7 +113,7 @@ void GameScene::Update(float deltaTime, const Input& input)
 {
 	if (m_audio != nullptr)
 	{
-		m_audio->PlayBgm(BgmId::Game);
+		m_audio->PlayBgm(GameContent::GameBgm);
 	}
 
 	if (m_player != nullptr)
@@ -131,9 +132,16 @@ void GameScene::Update(float deltaTime, const Input& input)
 		XMFLOAT3 effectPosition = m_player->GetLastJumpStartPosition();
 		effectPosition.y += 0.02f;
 		m_jumpParticles.Emit(effectPosition);
+		if (m_effects != nullptr)
+		{
+			m_effects->Play(GameContent::JumpEffect, effectPosition, 0.35f);
+		}
 	}
 	m_jumpParticles.Update(deltaTime);
-	m_effekseerEffects.Update(deltaTime);
+	if (m_effects != nullptr)
+	{
+		m_effects->Update(deltaTime);
+	}
 	m_hudOverlay.Update(deltaTime);
 
 	if (m_followCamera != nullptr && m_followTarget != nullptr)
@@ -143,7 +151,7 @@ void GameScene::Update(float deltaTime, const Input& input)
 	m_camera->Update(deltaTime, input);
 }
 
-void GameScene::Render(Dx12Renderer& renderer) const
+void GameScene::Render(IRenderer& renderer) const
 {
 	m_ground.Draw(renderer);
 	m_originCube.Draw(renderer);
@@ -153,7 +161,10 @@ void GameScene::Render(Dx12Renderer& renderer) const
 	}
 	if (m_followCamera != nullptr)
 	{
-		m_effekseerEffects.Render(renderer, m_followCamera->GetViewMatrix(), m_followCamera->GetProjectionMatrix());
+		if (m_effects != nullptr)
+		{
+			m_effects->Render(renderer, m_followCamera->GetViewMatrix(), m_followCamera->GetProjectionMatrix());
+		}
 	}
 	m_jumpParticles.Render(renderer);
 	for (const Sprite& primitiveSprite : m_primitiveSprites)

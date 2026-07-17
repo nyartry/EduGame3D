@@ -1,6 +1,7 @@
 #include "Framework/Scene/Overlays/LoadingOverlay.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 
 #include <cmath>
 #include <string>
@@ -17,7 +18,7 @@ namespace
 	constexpr int SegmentCount = 12;
 }
 
-void LoadingOverlay::Initialize(ID3D12Device* device, UINT width, UINT height)
+void LoadingOverlay::Initialize(IRenderDevice& device, std::uint32_t width, std::uint32_t height)
 {
 	m_width = width;
 	m_height = height;
@@ -31,7 +32,7 @@ void LoadingOverlay::Update(float deltaTime)
 	RebuildBatch();
 }
 
-void LoadingOverlay::Render(Dx12Renderer& renderer) const
+void LoadingOverlay::Render(IRenderer& renderer) const
 {
 	m_batch.Render(renderer);
 }

@@ -1,6 +1,7 @@
 #include "Framework/Models/StaticModel.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 
 #include <DirectXMath.h>
 #include <algorithm>
@@ -17,7 +18,7 @@ namespace
 }
 
 void StaticModel::Initialize(
-	ID3D12Device* device,
+	IRenderDevice& device,
 	const std::string& modelPath,
 	const ModelScaleSettings& scaleSettings)
 {
@@ -42,17 +43,17 @@ void StaticModel::Initialize(
 		if (material == nullptr)
 		{
 			material = std::make_shared<TexturedMaterial>();
-			material->Initialize(device, baseColorTexturePath, meshData.opacityTexturePath, meshData.normalTexturePath);
+			device.CreateTexturedMaterial(*material, baseColorTexturePath, meshData.opacityTexturePath, meshData.normalTexturePath);
 		}
 
 		MeshPart meshPart;
-		meshPart.vertexBuffer.Initialize(device, meshData.vertices);
+		device.CreateTexturedVertexBuffer(meshPart.vertexBuffer, meshData.vertices);
 		meshPart.material = material;
 		m_meshParts.push_back(std::move(meshPart));
 	}
 }
 
-void StaticModel::Draw(Dx12Renderer& renderer) const
+void StaticModel::Draw(IRenderer& renderer) const
 {
 	const XMMATRIX world = XMMatrixRotationY(m_rotationY) * XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	for (const MeshPart& meshPart : m_meshParts)

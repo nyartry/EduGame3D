@@ -3,8 +3,8 @@
 #include <algorithm>
 
 Triangle::Triangle(
-	UINT textureWidth,
-	UINT textureHeight,
+	std::uint32_t textureWidth,
+	std::uint32_t textureHeight,
 	const DirectX::XMFLOAT4& color,
 	TriangleDirection direction)
 	: SpriteShape(textureWidth, textureHeight, color)
@@ -12,10 +12,10 @@ Triangle::Triangle(
 {
 }
 
-bool Triangle::ContainsPixel(UINT x, UINT y) const
+bool Triangle::ContainsPixel(std::uint32_t x, std::uint32_t y) const
 {
-	const float denominatorX = static_cast<float>(std::max<UINT>(GetTextureWidth() - 1, 1));
-	const float denominatorY = static_cast<float>(std::max<UINT>(GetTextureHeight() - 1, 1));
+	const float denominatorX = static_cast<float>(std::max<std::uint32_t>(GetTextureWidth() - 1, 1));
+	const float denominatorY = static_cast<float>(std::max<std::uint32_t>(GetTextureHeight() - 1, 1));
 	float normalizedX = static_cast<float>(x) / denominatorX;
 	float normalizedY = static_cast<float>(y) / denominatorY;
 

@@ -3,29 +3,28 @@
 #include "Framework/Rendering/Materials/SpriteMaterial.h"
 #include "Framework/Rendering/Buffers/SpriteVertexBuffer.h"
 
-#include <Windows.h>
-
 #include <DirectXMath.h>
+#include <cstdint>
 #include <string>
 #include <vector>
 
-class Dx12Renderer;
-struct ID3D12Device;
+class IRenderDevice;
+class IRenderer;
 
 class Sprite
 {
 public:
 	void Initialize(
-		ID3D12Device* device,
-		const std::vector<UINT8>& rgbaPixels,
-		UINT textureWidth,
-		UINT textureHeight,
+		IRenderDevice& device,
+		const std::vector<std::uint8_t>& rgbaPixels,
+		std::uint32_t textureWidth,
+		std::uint32_t textureHeight,
 		float x,
 		float y,
 		float width,
 		float height);
 	void InitializeTexture(
-		ID3D12Device* device,
+		IRenderDevice& device,
 		const std::string& texturePath,
 		float x,
 		float y,
@@ -35,7 +34,7 @@ public:
 	void SetPosition(float x, float y);
 	void SetSize(float width, float height);
 	void SetTint(const DirectX::XMFLOAT4& tint);
-	void Render(Dx12Renderer& renderer) const;
+	void Render(IRenderer& renderer) const;
 
 private:
 	void RebuildVertices();

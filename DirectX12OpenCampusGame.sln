@@ -6,6 +6,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX12OpenCampusGame", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimationEventEditor", "AnimationEventEditor.vcxproj", "{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EngineFramework", "EngineFramework.vcxproj", "{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCampusGame", "OpenCampusGame.vcxproj", "{D7C198B4-E252-4630-A617-F0F2A4B4677A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -20,6 +24,14 @@ Global
 		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Debug|x64.Build.0 = Debug|x64
 		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Release|x64.ActiveCfg = Release|x64
 		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Release|x64.Build.0 = Release|x64
+		{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}.Debug|x64.ActiveCfg = Debug|x64
+		{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}.Debug|x64.Build.0 = Debug|x64
+		{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}.Release|x64.ActiveCfg = Release|x64
+		{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}.Release|x64.Build.0 = Release|x64
+		{D7C198B4-E252-4630-A617-F0F2A4B4677A}.Debug|x64.ActiveCfg = Debug|x64
+		{D7C198B4-E252-4630-A617-F0F2A4B4677A}.Debug|x64.Build.0 = Debug|x64
+		{D7C198B4-E252-4630-A617-F0F2A4B4677A}.Release|x64.ActiveCfg = Release|x64
+		{D7C198B4-E252-4630-A617-F0F2A4B4677A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

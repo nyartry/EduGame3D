@@ -2,23 +2,24 @@
 
 #include "Framework/Scene/Input/Input.h"
 
-#include <Windows.h>
-
 #include <DirectXMath.h>
+#include <cstdint>
 #include <string>
 
-class Dx12Renderer;
 class IAudioService;
-struct ID3D12CommandQueue;
-struct ID3D12Device;
+class IEffectService;
+class IRenderDevice;
+class IRenderer;
+class IUiService;
 
 struct SceneLoadContext
 {
-	ID3D12Device* device{};
-	ID3D12CommandQueue* commandQueue{};
+	IRenderDevice* renderDevice{};
 	IAudioService* audio{};
-	UINT width{};
-	UINT height{};
+	IEffectService* effects{};
+	IUiService* ui{};
+	std::uint32_t width{};
+	std::uint32_t height{};
 };
 
 class IScene
@@ -29,7 +30,7 @@ public:
 	virtual void Load(const SceneLoadContext& context) = 0;
 	virtual void Unload() {}
 	virtual void Update(float deltaTime, const Input& input) = 0;
-	virtual void Render(Dx12Renderer& renderer) const = 0;
+	virtual void Render(IRenderer& renderer) const = 0;
 
 	virtual DirectX::XMMATRIX GetViewProjectionMatrix() const = 0;
 	virtual std::string GetRequestedSceneName() const { return {}; }

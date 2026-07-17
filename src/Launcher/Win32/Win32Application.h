@@ -7,4 +7,3 @@ class Win32Application
 public:
 	static int Run(HINSTANCE instance, int showCommand);
 };
-

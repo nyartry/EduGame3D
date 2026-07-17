@@ -4,6 +4,7 @@
 
 #include <RmlUi/Core/RenderInterface.h>
 
+#include <cstdint>
 #include <vector>
 
 class RmlUiSpriteRenderInterface final : public Rml::RenderInterface
@@ -11,7 +12,7 @@ class RmlUiSpriteRenderInterface final : public Rml::RenderInterface
 public:
 	void Begin(SpriteBatch& batch);
 	void End();
-	UINT GetLastRenderedTriangleCount() const;
+	std::uint32_t GetLastRenderedTriangleCount() const;
 
 	Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override;
 	void RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture) override;
@@ -34,7 +35,7 @@ private:
 	DirectX::XMFLOAT4 ConvertColor(const Rml::ColourbPremultiplied& color) const;
 
 	SpriteBatch* m_batch{};
-	UINT m_lastRenderedTriangleCount{};
+	std::uint32_t m_lastRenderedTriangleCount{};
 	bool m_scissorEnabled{};
 	Rml::Rectanglei m_scissorRegion{};
 };

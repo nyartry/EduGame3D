@@ -1,10 +1,11 @@
 #include "Framework/Models/StaticMeshActor.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 
 #include <string>
 
-void StaticMeshActor::Initialize(ID3D12Device* device)
+void StaticMeshActor::Initialize(IRenderDevice& device)
 {
 	const StaticMeshActorDefinition& definition = GetStaticMeshDefinition();
 	m_position = definition.initialPosition;
@@ -21,7 +22,7 @@ void StaticMeshActor::Update(float, const Input&)
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
 }
 
-void StaticMeshActor::Draw(Dx12Renderer& renderer) const
+void StaticMeshActor::Draw(IRenderer& renderer) const
 {
 	m_model.Draw(renderer);
 }

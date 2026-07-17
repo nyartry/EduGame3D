@@ -2,22 +2,20 @@
 
 #include "Framework/Rendering/Buffers/VertexBuffer.h"
 
-#include <Windows.h>
-
 #include <DirectXMath.h>
 #include <array>
 #include <cstddef>
 
-class Dx12Renderer;
-struct ID3D12Device;
+class IRenderDevice;
+class IRenderer;
 
 class SimpleJumpParticleSystem
 {
 public:
-	void Initialize(ID3D12Device* device);
+	void Initialize(IRenderDevice& device);
 	void Emit(const DirectX::XMFLOAT3& position);
 	void Update(float deltaTime);
-	void Render(Dx12Renderer& renderer) const;
+	void Render(IRenderer& renderer) const;
 
 private:
 	struct Particle
@@ -32,7 +30,7 @@ private:
 
 	static constexpr size_t MaxParticles = 3;
 
-	void BuildParticleMesh(ID3D12Device* device);
+	void BuildParticleMesh(IRenderDevice& device);
 
 	VertexBuffer m_particleMesh;
 	std::array<Particle, MaxParticles> m_particles{};

@@ -5,23 +5,21 @@
 #include "Framework/Rendering/Geometry/Vertex.h"
 #include "Framework/Rendering/Buffers/VertexBuffer.h"
 
-#include <Windows.h>
-
 #include <DirectXMath.h>
 #include <vector>
 
-class Dx12Renderer;
 class Ground;
-struct ID3D12Device;
+class IRenderDevice;
+class IRenderer;
 
 class PrimitiveObject : public CollisionBody
 {
 public:
 	virtual ~PrimitiveObject() = default;
 
-	void Initialize(ID3D12Device* device);
+	void Initialize(IRenderDevice& device);
 	void Update(float deltaTime);
-	void Draw(Dx12Renderer& renderer) const;
+	void Draw(IRenderer& renderer) const;
 
 	void SetPosition(float x, float y, float z);
 	DirectX::XMFLOAT3 GetCollisionPosition() const override;

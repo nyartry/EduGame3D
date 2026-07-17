@@ -7,7 +7,7 @@ class GpuSkinnedMeshProcessor : public ISkinnedMeshProcessor
 {
 public:
 	void Initialize(
-		ID3D12Device* device,
+		IRenderDevice& device,
 		const std::vector<SkinnedVertex>& vertices,
 		std::shared_ptr<TexturedMaterial> material) override;
 
@@ -19,7 +19,7 @@ public:
 		float modelScale) override;
 
 	void Draw(
-		Dx12Renderer& renderer,
+		IRenderer& renderer,
 		const DirectX::XMMATRIX& world,
 		const std::vector<DirectX::XMFLOAT4X4>& boneMatrices,
 		float modelCenterX,

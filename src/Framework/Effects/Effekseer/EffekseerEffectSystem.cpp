@@ -54,26 +54,27 @@ void EffekseerEffectSystem::Initialize(ID3D12Device* device, ID3D12CommandQueue*
 	m_initialized = true;
 }
 
-void EffekseerEffectSystem::LoadSampleEffect(const std::string& effectPath)
+void EffekseerEffectSystem::RegisterEffect(std::string_view id, std::string_view assetPath)
 {
 	if (!m_initialized)
 	{
 		return;
 	}
 
-	const std::u16string utf16Path = ToUtf16Path(effectPath);
-	m_sampleEffect = Effekseer::Effect::Create(m_manager, utf16Path.c_str());
+	const std::u16string utf16Path = ToUtf16Path(std::string(assetPath));
+	m_effects[std::string(id)] = Effekseer::Effect::Create(m_manager, utf16Path.c_str());
 }
 
-void EffekseerEffectSystem::PlaySampleEffect(const XMFLOAT3& position, float scale)
+void EffekseerEffectSystem::Play(std::string_view id, const XMFLOAT3& position, float scale)
 {
-	if (!m_initialized || m_sampleEffect == nullptr)
+	const auto effect = m_effects.find(std::string(id));
+	if (!m_initialized || effect == m_effects.end() || effect->second == nullptr)
 	{
 		return;
 	}
 
-	m_sampleHandle = m_manager->Play(m_sampleEffect, position.x, position.y, position.z);
-	m_manager->SetScale(m_sampleHandle, scale, scale, scale);
+	const Effekseer::Handle handle = m_manager->Play(effect->second, position.x, position.y, position.z);
+	m_manager->SetScale(handle, scale, scale, scale);
 }
 
 void EffekseerEffectSystem::Update(float deltaTime)
@@ -90,15 +91,21 @@ void EffekseerEffectSystem::Update(float deltaTime)
 	m_manager->Update(updateParameter);
 }
 
-void EffekseerEffectSystem::Render(Dx12Renderer& renderer, const XMMATRIX& view, const XMMATRIX& projection)
+void EffekseerEffectSystem::Render(IRenderer& renderer, const XMMATRIX& view, const XMMATRIX& projection)
 {
 	if (!m_initialized || m_renderer == nullptr || m_commandList == nullptr)
 	{
 		return;
 	}
 
+	auto* dx12Renderer = dynamic_cast<Dx12Renderer*>(&renderer);
+	if (dx12Renderer == nullptr)
+	{
+		return;
+	}
+
 	m_memoryPool->NewFrame();
-	EffekseerRendererDX12::BeginCommandList(m_commandList, renderer.GetCommandList());
+	EffekseerRendererDX12::BeginCommandList(m_commandList, dx12Renderer->GetCommandList());
 	m_renderer->SetCommandList(m_commandList);
 	m_renderer->SetTime(m_elapsedTime);
 	m_renderer->SetCameraMatrix(ToEffekseerMatrix(view));

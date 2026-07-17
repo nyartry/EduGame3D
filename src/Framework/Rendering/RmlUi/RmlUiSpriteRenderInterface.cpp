@@ -15,7 +15,7 @@ void RmlUiSpriteRenderInterface::End()
 	m_batch = nullptr;
 }
 
-UINT RmlUiSpriteRenderInterface::GetLastRenderedTriangleCount() const
+std::uint32_t RmlUiSpriteRenderInterface::GetLastRenderedTriangleCount() const
 {
 	return m_lastRenderedTriangleCount;
 }

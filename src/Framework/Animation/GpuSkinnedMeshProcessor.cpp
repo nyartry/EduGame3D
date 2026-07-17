@@ -1,16 +1,17 @@
 #include "Framework/Animation/GpuSkinnedMeshProcessor.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 #include "Framework/Rendering/Materials/TexturedMaterial.h"
 
 using namespace DirectX;
 
 void GpuSkinnedMeshProcessor::Initialize(
-	ID3D12Device* device,
+	IRenderDevice& device,
 	const std::vector<SkinnedVertex>& vertices,
 	std::shared_ptr<TexturedMaterial> material)
 {
-	m_vertexBuffer.Initialize(device, vertices);
+	device.CreateSkinnedVertexBuffer(m_vertexBuffer, vertices);
 	m_material = std::move(material);
 }
 
@@ -24,7 +25,7 @@ void GpuSkinnedMeshProcessor::Update(
 }
 
 void GpuSkinnedMeshProcessor::Draw(
-	Dx12Renderer& renderer,
+	IRenderer& renderer,
 	const XMMATRIX& world,
 	const std::vector<XMFLOAT4X4>& boneMatrices,
 	float modelCenterX,

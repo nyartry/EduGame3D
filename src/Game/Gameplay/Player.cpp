@@ -1,7 +1,8 @@
 #include "Game/Gameplay/Player.h"
 
 #include "Framework/Common/MathUtils.h"
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Game/Input/GameActions.h"
 
 #include <algorithm>
 #include <cmath>
@@ -22,7 +23,7 @@ const SkinnedMeshActorDefinition& Player::GetSkinnedMeshDefinition() const
 	return GetPlayerDefinition().mesh;
 }
 
-void Player::Initialize(ID3D12Device* device)
+void Player::Initialize(IRenderDevice& device)
 {
 	const PlayerDefinition& definition = GetPlayerDefinition();
 	SkinnedMeshActor::Initialize(device);
@@ -52,7 +53,7 @@ void Player::Update(float deltaTime, const Input& input)
 {
 	m_startedJumpThisFrame = false;
 
-	if (input.WasPressed(InputKey::X) && m_hasAttackAnimation)
+	if (GameActions::WasPressed(input, GameAction::Attack) && m_hasAttackAnimation)
 	{
 		StartAttack();
 	}
@@ -60,7 +61,7 @@ void Player::Update(float deltaTime, const Input& input)
 	const MovementInput movementInput = ReadMovementInput(input);
 	const bool isAttacking = IsAttacking();
 	const XMFLOAT3 inputDisplacement = BuildInputDisplacement(movementInput, deltaTime, isAttacking);
-	ApplyMovement(deltaTime, input.WasPressed(InputKey::Space), inputDisplacement);
+	ApplyMovement(deltaTime, GameActions::WasPressed(input, GameAction::Jump), inputDisplacement);
 	UpdateAttackTimer(deltaTime, movementInput.hasDirection);
 }
 
@@ -152,19 +153,19 @@ void Player::SetAnimationState(AnimationState state)
 Player::MovementInput Player::ReadMovementInput(const Input& input) const
 {
 	XMFLOAT3 movement{};
-	if (input.IsDown(InputKey::W))
+	if (GameActions::IsDown(input, GameAction::MoveForward))
 	{
 		movement.z += 1.0f;
 	}
-	if (input.IsDown(InputKey::S))
+	if (GameActions::IsDown(input, GameAction::MoveBackward))
 	{
 		movement.z -= 1.0f;
 	}
-	if (input.IsDown(InputKey::A))
+	if (GameActions::IsDown(input, GameAction::MoveLeft))
 	{
 		movement.x -= 1.0f;
 	}
-	if (input.IsDown(InputKey::D))
+	if (GameActions::IsDown(input, GameAction::MoveRight))
 	{
 		movement.x += 1.0f;
 	}

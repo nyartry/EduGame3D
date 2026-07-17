@@ -1,14 +1,15 @@
 #include "Framework/Rendering/Sprites/SpriteShapeFactory.h"
 
+#include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Sprites/Rect.h"
 
 namespace
 {
-	constexpr UINT DefaultPrimitiveTextureSize = 32;
+	constexpr std::uint32_t DefaultPrimitiveTextureSize = 32;
 }
 
 Sprite SpriteShapeFactory::CreateRect(
-	ID3D12Device* device,
+	IRenderDevice& device,
 	float x,
 	float y,
 	float width,
@@ -20,7 +21,7 @@ Sprite SpriteShapeFactory::CreateRect(
 }
 
 Sprite SpriteShapeFactory::CreateTriangle(
-	ID3D12Device* device,
+	IRenderDevice& device,
 	float x,
 	float y,
 	float width,

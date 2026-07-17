@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Framework/Effects/IEffectService.h"
+
 #include <Windows.h>
 #include <wrl/client.h>
 
@@ -10,17 +12,19 @@
 #include <EffekseerRendererDX12.h>
 
 #include <string>
+#include <string_view>
+#include <unordered_map>
 
 class Dx12Renderer;
 
-class EffekseerEffectSystem
+class EffekseerEffectSystem final : public IEffectService
 {
 public:
 	void Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue);
-	void LoadSampleEffect(const std::string& effectPath);
-	void PlaySampleEffect(const DirectX::XMFLOAT3& position, float scale = 1.0f);
-	void Update(float deltaTime);
-	void Render(Dx12Renderer& renderer, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection);
+	void RegisterEffect(std::string_view id, std::string_view assetPath) override;
+	void Play(std::string_view id, const DirectX::XMFLOAT3& position, float scale = 1.0f) override;
+	void Update(float deltaTime) override;
+	void Render(IRenderer& renderer, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection) override;
 
 	bool IsInitialized() const;
 
@@ -34,8 +38,7 @@ private:
 	Effekseer::Backend::GraphicsDeviceRef m_graphicsDevice;
 	Effekseer::RefPtr<EffekseerRenderer::SingleFrameMemoryPool> m_memoryPool;
 	Effekseer::RefPtr<EffekseerRenderer::CommandList> m_commandList;
-	Effekseer::EffectRef m_sampleEffect;
-	Effekseer::Handle m_sampleHandle{};
+	std::unordered_map<std::string, Effekseer::EffectRef> m_effects;
 	float m_elapsedTime{};
 	bool m_initialized{};
 };

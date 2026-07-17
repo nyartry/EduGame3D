@@ -11,10 +11,6 @@ using namespace DirectX;
 
 namespace
 {
-	constexpr const char* TitleBgmPath = "Content\\Audio\\BGM\\title_theme.wav";
-	constexpr const char* GameBgmPath = "Content\\Audio\\BGM\\game_theme.wav";
-	constexpr const char* ButtonSePath = "Content\\Audio\\SE\\button_click.wav";
-
 	void DebugLogAudio(const char* message)
 	{
 		OutputDebugStringA("[Audio] ");
@@ -110,9 +106,10 @@ std::wstring AudioPlayerBase::ResolveAssetPath(const char* path)
 	return relativePath.wstring();
 }
 
-void BgmPlayer::Register(BgmId id, const char* path)
+void BgmPlayer::Register(std::string_view id, std::string_view path)
 {
-	m_tracks[id].path = ResolveAssetPath(path);
+	const std::string ownedPath(path);
+	m_tracks[std::string(id)].path = ResolveAssetPath(ownedPath.c_str());
 }
 
 bool BgmPlayer::Load(AudioEngine& engine)
@@ -142,11 +139,11 @@ void BgmPlayer::SetVolume(float volume)
 	}
 }
 
-void BgmPlayer::Play(BgmId id)
+void BgmPlayer::Play(std::string_view id)
 {
 	if (m_hasCurrent && m_currentId == id)
 	{
-		auto currentTrack = m_tracks.find(id);
+		auto currentTrack = m_tracks.find(std::string(id));
 		if (currentTrack != m_tracks.end() &&
 			currentTrack->second.instance != nullptr &&
 			currentTrack->second.instance->GetState() != PLAYING)
@@ -159,7 +156,7 @@ void BgmPlayer::Play(BgmId id)
 
 	Stop();
 
-	auto track = m_tracks.find(id);
+	auto track = m_tracks.find(std::string(id));
 	if (track == m_tracks.end() || track->second.instance == nullptr)
 	{
 		return;
@@ -186,9 +183,10 @@ void BgmPlayer::Stop()
 	m_hasCurrent = false;
 }
 
-void SePlayer::Register(SeId id, const char* path)
+void SePlayer::Register(std::string_view id, std::string_view path)
 {
-	m_clips[id].path = ResolveAssetPath(path);
+	const std::string ownedPath(path);
+	m_clips[std::string(id)].path = ResolveAssetPath(ownedPath.c_str());
 }
 
 bool SePlayer::Load(AudioEngine& engine)
@@ -208,9 +206,9 @@ void SePlayer::SetVolume(float volume)
 	m_volume = std::clamp(volume, 0.0f, 1.0f);
 }
 
-void SePlayer::Play(SeId id)
+void SePlayer::Play(std::string_view id)
 {
-	auto clip = m_clips.find(id);
+	auto clip = m_clips.find(std::string(id));
 	if (clip == m_clips.end() || clip->second.effect == nullptr)
 	{
 		return;
@@ -240,9 +238,6 @@ bool AudioSystem::Initialize()
 		}
 
 		m_engine = std::make_unique<AudioEngine>();
-		m_bgmPlayer.Register(BgmId::Title, TitleBgmPath);
-		m_bgmPlayer.Register(BgmId::Game, GameBgmPath);
-		m_sePlayer.Register(SeId::Button, ButtonSePath);
 		m_bgmPlayer.Load(*m_engine);
 		m_sePlayer.Load(*m_engine);
 		m_available = true;
@@ -284,7 +279,17 @@ void AudioSystem::Update()
 	}
 }
 
-void AudioSystem::PlayBgm(BgmId id)
+void AudioSystem::RegisterBgm(std::string_view id, std::string_view assetPath)
+{
+	m_bgmPlayer.Register(id, assetPath);
+}
+
+void AudioSystem::RegisterSe(std::string_view id, std::string_view assetPath)
+{
+	m_sePlayer.Register(id, assetPath);
+}
+
+void AudioSystem::PlayBgm(std::string_view id)
 {
 	if (m_available)
 	{
@@ -297,7 +302,7 @@ void AudioSystem::StopBgm()
 	m_bgmPlayer.Stop();
 }
 
-void AudioSystem::PlaySe(SeId id)
+void AudioSystem::PlaySe(std::string_view id)
 {
 	if (m_available)
 	{

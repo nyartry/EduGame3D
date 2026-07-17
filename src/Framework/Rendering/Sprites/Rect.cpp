@@ -1,11 +1,11 @@
 #include "Framework/Rendering/Sprites/Rect.h"
 
-Rect::Rect(UINT textureWidth, UINT textureHeight, const DirectX::XMFLOAT4& color)
+Rect::Rect(std::uint32_t textureWidth, std::uint32_t textureHeight, const DirectX::XMFLOAT4& color)
 	: SpriteShape(textureWidth, textureHeight, color)
 {
 }
 
-bool Rect::ContainsPixel(UINT, UINT) const
+bool Rect::ContainsPixel(std::uint32_t, std::uint32_t) const
 {
 	return true;
 }

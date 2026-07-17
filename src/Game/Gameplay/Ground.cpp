@@ -1,6 +1,7 @@
 #include "Game/Gameplay/Ground.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 
 using namespace DirectX;
 
@@ -57,13 +58,13 @@ namespace
 	}
 }
 
-void Ground::Initialize(ID3D12Device* device)
+void Ground::Initialize(IRenderDevice& device)
 {
 	BuildMesh();
-	m_vertexBuffer.Initialize(device, m_vertices);
+	device.CreateVertexBuffer(m_vertexBuffer, m_vertices);
 }
 
-void Ground::Draw(Dx12Renderer& renderer) const
+void Ground::Draw(IRenderer& renderer) const
 {
 	renderer.Draw(m_vertexBuffer, XMMatrixIdentity());
 }

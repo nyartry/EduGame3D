@@ -1,65 +1,31 @@
 #include "Framework/Scene/Input/Input.h"
 
-#include <Windows.h>
-
-void Input::Update(HWND hwnd)
-{
-	m_previousKeys = m_currentKeys;
-	m_previousLeftMouseDown = m_currentLeftMouseDown;
-
-	for (int key = 0; key < static_cast<int>(m_currentKeys.size()); ++key)
-	{
-		m_currentKeys[static_cast<size_t>(key)] = (GetAsyncKeyState(key) & 0x8000) != 0;
-	}
-
-	m_currentLeftMouseDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
-
-	POINT cursorPosition{};
-	if (GetCursorPos(&cursorPosition) && hwnd != nullptr)
-	{
-		ScreenToClient(hwnd, &cursorPosition);
-		m_mouseX = cursorPosition.x;
-		m_mouseY = cursorPosition.y;
-
-		RECT clientRect{};
-		if (GetClientRect(hwnd, &clientRect))
-		{
-			m_mouseInsideClient =
-				cursorPosition.x >= clientRect.left &&
-				cursorPosition.y >= clientRect.top &&
-				cursorPosition.x < clientRect.right &&
-				cursorPosition.y < clientRect.bottom;
-		}
-	}
-}
-
 bool Input::IsDown(InputKey key) const
 {
-	return m_currentKeys[static_cast<size_t>(ToVirtualKey(key))];
+	return m_currentKeys[ToIndex(key)];
 }
 
 bool Input::WasPressed(InputKey key) const
 {
-	const size_t virtualKey = static_cast<size_t>(ToVirtualKey(key));
-	return m_currentKeys[virtualKey] && !m_previousKeys[virtualKey];
+	const std::size_t index = ToIndex(key);
+	return m_currentKeys[index] && !m_previousKeys[index];
 }
 
 bool Input::WasReleased(InputKey key) const
 {
-	const size_t virtualKey = static_cast<size_t>(ToVirtualKey(key));
-	return !m_currentKeys[virtualKey] && m_previousKeys[virtualKey];
+	const std::size_t index = ToIndex(key);
+	return !m_currentKeys[index] && m_previousKeys[index];
 }
 
 bool Input::WasAnyPressed() const
 {
-	for (size_t key = 0; key < m_currentKeys.size(); ++key)
+	for (std::size_t index = 0; index < KeyCount; ++index)
 	{
-		if (m_currentKeys[key] && !m_previousKeys[key])
+		if (m_currentKeys[index] && !m_previousKeys[index])
 		{
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -93,39 +59,21 @@ int Input::GetMouseY() const
 	return m_mouseY;
 }
 
-int Input::ToVirtualKey(InputKey key)
+void Input::BeginFrame()
 {
-	switch (key)
-	{
-	case InputKey::Left:
-		return VK_LEFT;
-	case InputKey::Right:
-		return VK_RIGHT;
-	case InputKey::Up:
-		return VK_UP;
-	case InputKey::Down:
-		return VK_DOWN;
-	case InputKey::W:
-		return 'W';
-	case InputKey::A:
-		return 'A';
-	case InputKey::S:
-		return 'S';
-	case InputKey::D:
-		return 'D';
-	case InputKey::X:
-		return 'X';
-	case InputKey::Z:
-		return 'Z';
-	case InputKey::Shift:
-		return VK_SHIFT;
-	case InputKey::Space:
-		return VK_SPACE;
-	case InputKey::Enter:
-		return VK_RETURN;
-	case InputKey::Escape:
-		return VK_ESCAPE;
-	default:
-		return 0;
-	}
+	m_previousKeys = m_currentKeys;
+	m_previousLeftMouseDown = m_currentLeftMouseDown;
+}
+
+void Input::SetKey(InputKey key, bool isDown)
+{
+	m_currentKeys[ToIndex(key)] = isDown;
+}
+
+void Input::SetPointer(bool leftButtonDown, bool insideClient, int x, int y)
+{
+	m_currentLeftMouseDown = leftButtonDown;
+	m_mouseInsideClient = insideClient;
+	m_mouseX = x;
+	m_mouseY = y;
 }

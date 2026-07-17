@@ -1,6 +1,7 @@
 #include "Game/UI/HudOverlay.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 
 #include <cmath>
 
@@ -17,7 +18,7 @@ namespace
 	constexpr XMFLOAT4 ReticleColor{ 0.92f, 0.98f, 1.0f, 0.82f };
 }
 
-void HudOverlay::Initialize(ID3D12Device* device, UINT width, UINT height)
+void HudOverlay::Initialize(IRenderDevice& device, std::uint32_t width, std::uint32_t height)
 {
 	m_width = width;
 	m_height = height;
@@ -31,7 +32,7 @@ void HudOverlay::Update(float deltaTime)
 	RebuildBatch();
 }
 
-void HudOverlay::Render(Dx12Renderer& renderer) const
+void HudOverlay::Render(IRenderer& renderer) const
 {
 	m_batch.Render(renderer);
 }

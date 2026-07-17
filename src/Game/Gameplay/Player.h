@@ -6,8 +6,6 @@
 #include "Framework/Models/SkinnedMeshActor.h"
 
 #include <DirectXMath.h>
-#include <Windows.h>
-
 #include <string_view>
 
 class Ground;
@@ -27,7 +25,7 @@ struct PlayerDefinition
 class Player : public SkinnedMeshActor, public CollisionBody
 {
 public:
-	void Initialize(ID3D12Device* device) override;
+	void Initialize(IRenderDevice& device) override;
 	void Update(float deltaTime, const Input& input) override;
 	DirectX::XMFLOAT3 GetCollisionPosition() const override;
 	void SetCollisionPosition(const DirectX::XMFLOAT3& position) override;

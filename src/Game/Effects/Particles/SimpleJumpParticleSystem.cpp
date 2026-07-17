@@ -1,6 +1,7 @@
 #include "Game/Effects/Particles/SimpleJumpParticleSystem.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 #include "Framework/Rendering/Geometry/Vertex.h"
 
 #include <DirectXMath.h>
@@ -39,7 +40,7 @@ namespace
 	}
 }
 
-void SimpleJumpParticleSystem::Initialize(ID3D12Device* device)
+void SimpleJumpParticleSystem::Initialize(IRenderDevice& device)
 {
 	BuildParticleMesh(device);
 	m_initialized = true;
@@ -96,7 +97,7 @@ void SimpleJumpParticleSystem::Update(float deltaTime)
 	}
 }
 
-void SimpleJumpParticleSystem::Render(Dx12Renderer& renderer) const
+void SimpleJumpParticleSystem::Render(IRenderer& renderer) const
 {
 	if (!m_initialized)
 	{
@@ -119,7 +120,7 @@ void SimpleJumpParticleSystem::Render(Dx12Renderer& renderer) const
 	}
 }
 
-void SimpleJumpParticleSystem::BuildParticleMesh(ID3D12Device* device)
+void SimpleJumpParticleSystem::BuildParticleMesh(IRenderDevice& device)
 {
 	const std::vector<Vertex> vertices =
 	{
@@ -139,5 +140,5 @@ void SimpleJumpParticleSystem::BuildParticleMesh(ID3D12Device* device)
 		MakeVertex(0.0f, 0.0f, -1.0f),
 		MakeVertex(1.0f, 0.0f, 0.0f),
 	};
-	m_particleMesh.Initialize(device, vertices);
+	device.CreateVertexBuffer(m_particleMesh, vertices);
 }

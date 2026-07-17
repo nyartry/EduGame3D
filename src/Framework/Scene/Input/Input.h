@@ -1,8 +1,7 @@
 #pragma once
 
-#include <Windows.h>
-
 #include <array>
+#include <cstddef>
 
 enum class InputKey
 {
@@ -20,13 +19,14 @@ enum class InputKey
 	Space,
 	Enter,
 	Escape,
+	Count
 };
 
+// A platform-neutral snapshot. Platform adapters populate it once per frame;
+// game code can read it without knowing about HWND or virtual-key codes.
 class Input
 {
 public:
-	void Update(HWND hwnd);
-
 	bool IsDown(InputKey key) const;
 	bool WasPressed(InputKey key) const;
 	bool WasReleased(InputKey key) const;
@@ -39,10 +39,17 @@ public:
 	int GetMouseY() const;
 
 private:
-	static int ToVirtualKey(InputKey key);
+	friend class Win32InputBackend;
 
-	std::array<bool, 256> m_currentKeys{};
-	std::array<bool, 256> m_previousKeys{};
+	static constexpr std::size_t KeyCount = static_cast<std::size_t>(InputKey::Count);
+	static constexpr std::size_t ToIndex(InputKey key) { return static_cast<std::size_t>(key); }
+
+	void BeginFrame();
+	void SetKey(InputKey key, bool isDown);
+	void SetPointer(bool leftButtonDown, bool insideClient, int x, int y);
+
+	std::array<bool, KeyCount> m_currentKeys{};
+	std::array<bool, KeyCount> m_previousKeys{};
 	bool m_currentLeftMouseDown{};
 	bool m_previousLeftMouseDown{};
 	bool m_mouseInsideClient{};

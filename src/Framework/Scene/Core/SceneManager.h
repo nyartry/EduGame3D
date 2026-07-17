@@ -6,6 +6,7 @@
 
 #include <DirectXMath.h>
 
+#include <cstdint>
 #include <functional>
 #include <future>
 #include <memory>
@@ -30,7 +31,13 @@ class SceneManager
 public:
 	using SceneFactory = std::function<std::unique_ptr<IScene>()>;
 
-	void Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue, IAudioService* audio, UINT width, UINT height);
+	void Initialize(
+		IRenderDevice& renderDevice,
+		IAudioService* audio,
+		IEffectService* effects,
+		IUiService* ui,
+		std::uint32_t width,
+		std::uint32_t height);
 
 	void RegisterScene(const std::string& name, SceneFactory factory);
 
@@ -49,7 +56,7 @@ public:
 		SceneLoadMode loadMode = SceneLoadMode::Single);
 
 	void Update(float deltaTime, const Input& input);
-	void Render(Dx12Renderer& renderer) const;
+	void Render(IRenderer& renderer) const;
 
 	DirectX::XMMATRIX GetViewProjectionMatrix() const;
 	bool IsLoading() const;
@@ -74,7 +81,7 @@ private:
 	struct RetiredScene
 	{
 		std::unique_ptr<IScene> scene;
-		UINT framesRemaining{};
+		std::uint32_t framesRemaining{};
 	};
 
 	void ClearActiveScenes();

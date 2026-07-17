@@ -14,13 +14,13 @@ class Triangle : public SpriteShape
 {
 public:
 	Triangle(
-		UINT textureWidth,
-		UINT textureHeight,
+		std::uint32_t textureWidth,
+		std::uint32_t textureHeight,
 		const DirectX::XMFLOAT4& color,
 		TriangleDirection direction = TriangleDirection::Up);
 
 protected:
-	bool ContainsPixel(UINT x, UINT y) const override;
+	bool ContainsPixel(std::uint32_t x, std::uint32_t y) const override;
 
 private:
 	bool ContainsUpTriangle(float normalizedX, float normalizedY) const;

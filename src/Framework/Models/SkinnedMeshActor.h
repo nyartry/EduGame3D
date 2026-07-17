@@ -23,9 +23,9 @@ struct SkinnedMeshActorDefinition
 class SkinnedMeshActor : public Actor
 {
 public:
-	void Initialize(ID3D12Device* device) override;
+	void Initialize(IRenderDevice& device) override;
 	void Update(float deltaTime, const Input& input) override;
-	void Draw(Dx12Renderer& renderer) const override;
+	void Draw(IRenderer& renderer) const override;
 
 	const DirectX::XMFLOAT3& GetPosition() const;
 	float GetRotationY() const;

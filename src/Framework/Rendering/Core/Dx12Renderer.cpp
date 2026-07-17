@@ -13,6 +13,60 @@
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 
+void Dx12Renderer::CreateVertexBuffer(VertexBuffer& buffer, const std::vector<Vertex>& vertices)
+{
+	buffer.Initialize(m_device.Get(), vertices);
+}
+
+void Dx12Renderer::CreateTexturedVertexBuffer(TexturedVertexBuffer& buffer, const std::vector<TexturedVertex>& vertices)
+{
+	buffer.Initialize(m_device.Get(), vertices);
+}
+
+void Dx12Renderer::CreateSkinnedVertexBuffer(SkinnedVertexBuffer& buffer, const std::vector<SkinnedVertex>& vertices)
+{
+	buffer.Initialize(m_device.Get(), vertices);
+}
+
+void Dx12Renderer::CreateSpriteVertexBuffer(SpriteVertexBuffer& buffer, std::uint32_t vertexCapacity)
+{
+	buffer.Initialize(m_device.Get(), static_cast<UINT>(vertexCapacity));
+}
+
+void Dx12Renderer::CreateSolidColorSpriteMaterial(
+	SpriteMaterial& material,
+	std::uint8_t red,
+	std::uint8_t green,
+	std::uint8_t blue,
+	std::uint8_t alpha)
+{
+	material.InitializeSolidColor(m_device.Get(), red, green, blue, alpha);
+}
+
+void Dx12Renderer::CreateTextureSpriteMaterial(SpriteMaterial& material, const std::string& texturePath, bool useSrgb)
+{
+	material.InitializeTexture(m_device.Get(), texturePath, useSrgb);
+}
+
+void Dx12Renderer::CreatePixelSpriteMaterial(
+	SpriteMaterial& material,
+	const std::vector<std::uint8_t>& rgbaPixels,
+	std::uint32_t width,
+	std::uint32_t height,
+	bool useSrgb)
+{
+	material.InitializePixels(m_device.Get(), rgbaPixels, width, height, useSrgb);
+}
+
+void Dx12Renderer::CreateTexturedMaterial(
+	TexturedMaterial& material,
+	const std::string& baseColorTexturePath,
+	const std::string& opacityTexturePath,
+	const std::string& normalTexturePath)
+{
+	material.Initialize(m_device.Get(), baseColorTexturePath, opacityTexturePath, normalTexturePath);
+}
+
 namespace
 {
 	constexpr DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;

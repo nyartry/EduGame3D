@@ -1,6 +1,7 @@
 #include "Framework/Scene/Core/SceneManager.h"
 
 #include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 
 #include <algorithm>
 #include <chrono>
@@ -13,18 +14,25 @@ namespace
 	constexpr float MinimumLoadingSeconds = 0.75f;
 	constexpr float FadeOutSeconds = 0.45f;
 	constexpr float FadeInSeconds = 0.45f;
-	constexpr UINT RetiredSceneKeepAliveFrames = Dx12Renderer::FrameCount + 1;
+	constexpr std::uint32_t RetiredSceneKeepAliveFrames = Dx12Renderer::FrameCount + 1;
 }
 
-void SceneManager::Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue, IAudioService* audio, UINT width, UINT height)
+void SceneManager::Initialize(
+	IRenderDevice& renderDevice,
+	IAudioService* audio,
+	IEffectService* effects,
+	IUiService* ui,
+	std::uint32_t width,
+	std::uint32_t height)
 {
-	m_context.device = device;
-	m_context.commandQueue = commandQueue;
+	m_context.renderDevice = &renderDevice;
 	m_context.audio = audio;
+	m_context.effects = effects;
+	m_context.ui = ui;
 	m_context.width = width;
 	m_context.height = height;
-	m_loadingOverlay.Initialize(device, width, height);
-	m_fadeOverlay.Initialize(device, 1);
+	m_loadingOverlay.Initialize(renderDevice, width, height);
+	m_fadeOverlay.Initialize(renderDevice, 1);
 }
 
 void SceneManager::RegisterScene(const std::string& name, SceneFactory factory)
@@ -125,7 +133,7 @@ void SceneManager::Update(float deltaTime, const Input& input)
 	}
 }
 
-void SceneManager::Render(Dx12Renderer& renderer) const
+void SceneManager::Render(IRenderer& renderer) const
 {
 	if (m_pendingLoad != nullptr && m_pendingLoad->phase == PendingLoadPhase::Loading)
 	{

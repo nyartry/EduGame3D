@@ -1,5 +1,5 @@
 #include "Framework/Common/Common.h"
-#include "Game/App/Win32Application.h"
+#include "Launcher/Win32/Win32Application.h"
 
 #include <exception>
 
@@ -15,4 +15,3 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand)
 		return 1;
 	}
 }
-

@@ -1,5 +1,7 @@
 #include "Framework/Rendering/Sprites/SpriteShape.h"
 
+#include "Framework/Rendering/Core/IRenderDevice.h"
+
 #include <algorithm>
 #include <cmath>
 
@@ -7,22 +9,22 @@ using namespace DirectX;
 
 namespace
 {
-	UINT8 ToByte(float value)
+	std::uint8_t ToByte(float value)
 	{
 		const float clampedValue = std::clamp(value, 0.0f, 1.0f);
-		return static_cast<UINT8>(std::round(clampedValue * 255.0f));
+		return static_cast<std::uint8_t>(std::round(clampedValue * 255.0f));
 	}
 }
 
-SpriteShape::SpriteShape(UINT textureWidth, UINT textureHeight, const XMFLOAT4& color)
-	: m_textureWidth(std::max<UINT>(textureWidth, 1))
-	, m_textureHeight(std::max<UINT>(textureHeight, 1))
+SpriteShape::SpriteShape(std::uint32_t textureWidth, std::uint32_t textureHeight, const XMFLOAT4& color)
+	: m_textureWidth(std::max<std::uint32_t>(textureWidth, 1))
+	, m_textureHeight(std::max<std::uint32_t>(textureHeight, 1))
 	, m_color(color)
 {
 }
 
 Sprite SpriteShape::CreateSprite(
-	ID3D12Device* device,
+	IRenderDevice& device,
 	float x,
 	float y,
 	float width,
@@ -41,12 +43,12 @@ Sprite SpriteShape::CreateSprite(
 	return sprite;
 }
 
-UINT SpriteShape::GetTextureWidth() const
+std::uint32_t SpriteShape::GetTextureWidth() const
 {
 	return m_textureWidth;
 }
 
-UINT SpriteShape::GetTextureHeight() const
+std::uint32_t SpriteShape::GetTextureHeight() const
 {
 	return m_textureHeight;
 }
@@ -56,17 +58,17 @@ const XMFLOAT4& SpriteShape::GetColor() const
 	return m_color;
 }
 
-std::vector<UINT8> SpriteShape::BuildPixels() const
+std::vector<std::uint8_t> SpriteShape::BuildPixels() const
 {
-	std::vector<UINT8> pixels(static_cast<size_t>(m_textureWidth) * m_textureHeight * BytesPerPixel, 0);
-	const UINT8 red = ToByte(m_color.x);
-	const UINT8 green = ToByte(m_color.y);
-	const UINT8 blue = ToByte(m_color.z);
-	const UINT8 alpha = ToByte(m_color.w);
+	std::vector<std::uint8_t> pixels(static_cast<size_t>(m_textureWidth) * m_textureHeight * BytesPerPixel, 0);
+	const std::uint8_t red = ToByte(m_color.x);
+	const std::uint8_t green = ToByte(m_color.y);
+	const std::uint8_t blue = ToByte(m_color.z);
+	const std::uint8_t alpha = ToByte(m_color.w);
 
-	for (UINT y = 0; y < m_textureHeight; ++y)
+	for (std::uint32_t y = 0; y < m_textureHeight; ++y)
 	{
-		for (UINT x = 0; x < m_textureWidth; ++x)
+		for (std::uint32_t x = 0; x < m_textureWidth; ++x)
 		{
 			if (!ContainsPixel(x, y))
 			{

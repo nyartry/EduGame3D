@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup><Filter Include="Framework"><UniqueIdentifier>{96b7a35e-13d8-4fe3-86aa-174bfb7b00b7}</UniqueIdentifier></Filter><Filter Include="Shaders"><UniqueIdentifier>{553fa105-d4d6-4d49-8a07-74141bd45eec}</UniqueIdentifier></Filter></ItemGroup>
+  <ItemGroup><ClCompile Include="src\Framework\**\*.cpp"><Filter>Framework</Filter></ClCompile></ItemGroup>
+  <ItemGroup><ClInclude Include="src\Framework\**\*.h"><Filter>Framework</Filter></ClInclude></ItemGroup>
+  <ItemGroup><None Include="src\Framework\Rendering\Shaders\*.hlsl"><Filter>Shaders</Filter></None></ItemGroup>
+</Project>

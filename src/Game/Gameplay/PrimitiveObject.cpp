@@ -1,7 +1,8 @@
 #include "Game/Gameplay/PrimitiveObject.h"
 
 #include "Game/Gameplay/Ground.h"
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 
 using namespace DirectX;
 
@@ -10,11 +11,11 @@ namespace
 	constexpr float PrimitiveGravity = -18.0f;
 }
 
-void PrimitiveObject::Initialize(ID3D12Device* device)
+void PrimitiveObject::Initialize(IRenderDevice& device)
 {
 	const std::vector<Vertex> vertices = BuildVertices();
 	m_collider.RebuildFromVertices(vertices);
-	m_vertexBuffer.Initialize(device, vertices);
+	device.CreateVertexBuffer(m_vertexBuffer, vertices);
 }
 
 void PrimitiveObject::Update(float deltaTime)
@@ -23,7 +24,7 @@ void PrimitiveObject::Update(float deltaTime)
 	ResolveGroundCollision();
 }
 
-void PrimitiveObject::Draw(Dx12Renderer& renderer) const
+void PrimitiveObject::Draw(IRenderer& renderer) const
 {
 	const XMMATRIX world = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	renderer.Draw(m_vertexBuffer, world);

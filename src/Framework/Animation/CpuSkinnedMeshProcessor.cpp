@@ -1,6 +1,7 @@
 #include "Framework/Animation/CpuSkinnedMeshProcessor.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 #include "Framework/Rendering/Materials/TexturedMaterial.h"
 
 using namespace DirectX;
@@ -20,7 +21,7 @@ namespace
 }
 
 void CpuSkinnedMeshProcessor::Initialize(
-	ID3D12Device* device,
+	IRenderDevice& device,
 	const std::vector<SkinnedVertex>& vertices,
 	std::shared_ptr<TexturedMaterial> material)
 {
@@ -31,7 +32,7 @@ void CpuSkinnedMeshProcessor::Initialize(
 		m_skinnedVertices[index] = vertices[index].vertex;
 	}
 
-	m_vertexBuffer.Initialize(device, m_skinnedVertices);
+	device.CreateTexturedVertexBuffer(m_vertexBuffer, m_skinnedVertices);
 	m_material = std::move(material);
 }
 
@@ -101,7 +102,7 @@ void CpuSkinnedMeshProcessor::Update(
 }
 
 void CpuSkinnedMeshProcessor::Draw(
-	Dx12Renderer& renderer,
+	IRenderer& renderer,
 	const XMMATRIX& world,
 	const std::vector<XMFLOAT4X4>&,
 	float,

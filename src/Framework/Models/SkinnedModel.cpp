@@ -2,7 +2,8 @@
 
 #include "Framework/Animation/AnimationSampler.h"
 #include "Framework/Animation/CpuSkinnedMeshProcessor.h"
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 #include "Framework/Animation/GpuSkinnedMeshProcessor.h"
 #include "Framework/Models/SkinnedModelLoader.h"
 
@@ -33,7 +34,7 @@ namespace
 }
 
 void SkinnedModel::Initialize(
-	ID3D12Device* device,
+	IRenderDevice& device,
 	const std::string& modelPath,
 	const ModelScaleSettings& scaleSettings,
 	SkinningMode skinningMode)
@@ -60,7 +61,7 @@ void SkinnedModel::Initialize(
 		if (material == nullptr)
 		{
 			material = std::make_shared<TexturedMaterial>();
-			material->Initialize(device, baseColorTexturePath, meshData.opacityTexturePath, meshData.normalTexturePath);
+			device.CreateTexturedMaterial(*material, baseColorTexturePath, meshData.opacityTexturePath, meshData.normalTexturePath);
 		}
 
 		std::unique_ptr<ISkinnedMeshProcessor> meshProcessor = CreateMeshProcessor(skinningMode);
@@ -100,7 +101,6 @@ void SkinnedModel::PlayAnimation(const std::string& animationName)
 	}
 }
 
-#if defined(ANIMATION_EVENT_EDITOR_TOOL)
 void SkinnedModel::PlayAnimationByIndex(size_t animationIndex)
 {
 	if (animationIndex >= m_modelData.animations.size())
@@ -119,7 +119,6 @@ void SkinnedModel::PlayAnimationByIndex(size_t animationIndex)
 		}
 	}
 }
-#endif
 
 float SkinnedModel::GetAnimationDurationSeconds(const std::string& animationName) const
 {
@@ -133,7 +132,6 @@ float SkinnedModel::GetAnimationDurationSeconds(const std::string& animationName
 	return 0.0f;
 }
 
-#if defined(ANIMATION_EVENT_EDITOR_TOOL)
 float SkinnedModel::GetCurrentAnimationDurationSeconds() const
 {
 	if (m_currentAnimationIndex >= m_modelData.animations.size())
@@ -171,7 +169,6 @@ void SkinnedModel::SetAnimationTimeSeconds(float animationTimeSeconds)
 		meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
 	}
 }
-#endif
 
 RootMotionDelta SkinnedModel::Update(float deltaTime)
 {
@@ -185,7 +182,7 @@ RootMotionDelta SkinnedModel::Update(float deltaTime)
 	return rootMotionDelta;
 }
 
-void SkinnedModel::Draw(Dx12Renderer& renderer) const
+void SkinnedModel::Draw(IRenderer& renderer) const
 {
 	const XMMATRIX world = XMMatrixRotationY(m_rotationY) * XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	for (const std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)

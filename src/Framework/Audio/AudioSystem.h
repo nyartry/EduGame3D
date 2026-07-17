@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 class AudioPlayerBase
@@ -23,10 +24,10 @@ protected:
 class BgmPlayer final : public AudioPlayerBase
 {
 public:
-	void Register(BgmId id, const char* path);
+	void Register(std::string_view id, std::string_view path);
 	bool Load(DirectX::AudioEngine& engine) override;
 	void SetVolume(float volume) override;
-	void Play(BgmId id);
+	void Play(std::string_view id);
 	void Stop();
 
 private:
@@ -37,8 +38,8 @@ private:
 		std::unique_ptr<DirectX::SoundEffectInstance> instance;
 	};
 
-	std::unordered_map<BgmId, BgmTrack> m_tracks;
-	BgmId m_currentId{ BgmId::Title };
+	std::unordered_map<std::string, BgmTrack> m_tracks;
+	std::string m_currentId;
 	bool m_hasCurrent{};
 	float m_volume{ 0.45f };
 };
@@ -46,10 +47,10 @@ private:
 class SePlayer final : public AudioPlayerBase
 {
 public:
-	void Register(SeId id, const char* path);
+	void Register(std::string_view id, std::string_view path);
 	bool Load(DirectX::AudioEngine& engine) override;
 	void SetVolume(float volume) override;
-	void Play(SeId id);
+	void Play(std::string_view id);
 
 private:
 	struct SeClip
@@ -58,7 +59,7 @@ private:
 		std::unique_ptr<DirectX::SoundEffect> effect;
 	};
 
-	std::unordered_map<SeId, SeClip> m_clips;
+	std::unordered_map<std::string, SeClip> m_clips;
 	float m_volume{ 0.78f };
 };
 
@@ -70,9 +71,11 @@ public:
 	bool Initialize();
 	void Update();
 
-	void PlayBgm(BgmId id) override;
+	void RegisterBgm(std::string_view id, std::string_view assetPath) override;
+	void RegisterSe(std::string_view id, std::string_view assetPath) override;
+	void PlayBgm(std::string_view id) override;
 	void StopBgm() override;
-	void PlaySe(SeId id) override;
+	void PlaySe(std::string_view id) override;
 	void SetMasterVolume(float volume) override;
 	void SetBgmVolume(float volume) override;
 	void SetSeVolume(float volume) override;

@@ -2,23 +2,23 @@
 
 #include "Framework/Rendering/Sprites/SpriteBatch.h"
 
-#include <Windows.h>
+#include <cstdint>
 
-class Dx12Renderer;
-struct ID3D12Device;
+class IRenderDevice;
+class IRenderer;
 
 class LoadingOverlay
 {
 public:
-	void Initialize(ID3D12Device* device, UINT width, UINT height);
+	void Initialize(IRenderDevice& device, std::uint32_t width, std::uint32_t height);
 	void Update(float deltaTime);
-	void Render(Dx12Renderer& renderer) const;
+	void Render(IRenderer& renderer) const;
 
 private:
 	void RebuildBatch();
 
 	SpriteBatch m_batch;
-	UINT m_width{};
-	UINT m_height{};
+	std::uint32_t m_width{};
+	std::uint32_t m_height{};
 	float m_elapsedTime{};
 };

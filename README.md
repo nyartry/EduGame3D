@@ -12,14 +12,12 @@ Windows desktop DirectX 12 starter project for Visual Studio 2022.
 
 ## Source layout
 
-- `src/main.cpp`: Application entry point and top-level exception handling.
-- `src/Win32Application.*`: Window creation and the Win32 message loop.
-- `src/Game.*`: Game lifecycle bridge for update/render ticks.
-- `src/Camera.*`: Perspective camera for the 3D field.
-- `src/Dx12Renderer.*`: Direct3D 12 device setup, GPU resources, and drawing.
-- `src/Ground.*`: Ground field object and its vertex buffer.
-- `src/Vertex.h`: Shared vertex format.
-- `src/Common.h`: Small shared helpers.
+- `src/Game`: Open Campus-specific gameplay, scenes, actions, and content definitions.
+- `src/Framework`: reusable engine APIs, runtime systems, and visible backend adapters.
+- `src/Launcher`: Win32 composition root that connects Game to concrete engine implementations.
+- `tools/AnimationEventEditor`: editor executable that reuses the same static engine library.
+
+The solution builds `EngineFramework.lib` and `OpenCampusGame.lib` as source-visible compilation boundaries. No DLL is used. See [docs/architecture.md](docs/architecture.md) for dependency rules and extension points.
 
 ## Requirements
 
@@ -30,9 +28,6 @@ Windows desktop DirectX 12 starter project for Visual Studio 2022.
 
 Open `DirectX12OpenCampusGame.sln` in Visual Studio 2022, then build and run with `Debug|x64`.
 
-## Good next template upgrades
+## Dependency check
 
-- Add DirectXTK12 for sprites, text, models, input helpers, and audio.
-- Split rendering, input, scene, and asset loading into separate modules.
-- Add a `Content/` directory for textures, models, and compiled shaders.
-- Move shader code from `src/main.cpp` to `.hlsl` files once the first build is stable.
+`tools/check_architecture.ps1` prevents Game from directly depending on Win32, DX12, RmlUi, Effekseer, or Assimp implementation types. It runs automatically when `EngineFramework` builds.

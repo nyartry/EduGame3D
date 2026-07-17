@@ -4,14 +4,13 @@
 #include "Framework/Rendering/Geometry/SpriteVertex.h"
 #include "Framework/Rendering/Buffers/SpriteVertexBuffer.h"
 
-#include <Windows.h>
-
 #include <DirectXMath.h>
+#include <cstdint>
 #include <string_view>
 #include <vector>
 
-class Dx12Renderer;
-struct ID3D12Device;
+class IRenderDevice;
+class IRenderer;
 
 struct SpriteRect
 {
@@ -24,10 +23,10 @@ struct SpriteRect
 class SpriteBatch
 {
 public:
-	void Initialize(ID3D12Device* device, UINT maxQuadCount = 1024);
+	void Initialize(IRenderDevice& device, std::uint32_t maxQuadCount = 1024);
 	void Clear();
 	void Upload();
-	void Render(Dx12Renderer& renderer) const;
+	void Render(IRenderer& renderer) const;
 
 	void DrawRectangle(float x, float y, float width, float height, const DirectX::XMFLOAT4& color);
 	void DrawRectangle(const SpriteRect& rect, const DirectX::XMFLOAT4& color);
@@ -56,5 +55,5 @@ private:
 	std::vector<SpriteVertex> m_vertices;
 	SpriteVertexBuffer m_vertexBuffer;
 	SpriteMaterial m_whiteMaterial;
-	UINT m_maxVertexCount{};
+	std::uint32_t m_maxVertexCount{};
 };

@@ -1,6 +1,7 @@
 #include "Framework/Models/SkinnedMeshActor.h"
 
-#include "Framework/Rendering/Core/Dx12Renderer.h"
+#include "Framework/Rendering/Core/IRenderDevice.h"
+#include "Framework/Rendering/Core/IRenderer.h"
 
 #include <string>
 
@@ -9,7 +10,7 @@ namespace
 	constexpr const char* IdleAnimationName = "Idle";
 }
 
-void SkinnedMeshActor::Initialize(ID3D12Device* device)
+void SkinnedMeshActor::Initialize(IRenderDevice& device)
 {
 	const SkinnedMeshActorDefinition& definition = GetSkinnedMeshDefinition();
 	m_position = definition.initialPosition;
@@ -47,7 +48,7 @@ void SkinnedMeshActor::Update(float deltaTime, const Input&)
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
 }
 
-void SkinnedMeshActor::Draw(Dx12Renderer& renderer) const
+void SkinnedMeshActor::Draw(IRenderer& renderer) const
 {
 	m_model.Draw(renderer);
 }
