@@ -2,13 +2,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectX12OpenCampusGame", "DirectX12OpenCampusGame.vcxproj", "{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameApp", "GameApp.vcxproj", "{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimationEventEditor", "AnimationEventEditor.vcxproj", "{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EngineFramework", "EngineFramework.vcxproj", "{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCampusGame", "OpenCampusGame.vcxproj", "{D7C198B4-E252-4630-A617-F0F2A4B4677A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameModule", "GameModule.vcxproj", "{D7C198B4-E252-4630-A617-F0F2A4B4677A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

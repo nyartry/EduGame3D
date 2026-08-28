@@ -5,8 +5,8 @@ This repository keeps all engine and game source visible in one solution, but us
 ## Project dependency direction
 
 ```text
-DirectX12OpenCampusGame.exe (Win32 launcher / composition root)
-    |-- OpenCampusGame.lib
+GameApp.exe (Win32 application / composition root)
+    |-- GameModule.lib
     `-- EngineFramework.lib
 
 AnimationEventEditor.exe

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Launcher">
+      <UniqueIdentifier>{af5c201a-564a-4087-9c6c-4359587e2e9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{d234690a-07df-43e5-8a8a-8c7c04ebea55}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Launcher\**\*.cpp">
+      <Filter>Launcher</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Launcher\**\*.cpp" />
+    <ClCompile Include="src\Launcher\**\*.cpp" />
+    <ClCompile Include="src\Launcher\**\*.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Launcher\**\*.h">
+      <Filter>Launcher</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Framework\Rendering\Shaders\*.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\*.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\Framework\Rendering\Shaders\*.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\Framework\Rendering\Shaders\*.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\*.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\Framework\Rendering\Shaders\*.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\Framework\Rendering\Shaders\*.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\*.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\Framework\Rendering\Shaders\*.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\Framework\Rendering\Shaders\*.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>

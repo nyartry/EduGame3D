@@ -4,11 +4,13 @@ FBX animation event editor for this DirectX12 Open Campus project.
 
 ## Build
 
-Open `DirectX12OpenCampusGame.sln` in Visual Studio.
+Open `GameFramework.sln` in Visual Studio.
 
-The solution contains two projects:
+The solution contains four projects:
 
-- `DirectX12OpenCampusGame`
+- `GameApp`
+- `GameModule`
+- `EngineFramework`
 - `AnimationEventEditor`
 
 Build `AnimationEventEditor` with `Debug|x64` or `Release|x64`.

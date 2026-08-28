@@ -1,4 +1,4 @@
-# DirectX12 Open Campus Game
+# Game Framework
 
 Windows desktop DirectX 12 starter project for Visual Studio 2022.
 
@@ -17,7 +17,7 @@ Windows desktop DirectX 12 starter project for Visual Studio 2022.
 - `src/Launcher`: Win32 composition root that connects Game to concrete engine implementations.
 - `tools/AnimationEventEditor`: editor executable that reuses the same static engine library.
 
-The solution builds `EngineFramework.lib` and `OpenCampusGame.lib` as source-visible compilation boundaries. No DLL is used. See [docs/architecture.md](docs/architecture.md) for dependency rules and extension points.
+The solution builds `EngineFramework.lib` and `GameModule.lib` as source-visible compilation boundaries. No DLL is used. See [docs/architecture.md](docs/architecture.md) for dependency rules and extension points.
 
 ## Requirements
 
@@ -26,7 +26,7 @@ The solution builds `EngineFramework.lib` and `OpenCampusGame.lib` as source-vis
 - Windows 10/11 SDK
 ## Build
 
-Open `DirectX12OpenCampusGame.sln` in Visual Studio 2022, then build and run with `Debug|x64`.
+Open `GameFramework.sln` in Visual Studio 2022, then build and run `GameApp` with `Debug|x64`.
 
 ## Camera controls
 
