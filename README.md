@@ -28,6 +28,15 @@ The solution builds `EngineFramework.lib` and `OpenCampusGame.lib` as source-vis
 
 Open `DirectX12OpenCampusGame.sln` in Visual Studio 2022, then build and run with `Debug|x64`.
 
+## Camera controls
+
+- `1`: existing interactive follow camera (default)
+- `2`: critically damped spring follow camera
+- `3`: first-person camera
+- `4`: orbit camera
+- `5`: Catmull-Rom spline camera; press `5` again to restart the shot
+- Arrow keys control the active interactive camera. Hold `Shift` with Up/Down to zoom where supported, and hold `Z` to align the view with the player.
+
 ## Dependency check
 
 `tools/check_architecture.ps1` prevents Game from directly or transitively depending on Win32, DX12, RmlUi, Effekseer, Assimp, or other backend implementation types. It runs automatically when `EngineFramework` builds.

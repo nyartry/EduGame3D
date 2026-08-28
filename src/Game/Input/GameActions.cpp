@@ -15,6 +15,11 @@ namespace
 		case GameAction::Jump: return InputKey::Space;
 		case GameAction::Attack: return InputKey::X;
 		case GameAction::Confirm: return InputKey::Enter;
+		case GameAction::SelectFollowCamera: return InputKey::Digit1;
+		case GameAction::SelectSpringFollowCamera: return InputKey::Digit2;
+		case GameAction::SelectFirstPersonCamera: return InputKey::Digit3;
+		case GameAction::SelectOrbitCamera: return InputKey::Digit4;
+		case GameAction::SelectSplineCamera: return InputKey::Digit5;
 		}
 		return InputKey::Enter;
 	}

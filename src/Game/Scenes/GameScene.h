@@ -7,9 +7,9 @@
 #include "Framework/Scene/Input/Input.h"
 #include "Framework/Gameplay/Actor.h"
 #include "Framework/Gameplay/CollisionBody.h"
+#include "Framework/Scene/Cameras/CameraController.h"
 #include "Framework/Scene/Cameras/CameraFollowHeightLock.h"
 #include "Game/UI/HudOverlay.h"
-#include "Framework/Scene/Cameras/ICamera.h"
 #include "Framework/Rendering/Sprites/Sprite.h"
 
 #include <DirectXMath.h>
@@ -58,15 +58,16 @@ private:
 	}
 
 	DirectX::XMFLOAT3 GetCameraFollowPosition();
+	DirectX::XMFLOAT3 GetActiveCameraTargetPosition();
+	void UpdateCameraMode(const Input& input);
 	void ResolvePlayerBodyCollisions();
 
-	std::unique_ptr<ICamera> m_camera;
+	std::unique_ptr<CameraController> m_camera;
 	IRenderDevice& m_renderDevice;
 	IAudioService& m_audio;
 	IEffectPlayer& m_effects;
 	std::uint32_t m_width{};
 	std::uint32_t m_height{};
-	ICamera* m_followCamera{};
 	Player* m_player{};
 	const SkinnedMeshActor* m_followTarget{};
 	CameraFollowHeightLock m_cameraFollowHeightLock;

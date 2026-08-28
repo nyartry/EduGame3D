@@ -23,6 +23,11 @@ namespace
 		case InputKey::Space: return VK_SPACE;
 		case InputKey::Enter: return VK_RETURN;
 		case InputKey::Escape: return VK_ESCAPE;
+		case InputKey::Digit1: return '1';
+		case InputKey::Digit2: return '2';
+		case InputKey::Digit3: return '3';
+		case InputKey::Digit4: return '4';
+		case InputKey::Digit5: return '5';
 		case InputKey::Count: break;
 		}
 		return 0;

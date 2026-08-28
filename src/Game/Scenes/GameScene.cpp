@@ -11,10 +11,9 @@
 #include "Game/Gameplay/NathanWalker.h"
 #include "Game/Gameplay/OrcPlayer.h"
 #include "Game/Gameplay/Player.h"
+#include "Game/Input/GameActions.h"
 #include "Framework/Models/SkinnedMeshActor.h"
 #include "Framework/Rendering/Sprites/SpriteShapeFactory.h"
-#include "Framework/Scene/Cameras/Camera.h"
-#include "Framework/Scene/Cameras/FollowCamera.h"
 #include "Game/Content/GameContent.h"
 #include <memory>
 
@@ -52,10 +51,8 @@ void GameScene::Activate()
 {
 	const float aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
 
-	auto followCamera = std::make_unique<FollowCamera>();
-	followCamera->SetLens(XMConvertToRadians(CameraFovYDegrees), aspectRatio, CameraNearZ, CameraFarZ);
-	m_followCamera = followCamera.get();
-	m_camera = std::move(followCamera);
+	m_camera = std::make_unique<CameraController>();
+	m_camera->SetLens(XMConvertToRadians(CameraFovYDegrees), aspectRatio, CameraNearZ, CameraFarZ);
 
 	m_ground.Initialize(m_renderDevice);
 	m_originCube.SetPosition(PlatformCubePosition.x, PlatformCubePosition.y, PlatformCubePosition.z);
@@ -117,7 +114,6 @@ void GameScene::Unload()
 	m_collisionBodies.clear();
 	m_actors.clear();
 	m_camera.reset();
-	m_followCamera = nullptr;
 	m_player = nullptr;
 	m_followTarget = nullptr;
 }
@@ -125,8 +121,9 @@ void GameScene::Unload()
 void GameScene::Update(float deltaTime, const Input& input)
 {
 	m_audio.PlayBgm(GameContent::GameBgm);
+	UpdateCameraMode(input);
 
-	if (m_player != nullptr)
+	if (m_player != nullptr && m_camera != nullptr)
 	{
 		m_player->SetMovementForward(m_camera->GetForwardXZ());
 	}
@@ -147,11 +144,14 @@ void GameScene::Update(float deltaTime, const Input& input)
 	m_jumpParticles.Update(deltaTime);
 	m_hudOverlay.Update(deltaTime);
 
-	if (m_followCamera != nullptr && m_followTarget != nullptr)
+	if (m_camera != nullptr && m_followTarget != nullptr)
 	{
-		m_followCamera->SetTarget(GetCameraFollowPosition(), m_followTarget->GetRotationY());
+		m_camera->SetTarget(GetActiveCameraTargetPosition(), m_followTarget->GetRotationY());
 	}
-	m_camera->Update(deltaTime, input);
+	if (m_camera != nullptr)
+	{
+		m_camera->Update(deltaTime, input);
+	}
 }
 
 void GameScene::RenderWorld(IRenderer& renderer) const
@@ -188,6 +188,44 @@ XMFLOAT3 GameScene::GetCameraFollowPosition()
 {
 	const bool shouldUpdateHeight = m_player == nullptr || m_player->IsGrounded();
 	return m_cameraFollowHeightLock.ResolveFollowPosition(m_followTarget->GetPosition(), shouldUpdateHeight);
+}
+
+XMFLOAT3 GameScene::GetActiveCameraTargetPosition()
+{
+	if (m_camera->GetMode() == CameraMode::Follow)
+	{
+		return GetCameraFollowPosition();
+	}
+	return m_followTarget->GetPosition();
+}
+
+void GameScene::UpdateCameraMode(const Input& input)
+{
+	if (m_camera == nullptr)
+	{
+		return;
+	}
+
+	if (GameActions::WasPressed(input, GameAction::SelectFollowCamera))
+	{
+		m_camera->SetMode(CameraMode::Follow);
+	}
+	else if (GameActions::WasPressed(input, GameAction::SelectSpringFollowCamera))
+	{
+		m_camera->SetMode(CameraMode::SpringFollow);
+	}
+	else if (GameActions::WasPressed(input, GameAction::SelectFirstPersonCamera))
+	{
+		m_camera->SetMode(CameraMode::FirstPerson);
+	}
+	else if (GameActions::WasPressed(input, GameAction::SelectOrbitCamera))
+	{
+		m_camera->SetMode(CameraMode::Orbit);
+	}
+	else if (GameActions::WasPressed(input, GameAction::SelectSplineCamera))
+	{
+		m_camera->SetMode(CameraMode::Spline);
+	}
 }
 
 void GameScene::ResolvePlayerBodyCollisions()

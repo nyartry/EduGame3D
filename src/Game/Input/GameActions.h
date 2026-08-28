@@ -10,7 +10,12 @@ enum class GameAction
 	MoveRight,
 	Jump,
 	Attack,
-	Confirm
+	Confirm,
+	SelectFollowCamera,
+	SelectSpringFollowCamera,
+	SelectFirstPersonCamera,
+	SelectOrbitCamera,
+	SelectSplineCamera
 };
 
 namespace GameActions

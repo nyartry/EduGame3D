@@ -19,6 +19,11 @@ enum class InputKey
 	Space,
 	Enter,
 	Escape,
+	Digit1,
+	Digit2,
+	Digit3,
+	Digit4,
+	Digit5,
 	Count
 };
 
