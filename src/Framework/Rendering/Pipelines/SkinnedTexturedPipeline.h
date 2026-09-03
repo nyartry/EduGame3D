@@ -8,6 +8,7 @@
 #include <array>
 #include <d3d12.h>
 #include <DirectXMath.h>
+#include <memory>
 #include <vector>
 
 class SkinnedTexturedPipeline
@@ -57,5 +58,5 @@ private:
 	ConstantBufferRing<SceneConstants, MaxDrawConstants> m_sceneConstantBuffer;
 	ConstantBufferRing<BoneConstants, MaxDrawConstants> m_boneConstantBuffer;
 	SceneConstants m_sceneConstants{};
-	BoneConstants m_boneConstants{};
+	std::unique_ptr<BoneConstants> m_boneConstants = std::make_unique<BoneConstants>();
 };

@@ -69,7 +69,11 @@ namespace
 	}
 }
 
-int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand)
+int APIENTRY wWinMain(
+	_In_ HINSTANCE instance,
+	_In_opt_ HINSTANCE,
+	_In_ PWSTR,
+	_In_ int showCommand)
 {
 	try
 	{

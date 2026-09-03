@@ -37,14 +37,14 @@ SkinnedTexturedPipeline::ConstantBufferViews SkinnedTexturedPipeline::UpdateCons
 	for (size_t boneIndex = 0; boneIndex < boneCount; ++boneIndex)
 	{
 		XMStoreFloat4x4(
-			&m_boneConstants.boneMatrices[boneIndex],
+			&m_boneConstants->boneMatrices[boneIndex],
 			XMMatrixTranspose(XMLoadFloat4x4(&boneMatrices[boneIndex])));
 	}
 
 	return ConstantBufferViews
 	{
 		m_sceneConstantBuffer.Write(m_sceneConstants),
-		m_boneConstantBuffer.Write(m_boneConstants)
+		m_boneConstantBuffer.Write(*m_boneConstants)
 	};
 }
 

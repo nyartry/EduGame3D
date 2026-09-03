@@ -3,7 +3,11 @@
 
 #include <exception>
 
-int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand)
+int WINAPI wWinMain(
+	_In_ HINSTANCE instance,
+	_In_opt_ HINSTANCE,
+	_In_ PWSTR,
+	_In_ int showCommand)
 {
 	try
 	{
