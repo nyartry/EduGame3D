@@ -46,6 +46,11 @@
   </ItemDefinitionGroup>
   <ItemGroup><ClCompile Include="src\Framework\**\*.cpp" /></ItemGroup>
   <ItemGroup><ClInclude Include="src\Framework\**\*.h" /></ItemGroup>
-  <ItemGroup><None Include="src\Framework\Rendering\Shaders\*.hlsl" /></ItemGroup>
+  <ItemGroup>
+    <None Include="src\Framework\Rendering\Shaders\BasicColor.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
