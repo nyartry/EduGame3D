@@ -37,12 +37,26 @@ if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb"
 if exist "$(OutDir)assimp-vc143-mt.dll" copy /Y "$(OutDir)assimp-vc143-mt.dll" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\" || echo assimp-vc143-mt.dll is running; close the editor before rebuilding to update the bin copy.</Command></PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="tools\AnimationEventEditor\**\*.cpp" />
+    <!-- BEGIN sync_vs_filters:EditorCompile -->
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorApp.cpp" />
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.cpp" />
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorLayout.cpp" />
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventJson.cpp" />
+    <ClCompile Include="tools\AnimationEventEditor\main.cpp" />
+    <!-- END sync_vs_filters:EditorCompile -->
     <ClCompile Include="third_party\imgui\imgui.cpp" /><ClCompile Include="third_party\imgui\imgui_draw.cpp" /><ClCompile Include="third_party\imgui\imgui_tables.cpp" /><ClCompile Include="third_party\imgui\imgui_widgets.cpp" />
     <ClCompile Include="third_party\imgui\backends\imgui_impl_dx12.cpp"><DisableSpecificWarnings>4127;%(DisableSpecificWarnings)</DisableSpecificWarnings></ClCompile>
     <ClCompile Include="third_party\imgui\backends\imgui_impl_win32.cpp" />
   </ItemGroup>
-  <ItemGroup><ClInclude Include="tools\AnimationEventEditor\**\*.h" /></ItemGroup>
+  <ItemGroup>
+    <!-- BEGIN sync_vs_filters:EditorInclude -->
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventData.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorApp.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorLayout.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventJson.h" />
+    <!-- END sync_vs_filters:EditorInclude -->
+  </ItemGroup>
   <ItemGroup><ProjectReference Include="EngineFramework.vcxproj"><Project>{a04d8f6b-34b4-4c91-af98-158f3bca608d}</Project></ProjectReference></ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

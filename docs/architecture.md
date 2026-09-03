@@ -45,3 +45,13 @@ Scene loading has two explicit phases: `Prepare()` is worker-thread, CPU-only wo
 6. `DirectXMath` value types are currently an intentional shared math vocabulary. This is the remaining vendor-level public dependency; replacing it should be a deliberate math-API migration, not a set of aliases.
 
 `tools/check_architecture.ps1` checks these rules and runs before EngineFramework builds. It also follows Framework headers transitively reachable from Game, so a backend header leaking through an otherwise innocent public include is rejected.
+
+## Visual Studio filters
+
+The solution explorer mirrors the physical source layout below `src` (for example, `Framework\Rendering\Pipelines`). Both the `.vcxproj` and `.vcxproj.filters` files contain explicit source entries because Visual Studio does not reliably assign wildcard-expanded C++ project items to filters.
+
+After adding, moving, or removing source files, regenerate the managed project entries and filters from the repository root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\sync_vs_filters.ps1
+```

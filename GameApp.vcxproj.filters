@@ -1,38 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Launcher">
-      <UniqueIdentifier>{af5c201a-564a-4087-9c6c-4359587e2e9c}</UniqueIdentifier>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{e2a338ed-3e77-a1e5-4d28-e40b84dae160}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{d234690a-07df-43e5-8a8a-8c7c04ebea55}</UniqueIdentifier>
+    <Filter Include="Framework\Rendering">
+      <UniqueIdentifier>{3513808a-28cb-b57a-516f-81234e305d81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Rendering\Shaders">
+      <UniqueIdentifier>{b596ee24-830e-98af-a1fb-2eb653e2a67b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Launcher">
+      <UniqueIdentifier>{c733c215-a19a-4220-4a2b-09e1b95af100}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Launcher\Win32">
+      <UniqueIdentifier>{71224670-214d-0fca-462a-7e16125ab6a8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Launcher\Win32\main.cpp">
-      <Filter>Launcher</Filter>
+      <Filter>Launcher\Win32</Filter>
     </ClCompile>
     <ClCompile Include="src\Launcher\Win32\Win32Application.cpp">
-      <Filter>Launcher</Filter>
+      <Filter>Launcher\Win32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Launcher\Win32\Win32Application.h">
-      <Filter>Launcher</Filter>
+      <Filter>Launcher\Win32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Framework\Rendering\Shaders\BasicColor.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Framework\Rendering\Shaders</Filter>
     </None>
     <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Framework\Rendering\Shaders</Filter>
     </None>
     <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Framework\Rendering\Shaders</Filter>
     </None>
     <None Include="src\Framework\Rendering\Shaders\Textured.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Framework\Rendering\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

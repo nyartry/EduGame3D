@@ -1,6 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup><Filter Include="AnimationEventEditor"><UniqueIdentifier>{4cbe726f-caa2-466c-b26a-d753e7870ca6}</UniqueIdentifier></Filter><Filter Include="ImGui"><UniqueIdentifier>{1fb54b1d-a654-4259-a495-994113535fe7}</UniqueIdentifier></Filter></ItemGroup>
-  <ItemGroup><ClCompile Include="tools\AnimationEventEditor\**\*.cpp"><Filter>AnimationEventEditor</Filter></ClCompile><ClCompile Include="third_party\imgui\imgui.cpp"><Filter>ImGui</Filter></ClCompile><ClCompile Include="third_party\imgui\imgui_draw.cpp"><Filter>ImGui</Filter></ClCompile><ClCompile Include="third_party\imgui\imgui_tables.cpp"><Filter>ImGui</Filter></ClCompile><ClCompile Include="third_party\imgui\imgui_widgets.cpp"><Filter>ImGui</Filter></ClCompile><ClCompile Include="third_party\imgui\backends\imgui_impl_dx12.cpp"><Filter>ImGui</Filter></ClCompile><ClCompile Include="third_party\imgui\backends\imgui_impl_win32.cpp"><Filter>ImGui</Filter></ClCompile></ItemGroup>
-  <ItemGroup><ClInclude Include="tools\AnimationEventEditor\**\*.h"><Filter>AnimationEventEditor</Filter></ClInclude></ItemGroup>
+  <ItemGroup>
+    <Filter Include="AnimationEventEditor">
+      <UniqueIdentifier>{9318c12f-1aff-0890-2273-a5aef58426c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty">
+      <UniqueIdentifier>{a61c4715-1ad9-602e-4604-8898a43384d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\imgui">
+      <UniqueIdentifier>{cefcc893-6702-e8fb-f2ec-5474f2425566}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\imgui\backends">
+      <UniqueIdentifier>{ad4f5b71-7c3a-c20a-18f1-aa910632af57}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="third_party\imgui\backends\imgui_impl_dx12.cpp">
+      <Filter>ThirdParty\imgui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>ThirdParty\imgui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\imgui\imgui.cpp">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\imgui\imgui_draw.cpp">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\imgui\imgui_tables.cpp">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\imgui\imgui_widgets.cpp">
+      <Filter>ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorApp.cpp">
+      <Filter>AnimationEventEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.cpp">
+      <Filter>AnimationEventEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorLayout.cpp">
+      <Filter>AnimationEventEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventJson.cpp">
+      <Filter>AnimationEventEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="tools\AnimationEventEditor\main.cpp">
+      <Filter>AnimationEventEditor</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventData.h">
+      <Filter>AnimationEventEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorApp.h">
+      <Filter>AnimationEventEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.h">
+      <Filter>AnimationEventEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorLayout.h">
+      <Filter>AnimationEventEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventJson.h">
+      <Filter>AnimationEventEditor</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

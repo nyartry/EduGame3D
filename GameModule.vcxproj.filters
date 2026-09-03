@@ -1,6 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup><Filter Include="Game"><UniqueIdentifier>{41fe20d2-b95e-4a6d-9fe5-17d57e0d978f}</UniqueIdentifier></Filter></ItemGroup>
-  <ItemGroup><ClCompile Include="src\Game\**\*.cpp"><Filter>Game</Filter></ClCompile></ItemGroup>
-  <ItemGroup><ClInclude Include="src\Game\**\*.h"><Filter>Game</Filter></ClInclude></ItemGroup>
+  <ItemGroup>
+    <Filter Include="Game">
+      <UniqueIdentifier>{6d46a8fe-9c58-6b4f-8df1-63a4356f18ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\App">
+      <UniqueIdentifier>{ec122949-10c4-b5b7-96a1-2f82f5fa2de0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Content">
+      <UniqueIdentifier>{aa5cea7a-c1e3-40c7-3ddf-ab307e964974}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Effects">
+      <UniqueIdentifier>{b8054526-1d1b-cc61-9a9a-07e78d3326d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Effects\Particles">
+      <UniqueIdentifier>{f43ce333-15f3-6df2-39c8-2c7b43cbd872}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Gameplay">
+      <UniqueIdentifier>{72a346c5-d3e3-471f-e2b6-4539f38f58dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Input">
+      <UniqueIdentifier>{4aa846c4-3fff-862c-1c3c-3bfce26ee48d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\Scenes">
+      <UniqueIdentifier>{ed4b98d8-062d-db1a-04c2-e05929d2237f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game\UI">
+      <UniqueIdentifier>{89eb1996-b489-5d53-c251-0f2c2ce22376}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Game\App\Game.cpp">
+      <Filter>Game\App</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Effects\Particles\SimpleJumpParticleSystem.cpp">
+      <Filter>Game\Effects\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\AnimatedCubeObject.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\CharacterGrounding.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\CollisionComponents.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\Cube.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\DavenPlayer.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\ForestGoddessPlayer.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\Ground.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\NathanWalker.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\OrcPlayer.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\Player.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\PrimitiveObject.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Input\GameActions.cpp">
+      <Filter>Game\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Scenes\GameScene.cpp">
+      <Filter>Game\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Scenes\TitleScene.cpp">
+      <Filter>Game\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\UI\HudOverlay.cpp">
+      <Filter>Game\UI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Game\App\Game.h">
+      <Filter>Game\App</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Content\GameContent.h">
+      <Filter>Game\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Effects\Particles\SimpleJumpParticleSystem.h">
+      <Filter>Game\Effects\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\AnimatedCubeObject.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\CharacterGrounding.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\CollisionComponents.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\Cube.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\DavenPlayer.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\ForestGoddessPlayer.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\Ground.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\NathanWalker.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\OrcPlayer.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\Player.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\PrimitiveObject.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Input\GameActions.h">
+      <Filter>Game\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Scenes\GameScene.h">
+      <Filter>Game\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Scenes\TitleScene.h">
+      <Filter>Game\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\UI\HudOverlay.h">
+      <Filter>Game\UI</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

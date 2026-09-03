@@ -18,8 +18,49 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'"><OutDir>$(SolutionDir)x64\$(Configuration)\lib\</OutDir><IntDir>$(SolutionDir)x64\$(Configuration)\GameModule\obj\</IntDir></PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"><ClCompile><WarningLevel>Level4</WarningLevel><SDLCheck>true</SDLCheck><ConformanceMode>true</ConformanceMode><LanguageStandard>stdcpp20</LanguageStandard><PreprocessorDefinitions>_DEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalIncludeDirectories>$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><ProgramDataBaseFileName>$(IntDir)GameModule.pdb</ProgramDataBaseFileName><AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions></ClCompile></ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'"><ClCompile><WarningLevel>Level4</WarningLevel><FunctionLevelLinking>true</FunctionLevelLinking><IntrinsicFunctions>true</IntrinsicFunctions><SDLCheck>true</SDLCheck><ConformanceMode>true</ConformanceMode><LanguageStandard>stdcpp20</LanguageStandard><PreprocessorDefinitions>NDEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalIncludeDirectories>$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><ProgramDataBaseFileName>$(IntDir)GameModule.pdb</ProgramDataBaseFileName><AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions></ClCompile></ItemDefinitionGroup>
-  <ItemGroup><ClCompile Include="src\Game\**\*.cpp" /></ItemGroup>
-  <ItemGroup><ClInclude Include="src\Game\**\*.h" /></ItemGroup>
+  <ItemGroup>
+    <!-- BEGIN sync_vs_filters:GameCompile -->
+    <ClCompile Include="src\Game\App\Game.cpp" />
+    <ClCompile Include="src\Game\Effects\Particles\SimpleJumpParticleSystem.cpp" />
+    <ClCompile Include="src\Game\Gameplay\AnimatedCubeObject.cpp" />
+    <ClCompile Include="src\Game\Gameplay\CharacterGrounding.cpp" />
+    <ClCompile Include="src\Game\Gameplay\CollisionComponents.cpp" />
+    <ClCompile Include="src\Game\Gameplay\Cube.cpp" />
+    <ClCompile Include="src\Game\Gameplay\DavenPlayer.cpp" />
+    <ClCompile Include="src\Game\Gameplay\ForestGoddessPlayer.cpp" />
+    <ClCompile Include="src\Game\Gameplay\Ground.cpp" />
+    <ClCompile Include="src\Game\Gameplay\NathanWalker.cpp" />
+    <ClCompile Include="src\Game\Gameplay\OrcPlayer.cpp" />
+    <ClCompile Include="src\Game\Gameplay\Player.cpp" />
+    <ClCompile Include="src\Game\Gameplay\PrimitiveObject.cpp" />
+    <ClCompile Include="src\Game\Input\GameActions.cpp" />
+    <ClCompile Include="src\Game\Scenes\GameScene.cpp" />
+    <ClCompile Include="src\Game\Scenes\TitleScene.cpp" />
+    <ClCompile Include="src\Game\UI\HudOverlay.cpp" />
+    <!-- END sync_vs_filters:GameCompile -->
+  </ItemGroup>
+  <ItemGroup>
+    <!-- BEGIN sync_vs_filters:GameInclude -->
+    <ClInclude Include="src\Game\App\Game.h" />
+    <ClInclude Include="src\Game\Content\GameContent.h" />
+    <ClInclude Include="src\Game\Effects\Particles\SimpleJumpParticleSystem.h" />
+    <ClInclude Include="src\Game\Gameplay\AnimatedCubeObject.h" />
+    <ClInclude Include="src\Game\Gameplay\CharacterGrounding.h" />
+    <ClInclude Include="src\Game\Gameplay\CollisionComponents.h" />
+    <ClInclude Include="src\Game\Gameplay\Cube.h" />
+    <ClInclude Include="src\Game\Gameplay\DavenPlayer.h" />
+    <ClInclude Include="src\Game\Gameplay\ForestGoddessPlayer.h" />
+    <ClInclude Include="src\Game\Gameplay\Ground.h" />
+    <ClInclude Include="src\Game\Gameplay\NathanWalker.h" />
+    <ClInclude Include="src\Game\Gameplay\OrcPlayer.h" />
+    <ClInclude Include="src\Game\Gameplay\Player.h" />
+    <ClInclude Include="src\Game\Gameplay\PrimitiveObject.h" />
+    <ClInclude Include="src\Game\Input\GameActions.h" />
+    <ClInclude Include="src\Game\Scenes\GameScene.h" />
+    <ClInclude Include="src\Game\Scenes\TitleScene.h" />
+    <ClInclude Include="src\Game\UI\HudOverlay.h" />
+    <!-- END sync_vs_filters:GameInclude -->
+  </ItemGroup>
   <ItemGroup><ProjectReference Include="EngineFramework.vcxproj"><Project>{a04d8f6b-34b4-4c91-af98-158f3bca608d}</Project></ProjectReference></ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
