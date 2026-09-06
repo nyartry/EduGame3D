@@ -96,6 +96,9 @@
     <ClCompile Include="src\Framework\Animation\MeshTangentCalculator.cpp">
       <Filter>Framework\Animation</Filter>
     </ClCompile>
+    <ClCompile Include="src\Framework\Animation\RootMotion.cpp">
+      <Filter>Framework\Animation</Filter>
+    </ClCompile>
     <ClCompile Include="src\Framework\Animation\RootMotionPolicy.cpp">
       <Filter>Framework\Animation</Filter>
     </ClCompile>

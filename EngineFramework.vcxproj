@@ -50,6 +50,7 @@
     <ClCompile Include="src\Framework\Animation\CpuSkinnedMeshProcessor.cpp" />
     <ClCompile Include="src\Framework\Animation\GpuSkinnedMeshProcessor.cpp" />
     <ClCompile Include="src\Framework\Animation\MeshTangentCalculator.cpp" />
+    <ClCompile Include="src\Framework\Animation\RootMotion.cpp" />
     <ClCompile Include="src\Framework\Animation\RootMotionPolicy.cpp" />
     <ClCompile Include="src\Framework\Assets\AssetPathResolver.cpp" />
     <ClCompile Include="src\Framework\Audio\AudioSystem.cpp" />

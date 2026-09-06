@@ -4,7 +4,6 @@
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Game/Input/GameActions.h"
 
-#include <algorithm>
 #include <cmath>
 #include <string>
 
@@ -27,7 +26,6 @@ void Player::Initialize(IRenderDevice& device)
 {
 	const PlayerDefinition& definition = GetPlayerDefinition();
 	SkinnedMeshActor::Initialize(device);
-	m_rootMotionMode = definition.rootMotionMode;
 	m_moveSpeed = definition.moveSpeed;
 	m_groundProbe.SetSettings(definition.grounding);
 	m_verticalMotion.SetSettings(definition.verticalMotion);
@@ -207,17 +205,15 @@ void Player::ApplyMovement(
 	const XMFLOAT3& inputDisplacement)
 {
 	const RootMotionDelta rootMotionDelta = GetModel().Update(deltaTime);
-	const XMFLOAT3 rootMotionDisplacement = TransformRootMotionToWorld(rootMotionDelta.translation);
-	const XMFLOAT3 displacement = ChooseDisplacement(inputDisplacement, rootMotionDisplacement);
+	const XMFLOAT3 displacement = ResolveMovement(inputDisplacement, rootMotionDelta);
 
 	XMFLOAT3 position = GetPosition();
 	position.x += displacement.x;
 	position.z += displacement.z;
 	m_groundProbe.ResolveWallCollision(position);
 	const XMFLOAT3 jumpStartPosition = position;
-	const bool wasGrounded = m_verticalMotion.IsGrounded();
-	m_verticalMotion.Update(deltaTime, wantsJump, position, m_groundProbe);
-	m_startedJumpThisFrame = wantsJump && wasGrounded && !m_verticalMotion.IsGrounded();
+	m_startedJumpThisFrame = m_verticalMotion.Update(
+		deltaTime, wantsJump, position, m_groundProbe, displacement.y);
 	if (m_startedJumpThisFrame)
 	{
 		m_lastJumpStartPosition = jumpStartPosition;
@@ -251,21 +247,6 @@ bool Player::IsAttacking() const
 	return m_animationState == AnimationState::Attack;
 }
 
-void Player::SetRootMotionMode(RootMotionMode mode)
-{
-	m_rootMotionMode = mode;
-}
-
-void Player::SetRootMotionVerticalMode(RootMotionVerticalMode mode)
-{
-	m_rootMotionVerticalMode = mode;
-}
-
-void Player::SetRootMotionBlendWeight(float weight)
-{
-	m_rootMotionBlendWeight = std::clamp(weight, 0.0f, 1.0f);
-}
-
 void Player::SetGravityEnabled(bool enabled)
 {
 	m_verticalMotion.SetGravityEnabled(enabled);
@@ -291,22 +272,6 @@ XMFLOAT3 Player::GetLastJumpStartPosition() const
 	return m_lastJumpStartPosition;
 }
 
-XMFLOAT3 Player::ChooseDisplacement(
-	const XMFLOAT3& inputDisplacement,
-	const XMFLOAT3& rootMotionDisplacement) const
-{
-	switch (m_rootMotionMode)
-	{
-	case RootMotionMode::Apply:
-		return rootMotionDisplacement;
-	case RootMotionMode::Blend:
-		return MathUtils::Lerp(inputDisplacement, rootMotionDisplacement, m_rootMotionBlendWeight);
-	case RootMotionMode::Ignore:
-	default:
-		return inputDisplacement;
-	}
-}
-
 XMFLOAT3 Player::TransformInputToWorld(const XMFLOAT3& movement) const
 {
 	const XMFLOAT3 right
@@ -322,19 +287,5 @@ XMFLOAT3 Player::TransformInputToWorld(const XMFLOAT3& movement) const
 		0.0f,
 		right.z * movement.x + m_movementForward.z * movement.z
 	};
-}
-
-XMFLOAT3 Player::TransformRootMotionToWorld(const XMFLOAT3& localRootMotion) const
-{
-	const XMVECTOR local = XMLoadFloat3(&localRootMotion);
-	const XMVECTOR world = XMVector3TransformNormal(local, XMMatrixRotationY(GetRotationY()));
-
-	XMFLOAT3 result{};
-	XMStoreFloat3(&result, world);
-	if (m_rootMotionVerticalMode == RootMotionVerticalMode::Ignore)
-	{
-		result.y = 0.0f;
-	}
-	return result;
 }
 

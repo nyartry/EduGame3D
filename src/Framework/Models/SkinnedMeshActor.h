@@ -16,8 +16,7 @@ struct SkinnedMeshActorDefinition
 	DirectX::XMFLOAT3 initialPosition{ 0.0f, 0.0f, 0.0f };
 	float initialRotationY{};
 	SkinningMode skinningMode{ SkinningMode::Gpu };
-	RootMotionMode rootMotionMode{ RootMotionMode::Apply };
-	RootMotionVerticalMode rootMotionVerticalMode{ RootMotionVerticalMode::Ignore };
+	RootMotionSettings rootMotion;
 };
 
 class SkinnedMeshActor : public Actor
@@ -29,6 +28,11 @@ public:
 
 	const DirectX::XMFLOAT3& GetPosition() const;
 	float GetRotationY() const;
+	void SetRootMotionSettings(const RootMotionSettings& settings);
+	const RootMotionSettings& GetRootMotionSettings() const;
+	void SetRootMotionMode(RootMotionMode mode);
+	void SetRootMotionVerticalMode(RootMotionVerticalMode mode);
+	void SetRootMotionBlendWeight(float weight);
 
 protected:
 	virtual const SkinnedMeshActorDefinition& GetSkinnedMeshDefinition() const = 0;
@@ -37,14 +41,14 @@ protected:
 	const SkinnedModel& GetModel() const;
 	void SetPosition(const DirectX::XMFLOAT3& position);
 	void SetRotationY(float radians);
+	DirectX::XMFLOAT3 ResolveMovement(
+		const DirectX::XMFLOAT3& programDisplacement,
+		const RootMotionDelta& rootMotion) const;
 
 private:
-	DirectX::XMFLOAT3 TransformRootMotionToWorld(const DirectX::XMFLOAT3& localRootMotion) const;
-
 	SkinnedModel m_model;
 	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
 	float m_rotationY{};
-	RootMotionMode m_rootMotionMode{ RootMotionMode::Apply };
-	RootMotionVerticalMode m_rootMotionVerticalMode{ RootMotionVerticalMode::Ignore };
+	RootMotionSettings m_rootMotion;
 	bool m_hasIdleAnimation{};
 };

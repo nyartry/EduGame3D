@@ -13,11 +13,15 @@ const PlayerDefinition& OrcPlayer::GetPlayerDefinition() const
 			1.8f,
 			XMFLOAT3{ 0.0f, 0.0f, 0.0f },
 			0.0f,
-			SkinningMode::Gpu
+			SkinningMode::Gpu,
+			RootMotionSettings
+			{
+				.mode = RootMotionMode::Apply,
+				.verticalMode = RootMotionVerticalMode::Ignore
+			}
 		},
 		"Content\\Models\\Player\\Jogging\\Jogging.fbx",
-		"Content\\Models\\Player\\Mma Kick\\Mma Kick.fbx",
-		RootMotionMode::Apply
+		"Content\\Models\\Player\\Mma Kick\\Mma Kick.fbx"
 	};
 	return definition;
 }

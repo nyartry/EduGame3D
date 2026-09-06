@@ -35,6 +35,8 @@ Pimpl is used selectively for backend-heavy resource and service classes. It pre
 
 Scene loading has two explicit phases: `Prepare()` is worker-thread, CPU-only work, and `Activate()` is main-thread GPU/UI work. Scene factories receive their required services through constructors instead of a general service bag.
 
+Root motion uses one `RootMotionSettings` contract shared by mesh actors and players. Horizontal movement can ignore, blend, or apply animation translation while programmatic jump and gravity retain control of vertical movement by default. See [root-motion.md](root-motion.md) for configuration and optional animation-driven vertical movement.
+
 ## Rules
 
 1. Framework never includes Game.

@@ -16,7 +16,6 @@ struct PlayerDefinition
 	SkinnedMeshActorDefinition mesh;
 	std::string_view joggingAnimationPath;
 	std::string_view attackAnimationPath;
-	RootMotionMode rootMotionMode{ RootMotionMode::Apply };
 	float moveSpeed{ 3.0f };
 	CharacterGroundingSettings grounding;
 	CharacterVerticalMotionSettings verticalMotion;
@@ -34,9 +33,6 @@ public:
 	void SetGround(const Ground* ground);
 	void AddLandingSurface(const PrimitiveObject* surface);
 	void ResolveWallCollision();
-	void SetRootMotionMode(RootMotionMode mode);
-	void SetRootMotionVerticalMode(RootMotionVerticalMode mode);
-	void SetRootMotionBlendWeight(float weight);
 	void SetGravityEnabled(bool enabled);
 	bool IsGravityEnabled() const;
 	bool IsGrounded() const;
@@ -75,19 +71,12 @@ private:
 	void UpdateAttackTimer(float deltaTime, bool hasMovementInput);
 	AnimationState GetLocomotionState(bool hasMovementInput) const;
 	bool IsAttacking() const;
-	DirectX::XMFLOAT3 ChooseDisplacement(
-		const DirectX::XMFLOAT3& inputDisplacement,
-		const DirectX::XMFLOAT3& rootMotionDisplacement) const;
 	DirectX::XMFLOAT3 TransformInputToWorld(const DirectX::XMFLOAT3& movement) const;
-	DirectX::XMFLOAT3 TransformRootMotionToWorld(const DirectX::XMFLOAT3& localRootMotion) const;
 
 	AnimationState m_animationState{ AnimationState::Idle };
 	CharacterGroundProbe m_groundProbe;
 	CharacterVerticalMotion m_verticalMotion;
 	DirectX::XMFLOAT3 m_movementForward{ 0.0f, 0.0f, 1.0f };
-	RootMotionMode m_rootMotionMode{ RootMotionMode::Apply };
-	RootMotionVerticalMode m_rootMotionVerticalMode{ RootMotionVerticalMode::Apply };
-	float m_rootMotionBlendWeight{ 0.5f };
 	float m_moveSpeed{ 3.0f };
 	float m_attackTimeRemaining{};
 	float m_attackDurationSeconds{};

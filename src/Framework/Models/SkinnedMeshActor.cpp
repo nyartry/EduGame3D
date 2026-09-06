@@ -15,8 +15,7 @@ void SkinnedMeshActor::Initialize(IRenderDevice& device)
 	const SkinnedMeshActorDefinition& definition = GetSkinnedMeshDefinition();
 	m_position = definition.initialPosition;
 	m_rotationY = definition.initialRotationY;
-	m_rootMotionMode = definition.rootMotionMode;
-	m_rootMotionVerticalMode = definition.rootMotionVerticalMode;
+	SetRootMotionSettings(definition.rootMotion);
 	m_hasIdleAnimation = !definition.idleAnimationPath.empty();
 
 	m_model.Initialize(
@@ -37,13 +36,10 @@ void SkinnedMeshActor::Initialize(IRenderDevice& device)
 void SkinnedMeshActor::Update(float deltaTime, const Input&)
 {
 	const RootMotionDelta rootMotionDelta = m_model.Update(deltaTime);
-	if (m_rootMotionMode == RootMotionMode::Apply)
-	{
-		const DirectX::XMFLOAT3 displacement = TransformRootMotionToWorld(rootMotionDelta.translation);
-		m_position.x += displacement.x;
-		m_position.y += displacement.y;
-		m_position.z += displacement.z;
-	}
+	const DirectX::XMFLOAT3 displacement = ResolveMovement({}, rootMotionDelta);
+	m_position.x += displacement.x;
+	m_position.y += displacement.y;
+	m_position.z += displacement.z;
 
 	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
 }
@@ -85,16 +81,34 @@ void SkinnedMeshActor::SetRotationY(float radians)
 	m_model.SetRotationY(m_rotationY);
 }
 
-DirectX::XMFLOAT3 SkinnedMeshActor::TransformRootMotionToWorld(const DirectX::XMFLOAT3& localRootMotion) const
+void SkinnedMeshActor::SetRootMotionSettings(const RootMotionSettings& settings)
 {
-	const DirectX::XMVECTOR local = DirectX::XMLoadFloat3(&localRootMotion);
-	const DirectX::XMVECTOR world = DirectX::XMVector3TransformNormal(local, DirectX::XMMatrixRotationY(m_rotationY));
+	m_rootMotion = settings;
+}
 
-	DirectX::XMFLOAT3 result{};
-	DirectX::XMStoreFloat3(&result, world);
-	if (m_rootMotionVerticalMode == RootMotionVerticalMode::Ignore)
-	{
-		result.y = 0.0f;
-	}
-	return result;
+const RootMotionSettings& SkinnedMeshActor::GetRootMotionSettings() const
+{
+	return m_rootMotion;
+}
+
+void SkinnedMeshActor::SetRootMotionMode(RootMotionMode mode)
+{
+	m_rootMotion.mode = mode;
+}
+
+void SkinnedMeshActor::SetRootMotionVerticalMode(RootMotionVerticalMode mode)
+{
+	m_rootMotion.verticalMode = mode;
+}
+
+void SkinnedMeshActor::SetRootMotionBlendWeight(float weight)
+{
+	m_rootMotion.blendWeight = weight;
+}
+
+DirectX::XMFLOAT3 SkinnedMeshActor::ResolveMovement(
+	const DirectX::XMFLOAT3& programDisplacement,
+	const RootMotionDelta& rootMotion) const
+{
+	return ResolveRootMotionDisplacement(programDisplacement, rootMotion, m_rotationY, m_rootMotion);
 }

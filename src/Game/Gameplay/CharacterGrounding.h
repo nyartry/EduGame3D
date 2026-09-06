@@ -51,22 +51,22 @@ public:
 	void SetSettings(CharacterVerticalMotionSettings settings);
 	void SetGravityEnabled(bool enabled);
 	bool IsGravityEnabled() const;
-	void Update(
+	// Returns true only when a programmatic jump is accepted this update.
+	// Animation Y is additive, but is suppressed from jump takeoff through landing.
+	bool Update(
 		float deltaTime,
 		bool wantsJump,
 		DirectX::XMFLOAT3& position,
-		const CharacterGroundProbe& groundProbe);
+		const CharacterGroundProbe& groundProbe,
+		float rootMotionDisplacementY = 0.0f);
 
 	bool IsGrounded() const;
 	float GetVerticalVelocity() const;
 	void ResetVerticalVelocity(float velocity = 0.0f);
 
 private:
-	void ResolveFloorContactWithoutGravity(
-		DirectX::XMFLOAT3& position,
-		const CharacterGroundProbe& groundProbe);
-
 	CharacterVerticalMotionSettings m_settings;
 	float m_verticalVelocity{};
 	bool m_isGrounded{};
+	bool m_programmaticJumpActive{};
 };
