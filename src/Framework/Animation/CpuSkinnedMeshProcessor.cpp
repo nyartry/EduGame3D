@@ -1,24 +1,11 @@
 #include "Framework/Animation/CpuSkinnedMeshProcessor.h"
+#include "Framework/Core/Math/MathUtils.h"
 
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Core/IRenderer.h"
 #include "Framework/Rendering/Materials/TexturedMaterial.h"
 
 using namespace DirectX;
-
-namespace
-{
-	XMVECTOR NormalizeOrDefault(XMVECTOR vector, XMVECTOR defaultVector)
-	{
-		const XMVECTOR length = XMVector3LengthSq(vector);
-		if (XMVectorGetX(length) <= 0.0f)
-		{
-			return defaultVector;
-		}
-
-		return XMVector3Normalize(vector);
-	}
-}
 
 void CpuSkinnedMeshProcessor::Initialize(
 	IRenderDevice& device,
@@ -93,8 +80,10 @@ void CpuSkinnedMeshProcessor::Update(
 			1.0f);
 
 		XMStoreFloat3(&skinnedVertex.position, position);
-		XMStoreFloat3(&skinnedVertex.normal, NormalizeOrDefault(normal, sourceNormal));
-		XMStoreFloat3(&skinnedVertex.tangent, NormalizeOrDefault(tangent, sourceTangent));
+		XMStoreFloat3(&skinnedVertex.normal, normal);
+		XMStoreFloat3(&skinnedVertex.tangent, tangent);
+		skinnedVertex.normal = MathUtils::NormalizeOrDefault(skinnedVertex.normal, sourceVertex.vertex.normal);
+		skinnedVertex.tangent = MathUtils::NormalizeOrDefault(skinnedVertex.tangent, sourceVertex.vertex.tangent);
 		m_skinnedVertices[vertexIndex] = skinnedVertex;
 	}
 

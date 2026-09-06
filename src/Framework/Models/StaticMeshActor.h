@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Framework/Gameplay/Actor.h"
+#include "Framework/Core/Math/Transform.h"
 #include "Framework/Models/StaticModel.h"
 
 #include <DirectXMath.h>
@@ -23,6 +24,7 @@ public:
 	void Draw(IRenderer& renderer) const override;
 
 	const DirectX::XMFLOAT3& GetPosition() const;
+	const Transform& GetTransform() const;
 
 protected:
 	virtual const StaticMeshActorDefinition& GetStaticMeshDefinition() const = 0;
@@ -30,5 +32,5 @@ protected:
 
 private:
 	StaticModel m_model;
-	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
+	Transform m_transform;
 };

@@ -37,6 +37,8 @@ Scene loading has two explicit phases: `Prepare()` is worker-thread, CPU-only wo
 
 Root motion uses one `RootMotionSettings` contract shared by mesh actors and players. Horizontal movement can ignore, blend, or apply animation translation while programmatic jump and gravity retain control of vertical movement by default. See [root-motion.md](root-motion.md) for configuration and optional animation-driven vertical movement.
 
+`Framework/Core/Math` is independent of scenes and rendering backends. Mesh actors own their world `Transform`; models receive a world matrix at draw time instead of storing duplicate placement state. See [core-math.md](core-math.md) for coordinate conventions, numerical contracts, and tests.
+
 ## Rules
 
 1. Framework never includes Game.
@@ -45,6 +47,7 @@ Root motion uses one `RootMotionSettings` contract shared by mesh actors and pla
 4. Vendor-native access is allowed in adapters and the Launcher composition root.
 5. New physical key bindings are added to `GameActions`, not scattered through gameplay classes.
 6. `DirectXMath` value types are currently an intentional shared math vocabulary. This is the remaining vendor-level public dependency; replacing it should be a deliberate math-API migration, not a set of aliases.
+7. Core math only depends on the standard library, DirectXMath, and other core math files.
 
 `tools/check_architecture.ps1` checks these rules and runs before EngineFramework builds. It also follows Framework headers transitively reachable from Game, so a backend header leaking through an otherwise innocent public include is rejected.
 

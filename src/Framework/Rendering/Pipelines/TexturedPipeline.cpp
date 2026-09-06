@@ -1,6 +1,7 @@
 #include "Framework/Rendering/Pipelines/TexturedPipeline.h"
 
 #include "Framework/Common/Common.h"
+#include "Framework/Core/Math/MathUtils.h"
 #include "Framework/Rendering/Core/Dx12PipelineHelper.h"
 
 using Microsoft::WRL::ComPtr;
@@ -19,9 +20,16 @@ void TexturedPipeline::Initialize(ID3D12Device* device)
 	CreateConstantBuffers(device);
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS TexturedPipeline::UpdateWorldViewProjection(const XMMATRIX& worldViewProjection)
+D3D12_GPU_VIRTUAL_ADDRESS TexturedPipeline::UpdateConstants(
+	const XMMATRIX& worldViewProjection,
+	const XMMATRIX& world)
 {
 	XMStoreFloat4x4(&m_constantBufferData.worldViewProjection, XMMatrixTranspose(worldViewProjection));
+	XMStoreFloat4x4(&m_constantBufferData.world, XMMatrixTranspose(world));
+	XMMATRIX normalWorld;
+	// Singular transforms have no inverse; the math core supplies an identity fallback.
+	MathUtils::TryCreateNormalMatrix(world, normalWorld);
+	XMStoreFloat4x4(&m_constantBufferData.normalWorld, XMMatrixTranspose(normalWorld));
 	return m_sceneConstantBuffer.Write(m_constantBufferData);
 }
 

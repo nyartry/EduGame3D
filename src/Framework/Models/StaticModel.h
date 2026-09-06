@@ -20,11 +20,8 @@ public:
 		IRenderDevice& device,
 		const std::string& modelPath,
 		const ModelScaleSettings& scaleSettings = ModelScaleSettings::OriginalSize());
-	void Draw(IRenderer& renderer) const;
-
-	void SetPosition(float x, float y, float z);
-	DirectX::XMFLOAT3 GetPosition() const;
-	void SetRotationY(float radians);
+	// World placement belongs to the actor/editor, not the model resource.
+	void Draw(IRenderer& renderer, const DirectX::XMMATRIX& world) const;
 
 private:
 	struct MeshPart
@@ -36,6 +33,4 @@ private:
 	void FitModel(ModelData& modelData, const ModelScaleSettings& scaleSettings) const;
 
 	std::vector<MeshPart> m_meshParts;
-	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
-	float m_rotationY{};
 };

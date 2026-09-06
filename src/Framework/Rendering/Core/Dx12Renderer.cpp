@@ -217,7 +217,7 @@ void Dx12Renderer::DrawTextured(const TexturedVertexBuffer& vertexBuffer, const 
 
 	const XMMATRIX viewProjection = XMLoadFloat4x4(&m_viewProjection);
 	const XMMATRIX worldViewProjection = world * viewProjection;
-	const D3D12_GPU_VIRTUAL_ADDRESS sceneConstantsAddress = m_texturedPipeline.UpdateWorldViewProjection(worldViewProjection);
+	const D3D12_GPU_VIRTUAL_ADDRESS sceneConstantsAddress = m_texturedPipeline.UpdateConstants(worldViewProjection, world);
 	m_commandList->SetGraphicsRootConstantBufferView(0, sceneConstantsAddress);
 	RenderResourceAccess::Bind(material, m_commandList.Get(), 1);
 	RenderResourceAccess::Bind(vertexBuffer, m_commandList.Get());
@@ -259,6 +259,7 @@ void Dx12Renderer::DrawSkinnedTextured(
 	const XMMATRIX worldViewProjection = world * viewProjection;
 	const SkinnedTexturedPipeline::ConstantBufferViews constantBufferViews = m_skinnedTexturedPipeline.UpdateConstants(
 		worldViewProjection,
+		world,
 		boneMatrices,
 		modelCenterX,
 		modelMinY,

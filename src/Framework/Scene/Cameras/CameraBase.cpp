@@ -1,6 +1,6 @@
 #include "Framework/Scene/Cameras/CameraBase.h"
 
-#include "Framework/Common/MathUtils.h"
+#include "Framework/Core/Math/MathUtils.h"
 
 using namespace DirectX;
 

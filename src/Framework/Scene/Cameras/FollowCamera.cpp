@@ -1,32 +1,11 @@
 #include "Framework/Scene/Cameras/FollowCamera.h"
 
-#include "Framework/Common/MathUtils.h"
+#include "Framework/Core/Math/MathUtils.h"
 
 #include <algorithm>
 #include <cmath>
 
 using namespace DirectX;
-
-namespace
-{
-	float NormalizeAngle(float angle)
-	{
-		while (angle > XM_PI)
-		{
-			angle -= XM_2PI;
-		}
-		while (angle < -XM_PI)
-		{
-			angle += XM_2PI;
-		}
-		return angle;
-	}
-
-	float LerpAngle(float from, float to, float amount)
-	{
-		return from + NormalizeAngle(to - from) * amount;
-	}
-}
 
 void FollowCamera::Update(float deltaTime, const Input& input)
 {
@@ -46,7 +25,7 @@ void FollowCamera::Update(float deltaTime, const Input& input)
 	}
 	if (yawInput != 0.0f)
 	{
-		m_cameraYaw = NormalizeAngle(m_cameraYaw + yawInput * m_orbitSpeed * deltaTime);
+		m_cameraYaw = MathUtils::NormalizeAngle(m_cameraYaw + yawInput * m_orbitSpeed * deltaTime);
 	}
 
 	const bool isShiftDown = input.IsDown(InputKey::Shift);
@@ -74,7 +53,7 @@ void FollowCamera::Update(float deltaTime, const Input& input)
 	if (input.IsDown(InputKey::Z))
 	{
 		const float zFocusAmount = MathUtils::SmoothAmount(m_zFocusSharpness, deltaTime);
-		m_cameraYaw = LerpAngle(m_cameraYaw, m_targetRotationY, zFocusAmount);
+		m_cameraYaw = MathUtils::LerpAngle(m_cameraYaw, m_targetRotationY, zFocusAmount);
 	}
 
 	const XMFLOAT3 desiredLookAt

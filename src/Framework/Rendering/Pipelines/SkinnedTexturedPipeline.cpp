@@ -1,6 +1,7 @@
 #include "Framework/Rendering/Pipelines/SkinnedTexturedPipeline.h"
 
 #include "Framework/Common/Common.h"
+#include "Framework/Core/Math/MathUtils.h"
 #include "Framework/Rendering/Core/Dx12PipelineHelper.h"
 
 #include <algorithm>
@@ -23,6 +24,7 @@ void SkinnedTexturedPipeline::Initialize(ID3D12Device* device)
 
 SkinnedTexturedPipeline::ConstantBufferViews SkinnedTexturedPipeline::UpdateConstants(
 	const XMMATRIX& worldViewProjection,
+	const XMMATRIX& world,
 	const std::vector<XMFLOAT4X4>& boneMatrices,
 	float modelCenterX,
 	float modelMinY,
@@ -30,6 +32,10 @@ SkinnedTexturedPipeline::ConstantBufferViews SkinnedTexturedPipeline::UpdateCons
 	float modelScale)
 {
 	XMStoreFloat4x4(&m_sceneConstants.worldViewProjection, XMMatrixTranspose(worldViewProjection));
+	XMStoreFloat4x4(&m_sceneConstants.world, XMMatrixTranspose(world));
+	XMMATRIX normalWorld;
+	MathUtils::TryCreateNormalMatrix(world, normalWorld);
+	XMStoreFloat4x4(&m_sceneConstants.normalWorld, XMMatrixTranspose(normalWorld));
 	m_sceneConstants.modelFit = XMFLOAT4{ modelCenterX, modelMinY, modelCenterZ, modelScale };
 
 	const size_t boneCount = std::min(boneMatrices.size(), MaxBones);

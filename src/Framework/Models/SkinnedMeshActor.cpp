@@ -13,8 +13,9 @@ namespace
 void SkinnedMeshActor::Initialize(IRenderDevice& device)
 {
 	const SkinnedMeshActorDefinition& definition = GetSkinnedMeshDefinition();
-	m_position = definition.initialPosition;
-	m_rotationY = definition.initialRotationY;
+	m_transform = Transform{};
+	m_transform.position = definition.initialPosition;
+	m_transform.rotationRadians.y = definition.initialRotationY;
 	SetRootMotionSettings(definition.rootMotion);
 	m_hasIdleAnimation = !definition.idleAnimationPath.empty();
 
@@ -28,25 +29,20 @@ void SkinnedMeshActor::Initialize(IRenderDevice& device)
 		m_model.AddAnimation(IdleAnimationName, std::string(definition.idleAnimationPath));
 		m_model.PlayAnimation(IdleAnimationName);
 	}
-
-	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
-	m_model.SetRotationY(m_rotationY);
 }
 
 void SkinnedMeshActor::Update(float deltaTime, const Input&)
 {
 	const RootMotionDelta rootMotionDelta = m_model.Update(deltaTime);
 	const DirectX::XMFLOAT3 displacement = ResolveMovement({}, rootMotionDelta);
-	m_position.x += displacement.x;
-	m_position.y += displacement.y;
-	m_position.z += displacement.z;
-
-	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
+	m_transform.position.x += displacement.x;
+	m_transform.position.y += displacement.y;
+	m_transform.position.z += displacement.z;
 }
 
 void SkinnedMeshActor::Draw(IRenderer& renderer) const
 {
-	m_model.Draw(renderer);
+	m_model.Draw(renderer, m_transform.ToMatrix());
 }
 
 SkinnedModel& SkinnedMeshActor::GetModel()
@@ -61,24 +57,27 @@ const SkinnedModel& SkinnedMeshActor::GetModel() const
 
 const DirectX::XMFLOAT3& SkinnedMeshActor::GetPosition() const
 {
-	return m_position;
+	return m_transform.position;
 }
 
 void SkinnedMeshActor::SetPosition(const DirectX::XMFLOAT3& position)
 {
-	m_position = position;
-	m_model.SetPosition(m_position.x, m_position.y, m_position.z);
+	m_transform.position = position;
 }
 
 float SkinnedMeshActor::GetRotationY() const
 {
-	return m_rotationY;
+	return m_transform.rotationRadians.y;
 }
 
 void SkinnedMeshActor::SetRotationY(float radians)
 {
-	m_rotationY = radians;
-	m_model.SetRotationY(m_rotationY);
+	m_transform.rotationRadians.y = radians;
+}
+
+const Transform& SkinnedMeshActor::GetTransform() const
+{
+	return m_transform;
 }
 
 void SkinnedMeshActor::SetRootMotionSettings(const RootMotionSettings& settings)
@@ -110,5 +109,5 @@ DirectX::XMFLOAT3 SkinnedMeshActor::ResolveMovement(
 	const DirectX::XMFLOAT3& programDisplacement,
 	const RootMotionDelta& rootMotion) const
 {
-	return ResolveRootMotionDisplacement(programDisplacement, rootMotion, m_rotationY, m_rootMotion);
+	return ResolveRootMotionDisplacement(programDisplacement, rootMotion, GetRotationY(), m_rootMotion);
 }

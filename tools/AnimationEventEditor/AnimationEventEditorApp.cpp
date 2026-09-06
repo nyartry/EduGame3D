@@ -5,6 +5,7 @@
 #include "AnimationEventEditorLayout.h"
 #include "AnimationEventJson.h"
 #include "Framework/Common/ModelScaleSettings.h"
+#include "Framework/Core/Math/Transform.h"
 #include "Framework/Models/SkinnedModel.h"
 #include "Framework/Rendering/Core/Dx12Renderer.h"
 
@@ -143,6 +144,7 @@ namespace
 				return;
 			}
 
+			ProcessPendingModelLoad();
 			const float deltaTime = CalculateDeltaTime();
 			UpdatePlayback(deltaTime);
 
@@ -163,8 +165,9 @@ namespace
 			m_renderer.Draw(m_viewportGrid, XMMatrixIdentity());
 			if (m_model != nullptr)
 			{
-				m_model->SetRotationY(m_modelRotation);
-				m_model->Draw(m_renderer);
+				Transform modelTransform;
+				modelTransform.rotationRadians.y = m_modelRotation;
+				m_model->Draw(m_renderer, modelTransform.ToMatrix());
 			}
 
 			DrawUi();
@@ -184,7 +187,9 @@ namespace
 				return;
 			}
 
-			LoadModel(*selectedPath);
+			// The UI may run after model draw commands have already been recorded.
+			// Both menu and keyboard requests are applied at the next frame boundary.
+			m_pendingModelPath = *selectedPath;
 		}
 
 		void OpenEvents()
@@ -543,6 +548,19 @@ namespace
 			}
 		}
 
+		void ProcessPendingModelLoad()
+		{
+			if (!m_pendingModelPath)
+			{
+				return;
+			}
+
+			const std::string path = std::move(*m_pendingModelPath);
+			m_pendingModelPath.reset();
+			LoadModel(path);
+			m_lastTick = std::chrono::steady_clock::now();
+		}
+
 		void LoadModel(const std::string& path)
 		{
 			try
@@ -555,24 +573,27 @@ namespace
 					SkinningMode::Cpu);
 				model->SetAnimationTimeSeconds(0.0f);
 
-				m_model = std::move(model);
-				m_modelPath = path;
-				m_defaultSavePath = MakeDefaultEventPath(path);
-				m_events.clear();
-				m_selectedEvent = -1;
-				RebuildBoneList();
+				// Prepare all replacement state before touching the current document.
+				std::string modelPath = path;
+				std::string defaultSavePath = MakeDefaultEventPath(path);
+				std::vector<std::string> boneNames;
+				for (const BoneData& bone : model->GetModelData().bones)
+				{
+					boneNames.push_back(bone.name);
+				}
+				std::vector<AnimationEvent> events;
 
 				std::ostringstream stream;
-				stream << "Loaded " << path << " with " << m_model->GetModelData().animations.size() << " animation(s).";
+				stream << "Loaded " << path << " with " << model->GetModelData().animations.size() << " animation(s).";
 				std::error_code existsError;
-				if (std::filesystem::exists(m_defaultSavePath, existsError))
+				if (std::filesystem::exists(defaultSavePath, existsError))
 				{
 					std::string loadError;
-					const std::optional<AnimationEventFileData> eventData = LoadAnimationEventFile(m_defaultSavePath, loadError);
+					const std::optional<AnimationEventFileData> eventData = LoadAnimationEventFile(defaultSavePath, loadError);
 					if (eventData)
 					{
-						m_events = eventData->events;
-						stream << " Loaded " << m_events.size() << " event(s) from " << m_defaultSavePath << ".";
+						events = eventData->events;
+						stream << " Loaded " << events.size() << " event(s) from " << defaultSavePath << ".";
 					}
 					else
 					{
@@ -583,16 +604,28 @@ namespace
 				{
 					stream << " No existing event file found.";
 				}
-				ResetHistoryToSavedState();
-				m_status = stream.str();
+				std::vector<AnimationEvent> savedEvents = events;
+				std::string status = stream.str();
+
+				// Called before BeginFrame, so every use of the old model has been
+				// submitted. Wait before releasing its vertex buffers and materials.
+				m_renderer.WaitForGpu();
+				m_model = std::move(model);
+				m_modelPath = std::move(modelPath);
+				m_defaultSavePath = std::move(defaultSavePath);
+				m_boneNames = std::move(boneNames);
+				m_events = std::move(events);
+				m_lastSavedEvents = std::move(savedEvents);
+				m_selectedEvent = -1;
+				m_draggedTimelineEvent = -1;
+				m_timelineDragMoved = false;
+				m_undoStack.clear();
+				m_redoStack.clear();
+				UpdateDirtyFlag();
+				m_status = std::move(status);
 			}
 			catch (const std::exception& exception)
 			{
-				m_model.reset();
-				m_boneNames.clear();
-				m_events.clear();
-				m_selectedEvent = -1;
-				ResetHistoryToSavedState();
 				m_status = std::string("Load failed: ") + exception.what();
 			}
 		}
@@ -615,20 +648,6 @@ namespace
 			std::ostringstream stream;
 			stream << "Loaded " << m_events.size() << " event(s): " << path;
 			m_status = stream.str();
-		}
-
-		void RebuildBoneList()
-		{
-			m_boneNames.clear();
-			if (m_model == nullptr)
-			{
-				return;
-			}
-
-			for (const BoneData& bone : m_model->GetModelData().bones)
-			{
-				m_boneNames.push_back(bone.name);
-			}
 		}
 
 		float CalculateDeltaTime()
@@ -1329,6 +1348,7 @@ namespace
 		std::array<bool, ImGuiSrvDescriptorCount> m_imguiSrvDescriptorAllocated{};
 		UINT m_imguiSrvDescriptorSize{};
 		std::unique_ptr<SkinnedModel> m_model;
+		std::optional<std::string> m_pendingModelPath;
 		std::vector<std::string> m_boneNames;
 		std::vector<AnimationEvent> m_events;
 		std::vector<AnimationEvent> m_lastSavedEvents;

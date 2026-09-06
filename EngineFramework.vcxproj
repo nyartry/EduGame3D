@@ -54,6 +54,7 @@
     <ClCompile Include="src\Framework\Animation\RootMotionPolicy.cpp" />
     <ClCompile Include="src\Framework\Assets\AssetPathResolver.cpp" />
     <ClCompile Include="src\Framework\Audio\AudioSystem.cpp" />
+    <ClCompile Include="src\Framework\Core\Math\Transform.cpp" />
     <ClCompile Include="src\Framework\Effects\Effekseer\EffekseerEffectSystem.cpp" />
     <ClCompile Include="src\Framework\Gameplay\CollisionBody.cpp" />
     <ClCompile Include="src\Framework\Models\ModelLoader.cpp" />
@@ -116,8 +117,9 @@
     <ClInclude Include="src\Framework\Audio\AudioSystem.h" />
     <ClInclude Include="src\Framework\Audio\IAudioService.h" />
     <ClInclude Include="src\Framework\Common\Common.h" />
-    <ClInclude Include="src\Framework\Common\MathUtils.h" />
     <ClInclude Include="src\Framework\Common\ModelScaleSettings.h" />
+    <ClInclude Include="src\Framework\Core\Math\MathUtils.h" />
+    <ClInclude Include="src\Framework\Core\Math\Transform.h" />
     <ClInclude Include="src\Framework\Effects\Effekseer\EffekseerEffectSystem.h" />
     <ClInclude Include="src\Framework\Effects\IEffectService.h" />
     <ClInclude Include="src\Framework\Gameplay\Actor.h" />

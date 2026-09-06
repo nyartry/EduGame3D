@@ -39,4 +39,5 @@ protected:
 
 private:
 	DirectX::XMFLOAT3 ResolveCollisionAnchorLocal() const;
+	DirectX::XMFLOAT3 GetCollisionAnchorOffsetWorld() const;
 };

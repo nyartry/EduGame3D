@@ -26,6 +26,7 @@ public:
 
 	ConstantBufferViews UpdateConstants(
 		const DirectX::XMMATRIX& worldViewProjection,
+		const DirectX::XMMATRIX& world,
 		const std::vector<DirectX::XMFLOAT4X4>& boneMatrices,
 		float modelCenterX,
 		float modelMinY,
@@ -39,6 +40,8 @@ private:
 	struct SceneConstants
 	{
 		DirectX::XMFLOAT4X4 worldViewProjection{};
+		DirectX::XMFLOAT4X4 world{};
+		DirectX::XMFLOAT4X4 normalWorld{};
 		DirectX::XMFLOAT4 modelFit{ 0.0f, 0.0f, 0.0f, 1.0f };
 		UINT boneCount{};
 		DirectX::XMFLOAT3 padding{};

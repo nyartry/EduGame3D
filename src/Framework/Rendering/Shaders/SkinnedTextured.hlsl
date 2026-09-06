@@ -23,6 +23,8 @@ struct PSInput
 cbuffer SceneConstants : register(b0)
 {
 	matrix worldViewProjection;
+	matrix world;
+	matrix normalWorld;
 	float4 modelFit; // centerX, minY, centerZ, scale
 	uint boneCount;
 	float3 sceneConstantsPadding;
@@ -49,7 +51,7 @@ void AccumulateBone(
 	int boneIndex,
 	float weight)
 {
-	if (boneIndex < 0 || boneIndex >= boneCount || boneIndex >= MAX_BONES || weight == 0.0f)
+	if (boneIndex < 0 || (uint)boneIndex >= boneCount || boneIndex >= MAX_BONES || weight == 0.0f)
 	{
 		return;
 	}
@@ -93,8 +95,8 @@ PSInput VSMain(VSInput input)
 
 	PSInput output;
 	output.position = mul(float4(fittedPosition, 1.0f), worldViewProjection);
-	output.normal = normalize(skinnedNormal);
-	output.tangent = normalize(skinnedTangent);
+	output.normal = normalize(mul(float4(skinnedNormal, 0.0f), normalWorld).xyz);
+	output.tangent = normalize(mul(float4(skinnedTangent, 0.0f), world).xyz);
 	output.uv = input.uv;
 	output.color = input.color;
 	return output;

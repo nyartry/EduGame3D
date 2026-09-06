@@ -16,6 +16,12 @@
     <Filter Include="Framework\Common">
       <UniqueIdentifier>{f0eba04f-c02a-7e18-c16c-bcdf1b979897}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Framework\Core">
+      <UniqueIdentifier>{3f5a15df-05f5-ad01-e54d-af1ec0604960}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Core\Math">
+      <UniqueIdentifier>{ed3eb449-426d-4cab-b011-fb87eb902cd7}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Framework\Effects">
       <UniqueIdentifier>{705eef37-6374-6703-83b0-dcafd97c9261}</UniqueIdentifier>
     </Filter>
@@ -107,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="src\Framework\Audio\AudioSystem.cpp">
       <Filter>Framework\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Framework\Core\Math\Transform.cpp">
+      <Filter>Framework\Core\Math</Filter>
     </ClCompile>
     <ClCompile Include="src\Framework\Effects\Effekseer\EffekseerEffectSystem.cpp">
       <Filter>Framework\Effects\Effekseer</Filter>
@@ -284,11 +293,14 @@
     <ClInclude Include="src\Framework\Common\Common.h">
       <Filter>Framework\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\Framework\Common\MathUtils.h">
-      <Filter>Framework\Common</Filter>
-    </ClInclude>
     <ClInclude Include="src\Framework\Common\ModelScaleSettings.h">
       <Filter>Framework\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Core\Math\MathUtils.h">
+      <Filter>Framework\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Core\Math\Transform.h">
+      <Filter>Framework\Core\Math</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Effects\Effekseer\EffekseerEffectSystem.h">
       <Filter>Framework\Effects\Effekseer</Filter>

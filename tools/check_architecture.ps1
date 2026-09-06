@@ -18,7 +18,7 @@ function Test-SourceRules {
         $file = $_
         foreach ($rule in $Rules) {
             Select-String -LiteralPath $file.FullName -Pattern $rule.Pattern | ForEach-Object {
-                $relativePath = [System.IO.Path]::GetRelativePath($resolvedRoot, $file.FullName)
+                $relativePath = $file.FullName.Substring($resolvedRoot.TrimEnd('\').Length + 1)
                 $violations.Add("${relativePath}:$($_.LineNumber): $($rule.Message)")
             }
         }
@@ -39,6 +39,13 @@ $frameworkRules = @(
 
 Test-SourceRules -Directory (Join-Path $resolvedRoot 'src\Game') -Rules $gameRules
 Test-SourceRules -Directory (Join-Path $resolvedRoot 'src\Framework') -Rules $frameworkRules
+
+# Math must remain usable without scene objects, graphics resources, or Win32.
+$mathRules = @(
+    @{ Pattern = '^\s*#include\s+"(?:Game/|Launcher/|Framework/(?!Core/Math/))'; Message = 'Core math must not depend on higher engine layers.' },
+    @{ Pattern = '^\s*#include\s+[<"](?:Windows\.h|d3d\w*\.h|dxgi\w*\.h|wrl/|RmlUi/|Effekseer|assimp/)'; Message = 'Core math must not depend on platform or rendering backends.' }
+)
+Test-SourceRules -Directory (Join-Path $resolvedRoot 'src\Framework\Core\Math') -Rules $mathRules
 
 # Follow the quoted Framework includes reachable from Game. This catches
 # transitive leaks that a direct scan of src/Game cannot see. DirectXMath is an

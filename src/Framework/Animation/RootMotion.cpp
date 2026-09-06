@@ -1,4 +1,5 @@
 #include "Framework/Animation/RootMotion.h"
+#include "Framework/Core/Math/Transform.h"
 
 #include <algorithm>
 #include <cmath>
@@ -31,9 +32,9 @@ XMFLOAT3 ResolveRootMotionDisplacement(
 		return programDisplacement;
 	}
 
-	XMFLOAT3 worldRootMotion{};
-	XMStoreFloat3(&worldRootMotion, XMVector3TransformNormal(
-		XMLoadFloat3(&rootMotion.translation), XMMatrixRotationY(rotationY)));
+	Transform transform;
+	transform.rotationRadians.y = rotationY;
+	const XMFLOAT3 worldRootMotion = transform.TransformDirection(rootMotion.translation);
 	return XMFLOAT3
 	{
 		std::lerp(programDisplacement.x, worldRootMotion.x, weight),

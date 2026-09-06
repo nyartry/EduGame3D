@@ -1,6 +1,6 @@
 #include "Game/Gameplay/Player.h"
 
-#include "Framework/Common/MathUtils.h"
+#include "Framework/Core/Math/MathUtils.h"
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Game/Input/GameActions.h"
 

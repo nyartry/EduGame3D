@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Framework/Animation/RootMotion.h"
+#include "Framework/Core/Math/Transform.h"
 #include "Framework/Gameplay/Actor.h"
 #include "Framework/Models/SkinnedModel.h"
 
@@ -28,6 +29,7 @@ public:
 
 	const DirectX::XMFLOAT3& GetPosition() const;
 	float GetRotationY() const;
+	const Transform& GetTransform() const;
 	void SetRootMotionSettings(const RootMotionSettings& settings);
 	const RootMotionSettings& GetRootMotionSettings() const;
 	void SetRootMotionMode(RootMotionMode mode);
@@ -47,8 +49,7 @@ protected:
 
 private:
 	SkinnedModel m_model;
-	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
-	float m_rotationY{};
+	Transform m_transform;
 	RootMotionSettings m_rootMotion;
 	bool m_hasIdleAnimation{};
 };

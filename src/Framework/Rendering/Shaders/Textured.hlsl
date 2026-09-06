@@ -19,6 +19,8 @@ struct PSInput
 cbuffer SceneConstants : register(b0)
 {
 	matrix worldViewProjection;
+	matrix world;
+	matrix normalWorld;
 };
 
 Texture2D baseColorTexture : register(t0);
@@ -30,8 +32,8 @@ PSInput VSMain(VSInput input)
 {
 	PSInput output;
 	output.position = mul(float4(input.position, 1.0f), worldViewProjection);
-	output.normal = normalize(input.normal);
-	output.tangent = normalize(input.tangent);
+	output.normal = normalize(mul(float4(input.normal, 0.0f), normalWorld).xyz);
+	output.tangent = normalize(mul(float4(input.tangent, 0.0f), world).xyz);
 	output.uv = input.uv;
 	output.color = input.color;
 	return output;

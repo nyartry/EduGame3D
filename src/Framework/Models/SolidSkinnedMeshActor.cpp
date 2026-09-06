@@ -2,17 +2,13 @@
 
 using namespace DirectX;
 
-namespace
+XMFLOAT3 SolidSkinnedMeshActor::GetCollisionAnchorOffsetWorld() const
 {
-	XMFLOAT3 RotateLocalOffset(const XMFLOAT3& localOffset, float rotationY)
-	{
-		const XMVECTOR local = XMVectorSet(localOffset.x, 0.0f, localOffset.z, 0.0f);
-		const XMVECTOR world = XMVector3TransformNormal(local, XMMatrixRotationY(rotationY));
-
-		XMFLOAT3 result{};
-		XMStoreFloat3(&result, world);
-		return result;
-	}
+	XMFLOAT3 localAnchor = ResolveCollisionAnchorLocal();
+	// The existing upright collider is anchored horizontally; its bottom is
+	// still the actor's Y, independent of animation pose height.
+	localAnchor.y = 0.0f;
+	return GetTransform().TransformDirection(localAnchor);
 }
 
 const SkinnedMeshActorDefinition& SolidSkinnedMeshActor::GetSkinnedMeshDefinition() const
@@ -23,8 +19,7 @@ const SkinnedMeshActorDefinition& SolidSkinnedMeshActor::GetSkinnedMeshDefinitio
 XMFLOAT3 SolidSkinnedMeshActor::GetCollisionPosition() const
 {
 	const XMFLOAT3 actorPosition = GetPosition();
-	const XMFLOAT3 localAnchor = ResolveCollisionAnchorLocal();
-	const XMFLOAT3 offset = RotateLocalOffset(localAnchor, GetRotationY());
+	const XMFLOAT3 offset = GetCollisionAnchorOffsetWorld();
 	return XMFLOAT3
 	{
 		actorPosition.x + offset.x,
@@ -35,8 +30,7 @@ XMFLOAT3 SolidSkinnedMeshActor::GetCollisionPosition() const
 
 void SolidSkinnedMeshActor::SetCollisionPosition(const XMFLOAT3& position)
 {
-	const XMFLOAT3 localAnchor = ResolveCollisionAnchorLocal();
-	const XMFLOAT3 offset = RotateLocalOffset(localAnchor, GetRotationY());
+	const XMFLOAT3 offset = GetCollisionAnchorOffsetWorld();
 	SetPosition(XMFLOAT3
 	{
 		position.x - offset.x,

@@ -34,10 +34,9 @@ public:
 	const SkinnedModelData& GetModelData() const;
 	void SetAnimationTimeSeconds(float animationTimeSeconds);
 	RootMotionDelta Update(float deltaTime);
-	void Draw(IRenderer& renderer) const;
+	// Animation is model-local; world placement belongs to the actor/editor.
+	void Draw(IRenderer& renderer, const DirectX::XMMATRIX& world) const;
 
-	void SetPosition(float x, float y, float z);
-	void SetRotationY(float radians);
 	DirectX::XMFLOAT3 GetAnimatedBoundsCenterLocal() const;
 	bool TryGetBonePositionLocal(std::string_view boneName, DirectX::XMFLOAT3& position) const;
 	bool TryGetRootMotionBonePositionLocal(DirectX::XMFLOAT3& position) const;
@@ -56,14 +55,12 @@ private:
 	std::vector<std::unique_ptr<ISkinnedMeshProcessor>> m_meshProcessors;
 	std::vector<DirectX::XMFLOAT4X4> m_boneMatrices;
 	std::vector<DirectX::XMFLOAT4X4> m_boneModelMatrices;
-	DirectX::XMFLOAT3 m_position{ 0.0f, 0.0f, 0.0f };
 	float m_animationTimeSeconds{};
 	size_t m_currentAnimationIndex{};
 	float m_modelScale{ 1.0f };
 	float m_modelCenterX{};
 	float m_modelMinY{};
 	float m_modelCenterZ{};
-	float m_rotationY{};
 	mutable DirectX::XMFLOAT3 m_animatedBoundsCenterLocal{};
 	mutable bool m_animatedBoundsDirty{ true };
 };

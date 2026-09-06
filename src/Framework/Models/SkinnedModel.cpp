@@ -182,23 +182,12 @@ RootMotionDelta SkinnedModel::Update(float deltaTime)
 	return rootMotionDelta;
 }
 
-void SkinnedModel::Draw(IRenderer& renderer) const
+void SkinnedModel::Draw(IRenderer& renderer, const XMMATRIX& world) const
 {
-	const XMMATRIX world = XMMatrixRotationY(m_rotationY) * XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 	for (const std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
 	{
 		meshProcessor->Draw(renderer, world, m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
 	}
-}
-
-void SkinnedModel::SetPosition(float x, float y, float z)
-{
-	m_position = XMFLOAT3{ x, y, z };
-}
-
-void SkinnedModel::SetRotationY(float radians)
-{
-	m_rotationY = radians;
 }
 
 XMFLOAT3 SkinnedModel::GetAnimatedBoundsCenterLocal() const

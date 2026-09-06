@@ -12,7 +12,9 @@ class TexturedPipeline
 {
 public:
 	void Initialize(ID3D12Device* device);
-	D3D12_GPU_VIRTUAL_ADDRESS UpdateWorldViewProjection(const DirectX::XMMATRIX& worldViewProjection);
+	D3D12_GPU_VIRTUAL_ADDRESS UpdateConstants(
+		const DirectX::XMMATRIX& worldViewProjection,
+		const DirectX::XMMATRIX& world);
 	void Bind(ID3D12GraphicsCommandList* commandList) const;
 
 	ID3D12PipelineState* GetPipelineState() const;
@@ -21,6 +23,8 @@ private:
 	struct SceneConstants
 	{
 		DirectX::XMFLOAT4X4 worldViewProjection{};
+		DirectX::XMFLOAT4X4 world{};
+		DirectX::XMFLOAT4X4 normalWorld{};
 	};
 	static constexpr UINT MaxDrawConstants = 4096;
 
