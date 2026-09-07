@@ -12,6 +12,8 @@ class SpritePipeline
 {
 public:
 	void Initialize(ID3D12Device* device);
+	void BeginFrame(UINT64 completedFence) { m_constantBuffer.BeginFrame(completedFence); }
+	void EndFrame(UINT64 submittedFence) { m_constantBuffer.EndFrame(submittedFence); }
 	D3D12_GPU_VIRTUAL_ADDRESS UpdateScreenSize(UINT width, UINT height);
 	void Bind(ID3D12GraphicsCommandList* commandList) const;
 

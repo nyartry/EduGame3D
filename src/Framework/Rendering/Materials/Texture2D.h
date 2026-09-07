@@ -5,6 +5,7 @@
 
 #include <d3d12.h>
 #include <string>
+#include <cstdint>
 
 class Texture2D
 {
@@ -13,9 +14,9 @@ public:
 	void InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha, bool useSrgb);
 	void InitializeFromPixels(ID3D12Device* device, const void* rgbaPixels, UINT width, UINT height, bool useSrgb);
 	void CreateShaderResourceView(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE handle) const;
+	static std::uint64_t GetUploadCount();
 
 private:
-	void CreateFallbackTexture(ID3D12Device* device);
 	void CreateTextureResource(ID3D12Device* device, const void* pixels, UINT width, UINT height, bool useSrgb);
 	void UploadPixels(ID3D12Device* device, const void* pixels, const D3D12_RESOURCE_DESC& textureDesc);
 

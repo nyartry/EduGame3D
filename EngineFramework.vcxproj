@@ -46,17 +46,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <!-- BEGIN sync_vs_filters:FrameworkCompile -->
+    <ClCompile Include="src\Framework\Animation\AnimationEvents.cpp" />
+    <ClCompile Include="src\Framework\Animation\AnimationPlayback.cpp" />
     <ClCompile Include="src\Framework\Animation\AnimationSampler.cpp" />
     <ClCompile Include="src\Framework\Animation\CpuSkinnedMeshProcessor.cpp" />
     <ClCompile Include="src\Framework\Animation\GpuSkinnedMeshProcessor.cpp" />
     <ClCompile Include="src\Framework\Animation\MeshTangentCalculator.cpp" />
     <ClCompile Include="src\Framework\Animation\RootMotion.cpp" />
+    <ClCompile Include="src\Framework\Animation\RootMotionExtractor.cpp" />
     <ClCompile Include="src\Framework\Animation\RootMotionPolicy.cpp" />
     <ClCompile Include="src\Framework\Assets\AssetPathResolver.cpp" />
+    <ClCompile Include="src\Framework\Assets\ImageLoader.cpp" />
     <ClCompile Include="src\Framework\Audio\AudioSystem.cpp" />
     <ClCompile Include="src\Framework\Core\Math\Transform.cpp" />
     <ClCompile Include="src\Framework\Effects\Effekseer\EffekseerEffectSystem.cpp" />
     <ClCompile Include="src\Framework\Gameplay\CollisionBody.cpp" />
+    <ClCompile Include="src\Framework\Models\ModelAssetCache.cpp" />
     <ClCompile Include="src\Framework\Models\ModelLoader.cpp" />
     <ClCompile Include="src\Framework\Models\ModelTextureResolver.cpp" />
     <ClCompile Include="src\Framework\Models\SkinnedMeshActor.cpp" />
@@ -66,6 +71,7 @@
     <ClCompile Include="src\Framework\Models\SolidStaticMeshActor.cpp" />
     <ClCompile Include="src\Framework\Models\StaticMeshActor.cpp" />
     <ClCompile Include="src\Framework\Models\StaticModel.cpp" />
+    <ClCompile Include="src\Framework\Physics\CollisionWorld.cpp" />
     <ClCompile Include="src\Framework\Platform\Win32\Win32InputBackend.cpp" />
     <ClCompile Include="src\Framework\Rendering\Buffers\SkinnedVertexBuffer.cpp" />
     <ClCompile Include="src\Framework\Rendering\Buffers\SpriteVertexBuffer.cpp" />
@@ -105,25 +111,35 @@
   </ItemGroup>
   <ItemGroup>
     <!-- BEGIN sync_vs_filters:FrameworkInclude -->
+    <ClInclude Include="src\Framework\Animation\AnimationEvents.h" />
+    <ClInclude Include="src\Framework\Animation\AnimationPlayback.h" />
     <ClInclude Include="src\Framework\Animation\AnimationSampler.h" />
+    <ClInclude Include="src\Framework\Animation\BoneSkinning.h" />
     <ClInclude Include="src\Framework\Animation\CpuSkinnedMeshProcessor.h" />
     <ClInclude Include="src\Framework\Animation\GpuSkinnedMeshProcessor.h" />
     <ClInclude Include="src\Framework\Animation\ISkinnedMeshProcessor.h" />
     <ClInclude Include="src\Framework\Animation\MeshTangentCalculator.h" />
     <ClInclude Include="src\Framework\Animation\RootMotion.h" />
+    <ClInclude Include="src\Framework\Animation\RootMotionExtractor.h" />
     <ClInclude Include="src\Framework\Animation\RootMotionPolicy.h" />
     <ClInclude Include="src\Framework\Animation\SkinningMode.h" />
     <ClInclude Include="src\Framework\Assets\AssetPathResolver.h" />
+    <ClInclude Include="src\Framework\Assets\ImageLoader.h" />
     <ClInclude Include="src\Framework\Audio\AudioSystem.h" />
     <ClInclude Include="src\Framework\Audio\IAudioService.h" />
     <ClInclude Include="src\Framework\Common\Common.h" />
     <ClInclude Include="src\Framework\Common\ModelScaleSettings.h" />
+    <ClInclude Include="src\Framework\Core\Diagnostics\Diagnostics.h" />
+    <ClInclude Include="src\Framework\Core\Math\Aabb.h" />
     <ClInclude Include="src\Framework\Core\Math\MathUtils.h" />
     <ClInclude Include="src\Framework\Core\Math\Transform.h" />
+    <ClInclude Include="src\Framework\Core\Time\FixedStepClock.h" />
     <ClInclude Include="src\Framework\Effects\Effekseer\EffekseerEffectSystem.h" />
     <ClInclude Include="src\Framework\Effects\IEffectService.h" />
     <ClInclude Include="src\Framework\Gameplay\Actor.h" />
     <ClInclude Include="src\Framework\Gameplay\CollisionBody.h" />
+    <ClInclude Include="src\Framework\Models\ModelAssetCache.h" />
+    <ClInclude Include="src\Framework\Models\ModelFit.h" />
     <ClInclude Include="src\Framework\Models\ModelLoader.h" />
     <ClInclude Include="src\Framework\Models\ModelTextureResolver.h" />
     <ClInclude Include="src\Framework\Models\SkinnedMeshActor.h" />
@@ -134,6 +150,8 @@
     <ClInclude Include="src\Framework\Models\SolidStaticMeshActor.h" />
     <ClInclude Include="src\Framework\Models\StaticMeshActor.h" />
     <ClInclude Include="src\Framework\Models\StaticModel.h" />
+    <ClInclude Include="src\Framework\Physics\CollisionWorld.h" />
+    <ClInclude Include="src\Framework\Physics\ICollisionQuery.h" />
     <ClInclude Include="src\Framework\Platform\Win32\Win32InputBackend.h" />
     <ClInclude Include="src\Framework\Rendering\Buffers\SkinnedVertexBuffer.h" />
     <ClInclude Include="src\Framework\Rendering\Buffers\SpriteVertexBuffer.h" />
@@ -143,6 +161,8 @@
     <ClInclude Include="src\Framework\Rendering\Core\Dx12BufferHelper.h" />
     <ClInclude Include="src\Framework\Rendering\Core\Dx12PipelineHelper.h" />
     <ClInclude Include="src\Framework\Rendering\Core\Dx12Renderer.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\FenceRetiredPagePool.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\FrameUploadBuffer.h" />
     <ClInclude Include="src\Framework\Rendering\Core\IRenderDevice.h" />
     <ClInclude Include="src\Framework\Rendering\Core\IRenderer.h" />
     <ClInclude Include="src\Framework\Rendering\Core\IRenderResourceLifetime.h" />
@@ -178,6 +198,7 @@
     <ClInclude Include="src\Framework\Scene\Core\SceneManager.h" />
     <ClInclude Include="src\Framework\Scene\Input\Input.h" />
     <ClInclude Include="src\Framework\Scene\Input\InputWriter.h" />
+    <ClInclude Include="src\Framework\Scene\Input\SimulationInputBuffer.h" />
     <ClInclude Include="src\Framework\Scene\Overlays\LoadingOverlay.h" />
     <ClInclude Include="src\Framework\UI\IUiService.h" />
     <ClInclude Include="src\Framework\UI\RmlUi\RmlUiService.h" />
@@ -189,5 +210,8 @@
     <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
     <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
   </ItemGroup>
+  <Target Name="CheckSourceRegistration" BeforeTargets="PrepareForBuild">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectDir)tools\sync_vs_filters.ps1&quot; -RepositoryRoot &quot;$(MSBuildProjectDirectory)&quot; -Check" />
+  </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

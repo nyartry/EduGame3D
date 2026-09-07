@@ -33,6 +33,7 @@ cbuffer SceneConstants : register(b0)
 cbuffer BoneConstants : register(b1)
 {
 	matrix boneMatrices[MAX_BONES];
+	matrix normalBoneMatrices[MAX_BONES];
 };
 
 Texture2D baseColorTexture : register(t0);
@@ -51,16 +52,37 @@ void AccumulateBone(
 	int boneIndex,
 	float weight)
 {
-	if (boneIndex < 0 || (uint)boneIndex >= boneCount || boneIndex >= MAX_BONES || weight == 0.0f)
+	if (boneIndex < 0 || (uint)boneIndex >= boneCount || boneIndex >= MAX_BONES || !isfinite(weight) || weight <= 0.0f)
 	{
 		return;
 	}
 
 	matrix boneMatrix = boneMatrices[boneIndex];
 	position += mul(float4(sourcePosition, 1.0f), boneMatrix) * weight;
-	normal += mul(float4(sourceNormal, 0.0f), boneMatrix).xyz * weight;
+	// Match BoneSkinning::DeformVertex: blend inverse-transpose contributions
+	// without normalizing each influence, and normalize the final direction.
+	normal += mul(float4(sourceNormal, 0.0f), normalBoneMatrices[boneIndex]).xyz * weight;
 	tangent += mul(float4(sourceTangent, 0.0f), boneMatrix).xyz * weight;
 	totalWeight += weight;
+}
+
+float3 NormalizeDirection(float3 value, float3 fallback)
+{
+	// Keep normalization scaled: reassociating dot(value,value) can overflow
+	// for a large but finite inverse bone scale. Unconditional initialization
+	// also avoids FXC's uninitialized-return warning for nested early returns.
+	float scale = max(max(max(abs(value.x), abs(value.y)), abs(value.z)), 1.0e-6f);
+	precise float3 scaled = value / scale;
+	precise float scaledLength = length(scaled);
+	precise float3 normalized = scaled / max(scaledLength, 1.0e-6f);
+	bool valid = all(isfinite(value)) && scale * scaledLength > 1.0e-6f;
+
+	float fallbackScale = max(max(max(abs(fallback.x), abs(fallback.y)), abs(fallback.z)), 1.0e-6f);
+	precise float3 scaledFallback = fallback / fallbackScale;
+	precise float fallbackLength = length(scaledFallback);
+	precise float3 normalizedFallback = scaledFallback / max(fallbackLength, 1.0e-6f);
+	bool validFallback = all(isfinite(fallback)) && fallbackScale * fallbackLength > 1.0e-6f;
+	return valid ? normalized : (validFallback ? normalizedFallback : float3(0.0f, 0.0f, 1.0f));
 }
 
 PSInput VSMain(VSInput input)
@@ -87,6 +109,9 @@ PSInput VSMain(VSInput input)
 		skinnedNormal /= totalWeight;
 		skinnedTangent /= totalWeight;
 	}
+
+	skinnedNormal = NormalizeDirection(skinnedNormal, input.normal);
+	skinnedTangent = NormalizeDirection(skinnedTangent, input.tangent);
 
 	float3 fittedPosition = float3(
 		(skinnedPosition.x - modelFit.x) * modelFit.w,

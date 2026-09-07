@@ -1,19 +1,6 @@
 #include "Game/Gameplay/CharacterGrounding.h"
 
-#include "Game/Gameplay/Ground.h"
-#include "Game/Gameplay/PrimitiveObject.h"
-
-#include <algorithm>
-
 using namespace DirectX;
-
-namespace
-{
-	bool IsLandingOnSurface(float previousBottomY, float currentBottomY, float surfaceHeight, float tolerance)
-	{
-		return previousBottomY >= surfaceHeight - tolerance && currentBottomY <= surfaceHeight;
-	}
-}
 
 CharacterGroundProbe::CharacterGroundProbe(CharacterGroundingSettings settings)
 	: m_settings(settings)
@@ -25,27 +12,27 @@ void CharacterGroundProbe::SetSettings(CharacterGroundingSettings settings)
 	m_settings = settings;
 }
 
-void CharacterGroundProbe::SetGround(const Ground* ground)
+void CharacterGroundProbe::SetCollisionQuery(const ICollisionQuery* query)
 {
-	m_ground = ground;
+	m_query = query;
 }
 
-void CharacterGroundProbe::AddLandingSurface(const PrimitiveObject* surface)
+void CharacterGroundProbe::SetGround(const ICollisionSurface* ground)
 {
-	if (surface == nullptr)
-	{
-		return;
-	}
+	if (m_ground != nullptr) m_localWorld.RemoveSurface(*m_ground);
+	m_ground = ground;
+	if (ground != nullptr) m_localWorld.RegisterSurface(*ground);
+}
 
-	if (std::find(m_landingSurfaces.begin(), m_landingSurfaces.end(), surface) == m_landingSurfaces.end())
-	{
-		m_landingSurfaces.push_back(surface);
-	}
+void CharacterGroundProbe::AddLandingSurface(const ICollisionSurface* surface)
+{
+	if (surface != nullptr) m_localWorld.RegisterSurface(*surface);
 }
 
 void CharacterGroundProbe::ClearLandingSurfaces()
 {
-	m_landingSurfaces.clear();
+	m_localWorld.Clear();
+	if (m_ground != nullptr) m_localWorld.RegisterSurface(*m_ground);
 }
 
 bool CharacterGroundProbe::TryFindFloor(
@@ -54,47 +41,18 @@ bool CharacterGroundProbe::TryFindFloor(
 	float currentBottomY,
 	float& floorHeight) const
 {
-	bool hasFloor = false;
-	float bestFloorHeight = 0.0f;
-
-	if (m_ground != nullptr && m_ground->TryGetHeightAt(position, m_settings.collisionRadius, bestFloorHeight))
-	{
-		hasFloor = true;
-	}
-
-	for (const PrimitiveObject* surface : m_landingSurfaces)
-	{
-		float surfaceHeight = 0.0f;
-		if (surface == nullptr ||
-			!surface->TryGetTopSurfaceAt(position, m_settings.collisionRadius, surfaceHeight))
-		{
-			continue;
-		}
-
-		if (!IsLandingOnSurface(previousBottomY, currentBottomY, surfaceHeight, m_settings.landingTolerance))
-		{
-			continue;
-		}
-
-		if (!hasFloor || surfaceHeight > bestFloorHeight)
-		{
-			bestFloorHeight = surfaceHeight;
-			hasFloor = true;
-		}
-	}
-
-	if (!hasFloor)
-	{
-		return false;
-	}
-
-	floorHeight = bestFloorHeight;
+	const ICollisionQuery& world = m_query != nullptr ? *m_query : m_localWorld;
+	FloorHit hit;
+	if (!world.TryFindFloor({ position, m_settings.collisionRadius, previousBottomY,
+		currentBottomY, m_settings.landingTolerance }, hit)) return false;
+	floorHeight = hit.height;
 	return true;
 }
 
 bool CharacterGroundProbe::ResolveWallCollision(XMFLOAT3& position) const
 {
-	return m_ground != nullptr && m_ground->ResolveWallCollision(position, m_settings.collisionRadius);
+	const ICollisionQuery& world = m_query != nullptr ? *m_query : m_localWorld;
+	return world.ResolveBoundaries(position, m_settings.collisionRadius);
 }
 
 CharacterVerticalMotion::CharacterVerticalMotion(CharacterVerticalMotionSettings settings)

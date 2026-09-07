@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Framework/Animation/ISkinnedMeshProcessor.h"
+#include "Framework/Animation/AnimationPlayback.h"
+#include "Framework/Animation/AnimationEvents.h"
 #include "Framework/Animation/RootMotion.h"
 #include "Framework/Animation/SkinningMode.h"
 #include "Framework/Models/SkinnedModelData.h"
@@ -15,10 +17,14 @@
 
 class IRenderDevice;
 class IRenderer;
+class ModelAssetCache;
 
 class SkinnedModel
 {
 public:
+	void Prepare(ModelAssetCache& assets, const std::string& modelPath, const ModelScaleSettings& scaleSettings);
+	void PrepareAnimation(ModelAssetCache& assets, const std::string& animationName, const std::string& animationPath);
+	void Activate(IRenderDevice& device, SkinningMode skinningMode);
 	void Initialize(
 		IRenderDevice& device,
 		const std::string& modelPath,
@@ -34,6 +40,9 @@ public:
 	const SkinnedModelData& GetModelData() const;
 	void SetAnimationTimeSeconds(float animationTimeSeconds);
 	RootMotionDelta Update(float deltaTime);
+	// Drains the latest simulation update's events once, before the next Update.
+	// Seek and clip switches clear pending events.
+	std::vector<AnimationEvents::Occurrence> ConsumeAnimationEvents();
 	// Animation is model-local; world placement belongs to the actor/editor.
 	void Draw(IRenderer& renderer, const DirectX::XMMATRIX& world) const;
 
@@ -44,7 +53,7 @@ public:
 private:
 	static std::unique_ptr<ISkinnedMeshProcessor> CreateMeshProcessor(SkinningMode skinningMode);
 	void FitModel(const ModelScaleSettings& scaleSettings);
-	RootMotionDelta ExtractRootMotionDelta(float deltaTime) const;
+	void LoadAnimationEventSidecar(const std::string& modelPath, std::string_view animationAlias = {});
 	void UpdateBoneMatrices();
 	void UpdateAnimatedBounds() const;
 	bool TryGetBonePositionLocal(int boneIndex, DirectX::XMFLOAT3& position) const;
@@ -52,10 +61,13 @@ private:
 	DirectX::XMMATRIX GetLocalTransform(const BoneData& bone) const;
 
 	SkinnedModelData m_modelData;
+	std::string m_preparedModelPath;
 	std::vector<std::unique_ptr<ISkinnedMeshProcessor>> m_meshProcessors;
 	std::vector<DirectX::XMFLOAT4X4> m_boneMatrices;
 	std::vector<DirectX::XMFLOAT4X4> m_boneModelMatrices;
-	float m_animationTimeSeconds{};
+	AnimationPlayback m_playback;
+	std::vector<AnimationEvents::Event> m_animationEvents;
+	std::vector<AnimationEvents::Occurrence> m_pendingAnimationEvents;
 	size_t m_currentAnimationIndex{};
 	float m_modelScale{ 1.0f };
 	float m_modelCenterX{};

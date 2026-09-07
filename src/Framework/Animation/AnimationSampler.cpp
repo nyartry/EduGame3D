@@ -1,5 +1,7 @@
 #include "Framework/Animation/AnimationSampler.h"
+#include "Framework/Animation/AnimationPlayback.h"
 
+#include <algorithm>
 #include <cmath>
 
 using namespace DirectX;
@@ -33,7 +35,7 @@ XMMATRIX AnimationSampler::SampleLocalTransform(
 	const AnimationClip& clip,
 	const BoneAnimation& boneAnimation,
 	const BoneData& bindPose,
-	float animationTimeSeconds) const
+	double animationTimeSeconds) const
 {
 	XMVECTOR bindScale = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f);
 	XMVECTOR bindRotation = XMQuaternionIdentity();
@@ -55,7 +57,7 @@ XMVECTOR AnimationSampler::SampleTranslation(
 	const AnimationClip& clip,
 	const BoneAnimation& boneAnimation,
 	const BoneData& bindPose,
-	float animationTimeSeconds) const
+	double animationTimeSeconds) const
 {
 	XMVECTOR bindScale = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f);
 	XMVECTOR bindRotation = XMQuaternionIdentity();
@@ -68,12 +70,11 @@ XMVECTOR AnimationSampler::SampleTranslation(
 		bindTranslation);
 }
 
-double AnimationSampler::GetAnimationTimeTicks(const AnimationClip& clip, float animationTimeSeconds)
+double AnimationSampler::GetAnimationTimeTicks(const AnimationClip& clip, double animationTimeSeconds)
 {
-	const double durationSeconds = clip.durationTicks / clip.ticksPerSecond;
-	return durationSeconds > 0.0
-		? std::fmod(animationTimeSeconds, durationSeconds) * clip.ticksPerSecond
-		: 0.0;
+	const double durationSeconds = GetAnimationDurationSeconds(clip);
+	if (durationSeconds <= 0.0 || !std::isfinite(animationTimeSeconds)) return 0.0;
+	return std::clamp(animationTimeSeconds, 0.0, durationSeconds) * clip.ticksPerSecond;
 }
 
 float AnimationSampler::GetInterpolationAmount(double fromTime, double toTime, double animationTimeTicks)

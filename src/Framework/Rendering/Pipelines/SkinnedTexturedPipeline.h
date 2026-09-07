@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Framework/Rendering/Core/ConstantBufferRing.h"
+#include "Framework/Animation/BoneSkinning.h"
 
 #include <Windows.h>
 #include <wrl/client.h>
@@ -14,10 +15,20 @@
 class SkinnedTexturedPipeline
 {
 public:
-	static constexpr size_t MaxBones = 512;
+	static constexpr size_t MaxBones = BoneSkinning::MaxBones;
 	static constexpr UINT MaxDrawConstants = 1024;
 
 	void Initialize(ID3D12Device* device);
+	void BeginFrame(UINT64 completedFence)
+	{
+		m_sceneConstantBuffer.BeginFrame(completedFence);
+		m_boneConstantBuffer.BeginFrame(completedFence);
+	}
+	void EndFrame(UINT64 submittedFence)
+	{
+		m_sceneConstantBuffer.EndFrame(submittedFence);
+		m_boneConstantBuffer.EndFrame(submittedFence);
+	}
 	struct ConstantBufferViews
 	{
 		D3D12_GPU_VIRTUAL_ADDRESS sceneConstants{};
@@ -50,6 +61,7 @@ private:
 	struct BoneConstants
 	{
 		std::array<DirectX::XMFLOAT4X4, MaxBones> boneMatrices{};
+		std::array<DirectX::XMFLOAT4X4, MaxBones> normalBoneMatrices{};
 	};
 
 	void CreateRootSignature(ID3D12Device* device);
@@ -59,7 +71,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pipelineState;
 	ConstantBufferRing<SceneConstants, MaxDrawConstants> m_sceneConstantBuffer;
-	ConstantBufferRing<BoneConstants, MaxDrawConstants> m_boneConstantBuffer;
+	// Position + normal palettes occupy the 64 KiB CBV limit. Use 1 MiB pages.
+	ConstantBufferRing<BoneConstants, 16> m_boneConstantBuffer;
 	SceneConstants m_sceneConstants{};
 	std::unique_ptr<BoneConstants> m_boneConstants = std::make_unique<BoneConstants>();
 };

@@ -126,5 +126,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
 	std::array<UINT64, FrameCount> m_fenceValues{};
 	UINT64 m_nextFenceValue{ 1 };
+	bool m_frameRecording{};
+	FrameUploadBuffer m_dynamicVertexUpload;
 	std::vector<DeferredRelease> m_deferredReleases;
 };

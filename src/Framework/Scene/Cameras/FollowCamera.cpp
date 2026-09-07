@@ -7,6 +7,11 @@
 
 using namespace DirectX;
 
+FollowCamera::FollowCamera()
+{
+	SetViewPose({ 0.0f, 4.5f, -7.0f }, { 0.0f, 1.2f, 0.0f });
+}
+
 void FollowCamera::Update(float deltaTime, const Input& input)
 {
 	if (!m_hasTarget)
@@ -72,16 +77,9 @@ void FollowCamera::Update(float deltaTime, const Input& input)
 
 	const float amount = MathUtils::SmoothAmount(m_followSharpness, deltaTime);
 	m_position = MathUtils::Lerp(m_position, desiredPosition, amount);
-	m_lookAt = MathUtils::Lerp(m_lookAt, desiredLookAt, amount);
+	m_viewTarget = MathUtils::Lerp(m_viewTarget, desiredLookAt, amount);
 }
 
-void FollowCamera::SetLens(float fovYRadians, float aspectRatio, float nearZ, float farZ)
-{
-	m_fovYRadians = fovYRadians;
-	m_aspectRatio = aspectRatio;
-	m_nearZ = nearZ;
-	m_farZ = farZ;
-}
 
 void FollowCamera::SetTarget(const XMFLOAT3& position, float rotationY)
 {
@@ -91,7 +89,7 @@ void FollowCamera::SetTarget(const XMFLOAT3& position, float rotationY)
 	{
 		m_hasTarget = true;
 		m_cameraYaw = rotationY;
-		m_lookAt = XMFLOAT3{ position.x, position.y + m_lookAtHeight, position.z };
+		m_viewTarget = XMFLOAT3{ position.x, position.y + m_lookAtHeight, position.z };
 		m_position = XMFLOAT3
 		{
 			position.x + std::sin(m_cameraYaw) * m_distance,
@@ -99,33 +97,4 @@ void FollowCamera::SetTarget(const XMFLOAT3& position, float rotationY)
 			position.z + std::cos(m_cameraYaw) * m_distance
 		};
 	}
-}
-
-XMFLOAT3 FollowCamera::GetForwardXZ() const
-{
-	const XMFLOAT3 forward
-	{
-		m_lookAt.x - m_position.x,
-		0.0f,
-		m_lookAt.z - m_position.z
-	};
-	return MathUtils::NormalizeXZOrDefault(forward);
-}
-
-XMMATRIX FollowCamera::GetViewProjectionMatrix() const
-{
-	return GetViewMatrix() * GetProjectionMatrix();
-}
-
-XMMATRIX FollowCamera::GetViewMatrix() const
-{
-	const XMVECTOR position = XMLoadFloat3(&m_position);
-	const XMVECTOR target = XMLoadFloat3(&m_lookAt);
-	const XMVECTOR up = XMLoadFloat3(&m_up);
-	return XMMatrixLookAtLH(position, target, up);
-}
-
-XMMATRIX FollowCamera::GetProjectionMatrix() const
-{
-	return XMMatrixPerspectiveFovLH(m_fovYRadians, m_aspectRatio, m_nearZ, m_farZ);
 }

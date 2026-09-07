@@ -30,6 +30,7 @@ public:
 private:
 	std::vector<SkinnedVertex> m_sourceVertices;
 	std::vector<TexturedVertex> m_skinnedVertices;
+	std::vector<DirectX::XMFLOAT4X4> m_normalBoneMatrices;
 	TexturedVertexBuffer m_vertexBuffer;
 	std::shared_ptr<TexturedMaterial> m_material;
 };

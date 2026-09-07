@@ -8,11 +8,10 @@
 #include <DirectXMath.h>
 #include <vector>
 
-class Ground;
 class IRenderDevice;
 class IRenderer;
 
-class PrimitiveObject : public CollisionBody
+class PrimitiveObject : public CollisionBody, public ICollisionSurface
 {
 public:
 	virtual ~PrimitiveObject() = default;
@@ -27,7 +26,8 @@ public:
 	CollisionBodyDefinition GetCollisionBodyDefinition() const override;
 	float GetCollisionBottomY() const override;
 	float GetCollisionTopY() const override;
-	void SetGround(const Ground* ground);
+	void SetGround(const ICollisionSurface* ground);
+	void SetCollisionQuery(const ICollisionQuery* query);
 	void SetGravityEnabled(bool enabled);
 	bool IsGravityEnabled() const;
 	void SetGroundCollisionEnabled(bool enabled);
@@ -36,6 +36,10 @@ public:
 	bool IsSurfaceCollisionEnabled() const;
 	DirectX::XMFLOAT3 GetPosition() const;
 	bool TryGetTopSurfaceAt(const DirectX::XMFLOAT3& position, float radius, float& height) const;
+	bool TryGetHeightAt(const DirectX::XMFLOAT3& position, float radius, float& height) const override
+	{
+		return TryGetTopSurfaceAt(position, radius, height);
+	}
 	bool IsGrounded() const;
 
 protected:
@@ -43,7 +47,7 @@ protected:
 
 private:
 	void ApplyGravity(float deltaTime);
-	void ResolveGroundCollision();
+	void ResolveGroundCollision(float previousBottomY);
 
 	PrimitiveObjectCollider m_collider;
 	PrimitiveGroundCollision m_groundCollision;

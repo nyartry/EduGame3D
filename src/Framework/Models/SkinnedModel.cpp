@@ -1,6 +1,10 @@
 #include "Framework/Models/SkinnedModel.h"
+#include "Framework/Models/ModelFit.h"
+#include "Framework/Models/ModelAssetCache.h"
 
 #include "Framework/Animation/AnimationSampler.h"
+#include "Framework/Animation/RootMotionExtractor.h"
+#include "Framework/Assets/AssetPathResolver.h"
 #include "Framework/Animation/CpuSkinnedMeshProcessor.h"
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Core/IRenderer.h"
@@ -39,16 +43,36 @@ void SkinnedModel::Initialize(
 	const ModelScaleSettings& scaleSettings,
 	SkinningMode skinningMode)
 {
-	SkinnedModelLoader loader;
-	if (!loader.Load(modelPath, m_modelData))
-	{
-		throw std::runtime_error("Failed to load skinned model: " + loader.GetLastError());
-	}
+	ModelAssetCache assets;
+	Prepare(assets, modelPath, scaleSettings);
+	Activate(device, skinningMode);
+}
+
+void SkinnedModel::Prepare(ModelAssetCache& assets, const std::string& modelPath, const ModelScaleSettings& scaleSettings)
+{
+	m_modelData = *assets.LoadSkinned(modelPath);
+	m_preparedModelPath = modelPath;
+	m_playback.Seek(0.0, 0.0);
+	m_currentAnimationIndex = 0;
+	m_animationEvents.clear();
+	m_pendingAnimationEvents.clear();
+	LoadAnimationEventSidecar(modelPath);
 
 	FitModel(scaleSettings);
 	m_boneMatrices.resize(m_modelData.bones.size());
 	m_boneModelMatrices.resize(m_modelData.bones.size());
+	m_animatedBoundsDirty = true;
+}
 
+void SkinnedModel::PrepareAnimation(ModelAssetCache& assets, const std::string& animationName, const std::string& animationPath)
+{
+	const auto clips = assets.LoadAnimation(m_preparedModelPath, animationPath, animationName);
+	m_modelData.animations.insert(m_modelData.animations.end(), clips->begin(), clips->end());
+	LoadAnimationEventSidecar(animationPath, animationName);
+}
+
+void SkinnedModel::Activate(IRenderDevice& device, SkinningMode skinningMode)
+{
 	std::unordered_map<std::string, std::shared_ptr<TexturedMaterial>> materialCache;
 	m_meshProcessors.clear();
 	m_meshProcessors.reserve(m_modelData.meshes.size());
@@ -83,6 +107,30 @@ void SkinnedModel::AddAnimation(const std::string& animationName, const std::str
 	{
 		throw std::runtime_error("Failed to load skinned animation: " + loader.GetLastError());
 	}
+	LoadAnimationEventSidecar(animationPath, animationName);
+}
+
+void SkinnedModel::LoadAnimationEventSidecar(const std::string& modelPath, std::string_view animationAlias)
+{
+	auto path = AssetPathResolver::Resolve(modelPath);
+	path.replace_extension(".anim_events.json");
+	std::error_code filesystemError;
+	if (!std::filesystem::exists(path, filesystemError)) return;
+	std::string error;
+	auto data = AnimationEvents::Load(path, error);
+	if (!data) throw std::runtime_error("Failed to load animation events for " + modelPath + ": " + error);
+	for (auto& event : data->events)
+	{
+		if (!animationAlias.empty()) event.animation = animationAlias;
+		m_animationEvents.push_back(std::move(event));
+	}
+}
+
+std::vector<AnimationEvents::Occurrence> SkinnedModel::ConsumeAnimationEvents()
+{
+	std::vector<AnimationEvents::Occurrence> result;
+	result.swap(m_pendingAnimationEvents);
+	return result;
 }
 
 void SkinnedModel::PlayAnimation(const std::string& animationName)
@@ -94,7 +142,8 @@ void SkinnedModel::PlayAnimation(const std::string& animationName)
 			if (m_currentAnimationIndex != animationIndex)
 			{
 				m_currentAnimationIndex = animationIndex;
-				m_animationTimeSeconds = 0.0f;
+				m_playback.Seek(0.0, 0.0);
+				m_pendingAnimationEvents.clear();
 			}
 			return;
 		}
@@ -111,7 +160,8 @@ void SkinnedModel::PlayAnimationByIndex(size_t animationIndex)
 	if (m_currentAnimationIndex != animationIndex)
 	{
 		m_currentAnimationIndex = animationIndex;
-		m_animationTimeSeconds = 0.0f;
+		m_playback.Seek(0.0, 0.0);
+		m_pendingAnimationEvents.clear();
 		UpdateBoneMatrices();
 		for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
 		{
@@ -124,9 +174,9 @@ float SkinnedModel::GetAnimationDurationSeconds(const std::string& animationName
 {
 	for (const AnimationClip& clip : m_modelData.animations)
 	{
-		if (clip.name == animationName && clip.ticksPerSecond > 0.0)
+		if (clip.name == animationName)
 		{
-			return static_cast<float>(clip.durationTicks / clip.ticksPerSecond);
+			return static_cast<float>(::GetAnimationDurationSeconds(clip));
 		}
 	}
 	return 0.0f;
@@ -140,14 +190,12 @@ float SkinnedModel::GetCurrentAnimationDurationSeconds() const
 	}
 
 	const AnimationClip& clip = m_modelData.animations[m_currentAnimationIndex];
-	return clip.ticksPerSecond > 0.0
-		? static_cast<float>(clip.durationTicks / clip.ticksPerSecond)
-		: 0.0f;
+	return static_cast<float>(::GetAnimationDurationSeconds(clip));
 }
 
 float SkinnedModel::GetAnimationTimeSeconds() const
 {
-	return m_animationTimeSeconds;
+	return static_cast<float>(m_playback.GetLocalTimeSeconds());
 }
 
 size_t SkinnedModel::GetCurrentAnimationIndex() const
@@ -162,7 +210,10 @@ const SkinnedModelData& SkinnedModel::GetModelData() const
 
 void SkinnedModel::SetAnimationTimeSeconds(float animationTimeSeconds)
 {
-	m_animationTimeSeconds = std::max(0.0f, animationTimeSeconds);
+	const double duration = m_currentAnimationIndex < m_modelData.animations.size()
+		? ::GetAnimationDurationSeconds(m_modelData.animations[m_currentAnimationIndex]) : 0.0;
+	m_playback.Seek(animationTimeSeconds, duration);
+	m_pendingAnimationEvents.clear();
 	UpdateBoneMatrices();
 	for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
 	{
@@ -172,8 +223,15 @@ void SkinnedModel::SetAnimationTimeSeconds(float animationTimeSeconds)
 
 RootMotionDelta SkinnedModel::Update(float deltaTime)
 {
-	const RootMotionDelta rootMotionDelta = ExtractRootMotionDelta(deltaTime);
-	m_animationTimeSeconds += deltaTime;
+	RootMotionDelta rootMotionDelta;
+	m_pendingAnimationEvents.clear();
+	if (m_currentAnimationIndex < m_modelData.animations.size())
+	{
+		const AnimationClip& clip = m_modelData.animations[m_currentAnimationIndex];
+		const auto interval = m_playback.Advance(deltaTime, ::GetAnimationDurationSeconds(clip));
+		rootMotionDelta = ExtractRootMotionDelta(clip, m_modelData.bones, interval, m_modelScale);
+		m_pendingAnimationEvents = AnimationEvents::Collect(m_animationEvents, clip.name, interval);
+	}
 	UpdateBoneMatrices();
 	for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
 	{
@@ -240,63 +298,55 @@ bool SkinnedModel::TryGetRootMotionBonePositionLocal(XMFLOAT3& position) const
 
 void SkinnedModel::FitModel(const ModelScaleSettings& scaleSettings)
 {
+	m_modelCenterX = 0.0f;
+	m_modelMinY = 0.0f;
+	m_modelCenterZ = 0.0f;
+	m_modelScale = 1.0f;
 	if (!scaleSettings.normalizeHeight)
 	{
-		m_modelCenterX = 0.0f;
-		m_modelMinY = 0.0f;
-		m_modelCenterZ = 0.0f;
-		m_modelScale = 1.0f;
 		return;
 	}
 
-	float minX = std::numeric_limits<float>::max();
-	float minY = std::numeric_limits<float>::max();
-	float minZ = std::numeric_limits<float>::max();
-	float maxX = std::numeric_limits<float>::lowest();
-	float maxY = std::numeric_limits<float>::lowest();
-	float maxZ = std::numeric_limits<float>::lowest();
+	Aabb bounds;
 
 	for (const SkinnedMeshData& meshData : m_modelData.meshes)
 	{
 		for (const SkinnedVertex& vertex : meshData.vertices)
 		{
-			minX = std::min(minX, vertex.vertex.position.x);
-			minY = std::min(minY, vertex.vertex.position.y);
-			minZ = std::min(minZ, vertex.vertex.position.z);
-			maxX = std::max(maxX, vertex.vertex.position.x);
-			maxY = std::max(maxY, vertex.vertex.position.y);
-			maxZ = std::max(maxZ, vertex.vertex.position.z);
+			if (!bounds.AddPoint(vertex.vertex.position))
+			{
+				WriteDebugLog("[SkinnedModel] nonfinite vertex prevents model fit");
+				return;
+			}
 		}
 	}
 
-	const float height = maxY - minY;
-	const float width = maxX - minX;
-	const float depth = maxZ - minZ;
+	const XMFLOAT3 size = bounds.Size();
 	std::ostringstream stream;
-	stream << "[SkinnedModel] rawAabb min=(" << minX << ", " << minY << ", " << minZ << ")"
-		<< " max=(" << maxX << ", " << maxY << ", " << maxZ << ")"
-		<< " size=(" << width << ", " << height << ", " << depth << ")"
+	stream << "[SkinnedModel] rawAabb min=(" << bounds.Min().x << ", " << bounds.Min().y << ", " << bounds.Min().z << ")"
+		<< " max=(" << bounds.Max().x << ", " << bounds.Max().y << ", " << bounds.Max().z << ")"
+		<< " size=(" << size.x << ", " << size.y << ", " << size.z << ")"
 		<< " targetHeight=" << scaleSettings.targetHeight;
 	WriteDebugLog(stream.str());
 
-	if (height <= 0.0f)
+	ModelFit fit;
+	if (!TryCreateModelFit(bounds, scaleSettings.targetHeight, fit))
 	{
-		m_modelScale = 1.0f;
-		WriteDebugLog("[SkinnedModel] height is not positive. modelScale=1");
+		WriteDebugLog("[SkinnedModel] empty or invalid height; using identity model fit");
 		return;
 	}
 
-	m_modelCenterX = (minX + maxX) * 0.5f;
-	m_modelMinY = minY;
-	m_modelCenterZ = (minZ + maxZ) * 0.5f;
-	m_modelScale = scaleSettings.targetHeight / height;
+	m_modelCenterX = fit.origin.x;
+	m_modelMinY = fit.origin.y;
+	m_modelCenterZ = fit.origin.z;
+	m_modelScale = fit.scale;
 
 	std::ostringstream scaleStream;
 	scaleStream << "[SkinnedModel] modelScale=" << m_modelScale
 		<< " fittedSize=("
-		<< width * m_modelScale << ", "
-		<< height * m_modelScale << ", "
-		<< depth * m_modelScale << ")";
+		<< size.x * m_modelScale << ", "
+		<< size.y * m_modelScale << ", "
+		<< size.z * m_modelScale << ")";
 	WriteDebugLog(scaleStream.str());
 }
 
@@ -310,56 +360,6 @@ std::unique_ptr<ISkinnedMeshProcessor> SkinnedModel::CreateMeshProcessor(Skinnin
 	default:
 		return std::make_unique<CpuSkinnedMeshProcessor>();
 	}
-}
-
-RootMotionDelta SkinnedModel::ExtractRootMotionDelta(float deltaTime) const
-{
-	if (m_modelData.animations.empty() || m_currentAnimationIndex >= m_modelData.animations.size())
-	{
-		return {};
-	}
-
-	const AnimationClip& clip = m_modelData.animations[m_currentAnimationIndex];
-	if (clip.rootMotionBoneAnimationIndex < 0 ||
-		clip.rootMotionBoneAnimationIndex >= static_cast<int>(clip.boneAnimations.size()))
-	{
-		return {};
-	}
-
-	const BoneAnimation& boneAnimation = clip.boneAnimations[clip.rootMotionBoneAnimationIndex];
-	const BoneData& bindPose = m_modelData.bones[boneAnimation.boneIndex];
-	const AnimationSampler animationSampler;
-
-	const XMVECTOR previousTranslation = animationSampler.SampleTranslation(
-		clip,
-		boneAnimation,
-		bindPose,
-		m_animationTimeSeconds);
-	const XMVECTOR nextTranslation = animationSampler.SampleTranslation(
-		clip,
-		boneAnimation,
-		bindPose,
-		m_animationTimeSeconds + deltaTime);
-
-	XMVECTOR translationDelta = nextTranslation - previousTranslation;
-	const double durationSeconds = clip.durationTicks / clip.ticksPerSecond;
-	if (durationSeconds > 0.0)
-	{
-		const double previousTime = std::fmod(m_animationTimeSeconds, static_cast<float>(durationSeconds));
-		const double nextTime = std::fmod(m_animationTimeSeconds + deltaTime, static_cast<float>(durationSeconds));
-		if (nextTime < previousTime && !boneAnimation.translations.empty())
-		{
-			const XMVECTOR firstTranslation = XMLoadFloat3(&boneAnimation.translations.front().value);
-			const XMVECTOR lastTranslation = XMLoadFloat3(&boneAnimation.translations.back().value);
-			translationDelta = (lastTranslation - previousTranslation) + (nextTranslation - firstTranslation);
-		}
-	}
-
-	translationDelta *= m_modelScale;
-
-	RootMotionDelta result;
-	XMStoreFloat3(&result.translation, translationDelta);
-	return result;
 }
 
 void SkinnedModel::UpdateBoneMatrices()
@@ -386,7 +386,7 @@ void SkinnedModel::UpdateBoneMatrices()
 						clip,
 						boneAnimation,
 						m_modelData.bones[boneAnimation.boneIndex],
-						m_animationTimeSeconds);
+						m_playback.GetLocalTimeSeconds());
 				}
 			}
 		}
@@ -411,19 +411,8 @@ void SkinnedModel::UpdateBoneMatrices()
 
 void SkinnedModel::UpdateAnimatedBounds() const
 {
-	XMFLOAT3 minBounds
-	{
-		std::numeric_limits<float>::max(),
-		std::numeric_limits<float>::max(),
-		std::numeric_limits<float>::max()
-	};
-	XMFLOAT3 maxBounds
-	{
-		std::numeric_limits<float>::lowest(),
-		std::numeric_limits<float>::lowest(),
-		std::numeric_limits<float>::lowest()
-	};
-	bool hasVertex = false;
+	Aabb bounds;
+	const ModelFit fit{ { m_modelCenterX, m_modelMinY, m_modelCenterZ }, m_modelScale };
 
 	for (const SkinnedMeshData& meshData : m_modelData.meshes)
 	{
@@ -456,32 +445,13 @@ void SkinnedModel::UpdateAnimatedBounds() const
 				position /= totalWeight;
 			}
 
-			position = XMVectorSet(
-				(XMVectorGetX(position) - m_modelCenterX) * m_modelScale,
-				(XMVectorGetY(position) - m_modelMinY) * m_modelScale,
-				(XMVectorGetZ(position) - m_modelCenterZ) * m_modelScale,
-				1.0f);
-
 			XMFLOAT3 fittedPosition{};
 			XMStoreFloat3(&fittedPosition, position);
-			minBounds.x = std::min(minBounds.x, fittedPosition.x);
-			minBounds.y = std::min(minBounds.y, fittedPosition.y);
-			minBounds.z = std::min(minBounds.z, fittedPosition.z);
-			maxBounds.x = std::max(maxBounds.x, fittedPosition.x);
-			maxBounds.y = std::max(maxBounds.y, fittedPosition.y);
-			maxBounds.z = std::max(maxBounds.z, fittedPosition.z);
-			hasVertex = true;
+			bounds.AddPoint(fit.Apply(fittedPosition));
 		}
 	}
 
-	m_animatedBoundsCenterLocal = hasVertex
-		? XMFLOAT3
-		{
-			(minBounds.x + maxBounds.x) * 0.5f,
-			(minBounds.y + maxBounds.y) * 0.5f,
-			(minBounds.z + maxBounds.z) * 0.5f
-		}
-	: XMFLOAT3{};
+	m_animatedBoundsCenterLocal = bounds.Center();
 	m_animatedBoundsDirty = false;
 }
 

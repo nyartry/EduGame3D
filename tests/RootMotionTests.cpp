@@ -1,4 +1,6 @@
 #include "Framework/Animation/RootMotion.h"
+#include "Framework/Animation/RootMotionExtractor.h"
+#include "Framework/Animation/AnimationSampler.h"
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Game/Gameplay/CharacterGrounding.h"
 #include "Game/Gameplay/Cube.h"
@@ -12,6 +14,8 @@
 #include <string>
 
 using namespace DirectX;
+
+void TestAnimationEvents();
 
 namespace
 {
@@ -86,6 +90,66 @@ namespace
 		Near(ResolveRootMotionDisplacement(program, root, XM_PIDIV2, settings), { 30.0f, 23.0f, -10.0f }, "Model-local root rotates into world space");
 		settings.mode = RootMotionMode::Ignore;
 		Near(ResolveRootMotionDisplacement(program, root, XM_PIDIV2, settings), program, "Ignore also ignores opted-in animation Y");
+	}
+
+	void RootExtractionAcrossLoops()
+	{
+		AnimationClip clip;
+		clip.durationTicks = 30.0;
+		clip.rootMotionBoneAnimationIndex = 0;
+		BoneAnimation animation;
+		animation.boneIndex = 0;
+		animation.translations = { { 0.0, { 3.0f, 1.0f, 2.0f } }, { 30.0, { 4.0f, 3.0f, 5.0f } } };
+		clip.boneAnimations.push_back(animation);
+		std::vector<BoneData> bones(1);
+		XMStoreFloat4x4(&bones[0].localBindTransform, XMMatrixIdentity());
+		for (const double start : { 0.0, 0.25, 0.99 })
+		{
+			for (const double delta : { 0.0, 0.02, 1.0, 2.25, 10.0 })
+			{
+				AnimationPlayback playback;
+				playback.Seek(start, 1.0);
+				const auto interval = playback.Advance(delta, 1.0);
+				const auto root = ExtractRootMotionDelta(clip, bones, interval, 2.0f);
+				Near(root.translation, { static_cast<float>(2.0 * delta), static_cast<float>(4.0 * delta), static_cast<float>(6.0 * delta) },
+					"Every whole and partial loop must contribute scaled XYZ motion");
+				Require(interval.completedLoops == static_cast<std::uint64_t>(std::floor(start + delta)), "Complete loop count");
+				Near(static_cast<float>(playback.GetLocalTimeSeconds()), static_cast<float>(std::fmod(start + delta, 1.0)), "Shared pose endpoint");
+			}
+		}
+		AnimationPlayback playback;
+		clip.ticksPerSecond = 300.0; // Duration 0.1 is not exactly representable.
+		Near(ExtractRootMotionDelta(clip, bones, playback.Advance(1.0, GetAnimationDurationSeconds(clip))).translation,
+			{ 10.0f, 20.0f, 30.0f }, "Remainder and quotient agree for decimal clip duration");
+		clip.ticksPerSecond = 30.0;
+		playback.Seek(0.9, 1.0);
+		// Clip endpoint is midway through the second key, not its value.
+		clip.boneAnimations[0].translations.back().time = 60.0;
+		Near(ExtractRootMotionDelta(clip, bones, playback.Advance(2.2, 1.0)).translation,
+			{ 1.1f, 2.2f, 3.3f }, "Cycle displacement samples actual duration");
+		clip.boneAnimations[0].translations.clear();
+		Near(ExtractRootMotionDelta(clip, bones, playback.Advance(3.0, 1.0)).translation, {}, "Bind pose has no root motion");
+		clip.boneAnimations[0].boneIndex = -1;
+		Near(ExtractRootMotionDelta(clip, bones, playback.Advance(1.0, 1.0)).translation, {}, "Invalid bone is ignored");
+	}
+
+	void PlaybackSeekAndInvalidTime()
+	{
+		AnimationPlayback playback;
+		playback.Seek(1234567890.25, 1.0);
+		Near(static_cast<float>(playback.GetLocalTimeSeconds()), 0.25f, "Seek stores local time without long-running float drift");
+		for (const double delta : { 0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN(), 1e30 })
+		{
+			Require(!playback.Advance(delta, 1.0).advanced, "Invalid advance emits no interval");
+			Near(static_cast<float>(playback.GetLocalTimeSeconds()), 0.25f, "Invalid advance preserves time");
+		}
+		playback.Seek(1.0, 1.0);
+		Near(static_cast<float>(playback.GetLocalTimeSeconds()), 0.0f, "Seek to exact duration selects first pose");
+		Require(!playback.Advance(1.0, 0.0).advanced, "Zero duration is stationary");
+		AnimationClip clip;
+		clip.durationTicks = 1.0;
+		clip.ticksPerSecond = 0.0;
+		Near(static_cast<float>(GetAnimationDurationSeconds(clip)), 0.0f, "Invalid tick rate has zero duration");
 	}
 
 	void DefaultModesPreserveJump()
@@ -236,6 +300,9 @@ int main()
 		}
 	};
 	run("blend weights, Y policy, and yaw", BlendWeightsAndYaw);
+	run("root extraction across complete and partial loops", RootExtractionAcrossLoops);
+	run("playback seeks and invalid time", PlaybackSeekAndInvalidTime);
+	run("animation events and shared editor/runtime JSON", TestAnimationEvents);
 	run("default modes preserve jump", DefaultModesPreserveJump);
 	run("explicit animation Y preserves whole jump", ExplicitAnimationYPreservesWholeJump);
 	run("root-only motion without gravity", RootOnlyMotionWithoutGravity);

@@ -1,6 +1,6 @@
 #include "Framework/Rendering/Materials/Texture2D.h"
 
-#include "Framework/Assets/AssetPathResolver.h"
+#include "Framework/Assets/ImageLoader.h"
 #include "Framework/Common/Common.h"
 #include "Framework/Rendering/Core/Dx12BufferHelper.h"
 
@@ -8,68 +8,14 @@
 #include <cstring>
 #include <stdexcept>
 #include <vector>
-#include <wincodec.h>
+#include <atomic>
+
 
 using Microsoft::WRL::ComPtr;
 
 namespace
 {
-	void EnsureComInitialized()
-	{
-		const HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-		if (FAILED(hr) && hr != RPC_E_CHANGED_MODE)
-		{
-			ThrowIfFailed(hr);
-		}
-	}
-
-	ComPtr<IWICImagingFactory2> CreateWicFactory()
-	{
-		EnsureComInitialized();
-
-		ComPtr<IWICImagingFactory2> factory;
-		ThrowIfFailed(CoCreateInstance(
-			CLSID_WICImagingFactory2,
-			nullptr,
-			CLSCTX_INPROC_SERVER,
-			IID_PPV_ARGS(&factory)));
-		return factory;
-	}
-
-	std::vector<UINT8> LoadPixelsWithWic(const std::filesystem::path& filePath, UINT& width, UINT& height)
-	{
-		ComPtr<IWICImagingFactory2> factory = CreateWicFactory();
-		ComPtr<IWICBitmapDecoder> decoder;
-		ThrowIfFailed(factory->CreateDecoderFromFilename(
-			filePath.c_str(),
-			nullptr,
-			GENERIC_READ,
-			WICDecodeMetadataCacheOnLoad,
-			&decoder));
-
-		ComPtr<IWICBitmapFrameDecode> frame;
-		ThrowIfFailed(decoder->GetFrame(0, &frame));
-		ThrowIfFailed(frame->GetSize(&width, &height));
-
-		ComPtr<IWICFormatConverter> converter;
-		ThrowIfFailed(factory->CreateFormatConverter(&converter));
-		ThrowIfFailed(converter->Initialize(
-			frame.Get(),
-			GUID_WICPixelFormat32bppRGBA,
-			WICBitmapDitherTypeNone,
-			nullptr,
-			0.0,
-			WICBitmapPaletteTypeCustom));
-
-		std::vector<UINT8> pixels(static_cast<size_t>(width) * static_cast<size_t>(height) * 4);
-		ThrowIfFailed(converter->CopyPixels(
-			nullptr,
-			width * 4,
-			static_cast<UINT>(pixels.size()),
-			pixels.data()));
-		return pixels;
-	}
-
+	std::atomic<std::uint64_t> uploadCount{};
 	void ExecuteAndWait(ID3D12Device* device, ID3D12CommandQueue* commandQueue, ID3D12GraphicsCommandList* commandList)
 	{
 		ThrowIfFailed(commandList->Close());
@@ -95,21 +41,8 @@ namespace
 
 void Texture2D::Initialize(ID3D12Device* device, const std::string& filePath, bool useSrgb)
 {
-	try
-	{
-		UINT width = 0;
-		UINT height = 0;
-		const std::vector<UINT8> pixels = LoadPixelsWithWic(AssetPathResolver::Resolve(filePath), width, height);
-		if (width == 0 || height == 0)
-		{
-			throw std::runtime_error("Texture has invalid dimensions: " + filePath);
-		}
-		CreateTextureResource(device, pixels.data(), width, height, useSrgb);
-	}
-	catch (...)
-	{
-		CreateFallbackTexture(device);
-	}
+	const auto image = ImageLoader::Load(filePath);
+	CreateTextureResource(device, image->pixels.data(), image->width, image->height, useSrgb);
 }
 
 void Texture2D::InitializeSolidColor(ID3D12Device* device, UINT8 red, UINT8 green, UINT8 blue, UINT8 alpha, bool useSrgb)
@@ -128,17 +61,7 @@ void Texture2D::InitializeFromPixels(ID3D12Device* device, const void* rgbaPixel
 	CreateTextureResource(device, rgbaPixels, width, height, useSrgb);
 }
 
-void Texture2D::CreateFallbackTexture(ID3D12Device* device)
-{
-	const UINT8 pixels[] =
-	{
-		255, 255, 255, 255,
-		180, 180, 180, 255,
-		180, 180, 180, 255,
-		255, 255, 255, 255,
-	};
-	CreateTextureResource(device, pixels, 2, 2, true);
-}
+std::uint64_t Texture2D::GetUploadCount() { return uploadCount.load(); }
 
 void Texture2D::CreateTextureResource(ID3D12Device* device, const void* pixels, UINT width, UINT height, bool useSrgb)
 {
@@ -173,6 +96,7 @@ void Texture2D::CreateTextureResource(ID3D12Device* device, const void* pixels, 
 		IID_PPV_ARGS(&m_resource)));
 
 	UploadPixels(device, pixels, textureDesc);
+	++uploadCount;
 }
 
 void Texture2D::UploadPixels(ID3D12Device* device, const void* pixels, const D3D12_RESOURCE_DESC& textureDesc)

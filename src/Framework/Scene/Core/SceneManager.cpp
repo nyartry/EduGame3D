@@ -2,10 +2,12 @@
 
 #include "Framework/Rendering/Core/IRenderResourceLifetime.h"
 #include "Framework/Rendering/Core/IRenderer.h"
+#include "Framework/Core/Diagnostics/Diagnostics.h"
 
 #include <algorithm>
 #include <chrono>
 #include <utility>
+#include <stdexcept>
 
 using namespace DirectX;
 
@@ -18,6 +20,8 @@ namespace
 
 SceneManager::~SceneManager()
 {
+	// Finish CPU preparation before destroying services captured by factories.
+	m_pendingLoad.reset();
 	ClearActiveScenes();
 }
 
@@ -52,13 +56,21 @@ bool SceneManager::LoadScene(const std::string& name, SceneLoadType loadType, Sc
 		return false;
 	}
 
+	m_lastLoadError.clear();
 	if (loadType == SceneLoadType::Synchronous)
 	{
-		std::unique_ptr<IScene> scene = sceneFactory->second();
-		scene->Prepare();
-		scene->Activate();
-		CommitLoadedScene(std::move(scene), loadMode);
-		return true;
+		try
+		{
+			std::unique_ptr<IScene> scene = sceneFactory->second();
+			if (!scene) throw std::runtime_error("Scene factory returned null");
+			scene->Prepare();
+			scene->Activate();
+			CommitLoadedScene(std::move(scene), loadMode);
+			return true;
+		}
+		catch (const std::exception& error) { RecoverLoadFailure(error.what()); }
+		catch (...) { RecoverLoadFailure("Unknown scene load failure"); }
+		return false;
 	}
 
 	auto pendingLoad = std::make_unique<PendingLoad>();
@@ -70,6 +82,12 @@ bool SceneManager::LoadScene(const std::string& name, SceneLoadType loadType, Sc
 }
 
 void SceneManager::Update(float deltaTime, const Input& input)
+{
+	if (m_pendingLoad && m_pendingLoad->phase != PendingLoadPhase::FadeIn) return;
+	for (const auto& scene : m_activeScenes) scene->Update(deltaTime, input);
+}
+
+void SceneManager::UpdateFrame(float deltaTime, const Input& input)
 {
 	if (m_pendingLoad != nullptr)
 	{
@@ -95,7 +113,7 @@ void SceneManager::Update(float deltaTime, const Input& input)
 
 		for (const std::unique_ptr<IScene>& scene : m_activeScenes)
 		{
-			scene->Update(deltaTime, input);
+			scene->UpdateFrame(deltaTime, input);
 		}
 
 		const float fadeAlpha = 1.0f - std::min(m_pendingLoad->elapsedTime / FadeInSeconds, 1.0f);
@@ -111,7 +129,7 @@ void SceneManager::Update(float deltaTime, const Input& input)
 	bool shouldLoadAsync = false;
 	for (const std::unique_ptr<IScene>& scene : m_activeScenes)
 	{
-		scene->Update(deltaTime, input);
+		scene->UpdateFrame(deltaTime, input);
 		if (requestedSceneName.empty())
 		{
 			requestedSceneName = scene->GetRequestedSceneName();
@@ -160,7 +178,7 @@ void SceneManager::RenderOverlay(IRenderer& renderer) const
 
 RenderView SceneManager::GetRenderView() const
 {
-	if (m_activeScenes.empty())
+	if (m_activeScenes.empty() || (m_pendingLoad && m_pendingLoad->phase == PendingLoadPhase::Loading))
 	{
 		return {};
 	}
@@ -204,6 +222,8 @@ void SceneManager::RetireActiveScenes()
 
 void SceneManager::CommitLoadedScene(std::unique_ptr<IScene> scene, SceneLoadMode mode)
 {
+	// Allocate the destination slot before retiring any active scene.
+	m_activeScenes.reserve(m_activeScenes.size() + 1);
 	if (mode == SceneLoadMode::Single)
 	{
 		RetireActiveScenes();
@@ -214,19 +234,23 @@ void SceneManager::CommitLoadedScene(std::unique_ptr<IScene> scene, SceneLoadMod
 
 void SceneManager::StartPendingLoad()
 {
-	if (m_pendingLoad->mode == SceneLoadMode::Single)
-	{
-		RetireActiveScenes();
-	}
+	// Keep the current scenes alive until CPU preparation and GPU activation
+	// both succeed. Peak memory includes one current set and one pending set.
 	m_pendingLoad->phase = PendingLoadPhase::Loading;
 	m_pendingLoad->elapsedTime = 0.0f;
 	const SceneFactory factory = m_pendingLoad->factory;
-	m_pendingLoad->future = std::async(std::launch::async, [factory]()
+	try
 	{
-		std::unique_ptr<IScene> scene = factory();
-		scene->Prepare();
-		return scene;
-	});
+		m_pendingLoad->future = std::async(std::launch::async, [factory]()
+		{
+			std::unique_ptr<IScene> scene = factory();
+			if (!scene) throw std::runtime_error("Scene factory returned null");
+			scene->Prepare();
+			return scene;
+		});
+	}
+	catch (const std::exception& error) { RecoverLoadFailure(error.what()); }
+	catch (...) { RecoverLoadFailure("Unable to start scene preparation"); }
 }
 
 void SceneManager::PollAsyncLoad()
@@ -246,12 +270,25 @@ void SceneManager::PollAsyncLoad()
 		return;
 	}
 
-	std::unique_ptr<IScene> scene = m_pendingLoad->future.get();
-	scene->Activate();
-	CommitLoadedScene(std::move(scene), m_pendingLoad->mode);
+	try
+	{
+		std::unique_ptr<IScene> scene = m_pendingLoad->future.get();
+		scene->Activate();
+		CommitLoadedScene(std::move(scene), m_pendingLoad->mode);
+	}
+	catch (const std::exception& error) { RecoverLoadFailure(error.what()); return; }
+	catch (...) { RecoverLoadFailure("Unknown asynchronous scene load failure"); return; }
 	m_pendingLoad->phase = PendingLoadPhase::FadeIn;
 	m_pendingLoad->elapsedTime = 0.0f;
 	UpdateFadeOverlay(1.0f);
+}
+
+void SceneManager::RecoverLoadFailure(std::string message)
+{
+	m_lastLoadError = std::move(message);
+	Diagnostics::Write("Scene load failed: " + m_lastLoadError);
+	m_pendingLoad.reset();
+	for (const auto& scene : m_activeScenes) scene->OnSceneLoadFailed();
 }
 
 void SceneManager::UpdateFadeOverlay(float alpha)

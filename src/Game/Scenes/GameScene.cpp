@@ -13,6 +13,8 @@
 #include "Game/Gameplay/Player.h"
 #include "Game/Input/GameActions.h"
 #include "Framework/Models/SkinnedMeshActor.h"
+#include "Framework/Models/ModelAssetCache.h"
+#include "Framework/Assets/ImageLoader.h"
 #include "Framework/Rendering/Sprites/SpriteShapeFactory.h"
 #include "Game/Content/GameContent.h"
 #include <memory>
@@ -47,8 +49,34 @@ GameScene::GameScene(
 {
 }
 
+void GameScene::Prepare()
+{
+	m_prepared = false;
+	m_collisionWorld.Clear();
+	m_actors.clear();
+	m_player = nullptr;
+	m_followTarget = nullptr;
+	m_preparedImages.clear();
+	m_collisionWorld.RegisterSurface(m_ground);
+	m_collisionWorld.RegisterSurface(m_originCube, &m_originCube);
+	auto player = std::make_unique<OrcPlayer>();
+	player->SetCollisionQuery(&m_collisionWorld);
+	m_player = &AddActor(std::move(player));
+	m_followTarget = m_player;
+	AddActor(std::make_unique<AnimatedCubeObject>());
+	AddActor(std::make_unique<DavenPlayer>());
+	AddActor(std::make_unique<NathanWalker>());
+	//AddActor(std::make_unique<ForestGoddessPlayer>());
+	ModelAssetCache assets;
+	for (const auto& actor : m_actors) actor->Prepare(assets);
+	m_preparedImages = assets.TakePreparedImages();
+	m_preparedImages.push_back(ImageLoader::Load(GeneratedImageTexturePath));
+	m_prepared = true;
+}
+
 void GameScene::Activate()
 {
+	if (!m_prepared) Prepare();
 	const float aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
 
 	m_camera = std::make_unique<CameraController>();
@@ -56,7 +84,7 @@ void GameScene::Activate()
 
 	m_ground.Initialize(m_renderDevice);
 	m_originCube.SetPosition(PlatformCubePosition.x, PlatformCubePosition.y, PlatformCubePosition.z);
-	m_originCube.SetGround(&m_ground);
+	m_originCube.SetCollisionQuery(&m_collisionWorld);
 	m_originCube.SetSurfaceCollisionEnabled(true);
 	m_originCube.SetGroundCollisionEnabled(false);
 	m_originCube.SetGravityEnabled(false);
@@ -92,26 +120,18 @@ void GameScene::Activate()
 	m_jumpParticles.Initialize(m_renderDevice);
 	m_hudOverlay.Initialize(m_renderDevice, m_width, m_height);
 
-	m_collisionBodies.clear();
-	m_actors.clear();
-	auto player = std::make_unique<OrcPlayer>();
-	player->SetGround(&m_ground);
-	player->AddLandingSurface(&m_originCube);
-	m_player = &AddActor(std::move(player));
-	m_followTarget = m_player;
-	AddActor(std::make_unique<AnimatedCubeObject>());
-	AddActor(std::make_unique<DavenPlayer>());
-	AddActor(std::make_unique<NathanWalker>());
-	//AddActor(std::make_unique<ForestGoddessPlayer>());
 	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
 		actor->Initialize(m_renderDevice);
 	}
+	m_preparedImages.clear();
 }
 
 void GameScene::Unload()
 {
-	m_collisionBodies.clear();
+	m_prepared = false;
+	m_preparedImages.clear();
+	m_collisionWorld.Clear();
 	m_actors.clear();
 	m_camera.reset();
 	m_player = nullptr;
@@ -132,6 +152,18 @@ void GameScene::Update(float deltaTime, const Input& input)
 	for (const std::unique_ptr<Actor>& actor : m_actors)
 	{
 		actor->Update(deltaTime, input);
+		if (auto* skinned = dynamic_cast<SkinnedMeshActor*>(actor.get()))
+		{
+			// Consume each simulation step before a catch-up step replaces events.
+			// Cue names refer to the game's registered audio/effect catalog.
+			for (const auto& occurrence : skinned->ConsumeAnimationEvents())
+			{
+				const auto& event = occurrence.event;
+				if (event.cue.empty()) continue;
+				if (event.type == "Footstep" || event.type == "PlaySE") m_audio.PlaySe(event.cue);
+				else if (event.type == "PlayEffect") m_effects.Play(event.cue, skinned->GetAnimationEventPosition(event.bone));
+			}
+		}
 	}
 	ResolvePlayerBodyCollisions();
 	if (m_player != nullptr && m_player->DidStartJumpThisFrame())
@@ -142,7 +174,6 @@ void GameScene::Update(float deltaTime, const Input& input)
 		m_effects.Play(GameContent::JumpEffect, effectPosition, 0.35f);
 	}
 	m_jumpParticles.Update(deltaTime);
-	m_hudOverlay.Update(deltaTime);
 
 	if (m_camera != nullptr && m_followTarget != nullptr)
 	{
@@ -152,6 +183,11 @@ void GameScene::Update(float deltaTime, const Input& input)
 	{
 		m_camera->Update(deltaTime, input);
 	}
+}
+
+void GameScene::UpdateFrame(float deltaTime, const Input&)
+{
+	m_hudOverlay.Update(deltaTime);
 }
 
 void GameScene::RenderWorld(IRenderer& renderer) const
@@ -235,29 +271,5 @@ void GameScene::ResolvePlayerBodyCollisions()
 		return;
 	}
 
-	constexpr int SolverPassCount = 3;
-	CollisionBody& playerBody = *m_player;
-	for (int pass = 0; pass < SolverPassCount; ++pass)
-	{
-		bool resolvedAny = false;
-		resolvedAny |= ResolveCollisionBodyAgainst(playerBody, m_originCube);
-
-		for (const CollisionBody* body : m_collisionBodies)
-		{
-			if (body == &playerBody)
-			{
-				continue;
-			}
-			resolvedAny |= ResolveCollisionBodyAgainst(playerBody, *body);
-		}
-
-		if (resolvedAny)
-		{
-			m_player->ResolveWallCollision();
-		}
-		else
-		{
-			break;
-		}
-	}
+	m_collisionWorld.ResolveBodyCollisions(*m_player);
 }

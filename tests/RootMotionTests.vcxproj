@@ -36,7 +36,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="RootMotionTests.cpp" />
+    <ClCompile Include="AnimationEventTests.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\AnimationEvents.cpp" />
+    <ClCompile Include="..\tools\AnimationEventEditor\AnimationEventJson.cpp" />
+    <ClCompile Include="..\src\Framework\Physics\CollisionWorld.cpp" />
     <ClCompile Include="..\src\Framework\Animation\RootMotion.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\RootMotionExtractor.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\AnimationPlayback.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\AnimationSampler.cpp" />
     <ClCompile Include="..\src\Framework\Core\Math\Transform.cpp" />
     <ClCompile Include="..\src\Framework\Gameplay\CollisionBody.cpp" />
     <ClCompile Include="..\src\Framework\Rendering\Buffers\VertexBuffer.cpp" />

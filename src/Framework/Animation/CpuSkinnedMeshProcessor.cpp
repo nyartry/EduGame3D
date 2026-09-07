@@ -1,5 +1,5 @@
 #include "Framework/Animation/CpuSkinnedMeshProcessor.h"
-#include "Framework/Core/Math/MathUtils.h"
+#include "Framework/Animation/BoneSkinning.h"
 
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Core/IRenderer.h"
@@ -30,60 +30,16 @@ void CpuSkinnedMeshProcessor::Update(
 	float modelCenterZ,
 	float modelScale)
 {
+	BoneSkinning::BuildNormalPalette(boneMatrices, m_normalBoneMatrices);
 	for (size_t vertexIndex = 0; vertexIndex < m_sourceVertices.size(); ++vertexIndex)
 	{
 		const SkinnedVertex& sourceVertex = m_sourceVertices[vertexIndex];
-		TexturedVertex skinnedVertex = sourceVertex.vertex;
-
-		XMVECTOR position = XMVectorZero();
-		XMVECTOR normal = XMVectorZero();
-		XMVECTOR tangent = XMVectorZero();
-		float totalWeight = 0.0f;
-
-		const XMVECTOR sourcePosition = XMLoadFloat3(&sourceVertex.vertex.position);
-		const XMVECTOR sourceNormal = XMLoadFloat3(&sourceVertex.vertex.normal);
-		const XMVECTOR sourceTangent = XMLoadFloat3(&sourceVertex.vertex.tangent);
-
-		for (int slot = 0; slot < 4; ++slot)
-		{
-			const int boneIndex = sourceVertex.boneIndices[slot];
-			const float weight = sourceVertex.boneWeights[slot];
-			if (boneIndex < 0 || weight == 0.0f || boneIndex >= static_cast<int>(boneMatrices.size()))
-			{
-				continue;
-			}
-
-			const XMMATRIX boneMatrix = XMLoadFloat4x4(&boneMatrices[boneIndex]);
-			position += XMVector3TransformCoord(sourcePosition, boneMatrix) * weight;
-			normal += XMVector3TransformNormal(sourceNormal, boneMatrix) * weight;
-			tangent += XMVector3TransformNormal(sourceTangent, boneMatrix) * weight;
-			totalWeight += weight;
-		}
-
-		if (totalWeight == 0.0f)
-		{
-			position = sourcePosition;
-			normal = sourceNormal;
-			tangent = sourceTangent;
-		}
-		else if (totalWeight != 1.0f)
-		{
-			position /= totalWeight;
-			normal /= totalWeight;
-			tangent /= totalWeight;
-		}
-
-		position = XMVectorSet(
-			(XMVectorGetX(position) - modelCenterX) * modelScale,
-			(XMVectorGetY(position) - modelMinY) * modelScale,
-			(XMVectorGetZ(position) - modelCenterZ) * modelScale,
-			1.0f);
-
-		XMStoreFloat3(&skinnedVertex.position, position);
-		XMStoreFloat3(&skinnedVertex.normal, normal);
-		XMStoreFloat3(&skinnedVertex.tangent, tangent);
-		skinnedVertex.normal = MathUtils::NormalizeOrDefault(skinnedVertex.normal, sourceVertex.vertex.normal);
-		skinnedVertex.tangent = MathUtils::NormalizeOrDefault(skinnedVertex.tangent, sourceVertex.vertex.tangent);
+		TexturedVertex skinnedVertex = BoneSkinning::DeformVertex(sourceVertex, boneMatrices, m_normalBoneMatrices);
+		skinnedVertex.position = {
+			(skinnedVertex.position.x - modelCenterX) * modelScale,
+			(skinnedVertex.position.y - modelMinY) * modelScale,
+			(skinnedVertex.position.z - modelCenterZ) * modelScale
+		};
 		m_skinnedVertices[vertexIndex] = skinnedVertex;
 	}
 

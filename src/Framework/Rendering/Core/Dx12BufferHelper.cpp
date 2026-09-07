@@ -57,7 +57,10 @@ namespace Dx12BufferHelper
 		UINT8* mappedData = nullptr;
 		D3D12_RANGE readRange{};
 		ThrowIfFailed(resource->Map(0, &readRange, reinterpret_cast<void**>(&mappedData)));
-		memcpy(mappedData, data, static_cast<size_t>(sizeInBytes));
+		if (sizeInBytes != 0)
+		{
+			memcpy(mappedData, data, static_cast<size_t>(sizeInBytes));
+		}
 		resource->Unmap(0, nullptr);
 
 		return resource;

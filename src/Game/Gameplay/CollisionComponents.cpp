@@ -1,21 +1,11 @@
 #include "Game/Gameplay/CollisionComponents.h"
 
-#include "Game/Gameplay/Ground.h"
+#include "Framework/Core/Math/MathUtils.h"
 
 #include <algorithm>
 #include <cmath>
 
 using namespace DirectX;
-
-namespace
-{
-	float CalculateCollisionRadius(const Vertex& vertex)
-	{
-		return std::sqrt(
-			vertex.position[0] * vertex.position[0] +
-			vertex.position[2] * vertex.position[2]);
-	}
-}
 
 void CollisionSwitch::SetEnabled(bool enabled)
 {
@@ -84,8 +74,8 @@ bool GroundBoundaryCollider::ResolveInsideBounds(XMFLOAT3& position, float radiu
 		return false;
 	}
 
-	const float minCenter = -m_halfExtent + radius;
-	const float maxCenter = m_halfExtent - radius;
+	const float maxCenter = std::max(0.0f, m_halfExtent - radius);
+	const float minCenter = -maxCenter;
 	const float resolvedX = std::clamp(position.x, minCenter, maxCenter);
 	const float resolvedZ = std::clamp(position.z, minCenter, maxCenter);
 	const bool changed = resolvedX != position.x || resolvedZ != position.z;
@@ -107,28 +97,15 @@ bool PrimitiveObjectCollider::IsEnabled() const
 
 void PrimitiveObjectCollider::RebuildFromVertices(const std::vector<Vertex>& vertices)
 {
-	if (vertices.empty())
-	{
-		m_localBounds = LocalBounds{};
-		return;
-	}
-
-	m_localBounds.minX = vertices.front().position[0];
-	m_localBounds.minY = vertices.front().position[1];
-	m_localBounds.minZ = vertices.front().position[2];
-	m_localBounds.maxX = vertices.front().position[0];
-	m_localBounds.maxY = vertices.front().position[1];
-	m_localBounds.maxZ = vertices.front().position[2];
-	m_localBounds.collisionRadius = 0.0f;
+	m_localBounds = {};
+	m_collisionRadius = 0.0f;
 	for (const Vertex& vertex : vertices)
 	{
-		m_localBounds.minX = std::min(m_localBounds.minX, vertex.position[0]);
-		m_localBounds.minY = std::min(m_localBounds.minY, vertex.position[1]);
-		m_localBounds.minZ = std::min(m_localBounds.minZ, vertex.position[2]);
-		m_localBounds.maxX = std::max(m_localBounds.maxX, vertex.position[0]);
-		m_localBounds.maxY = std::max(m_localBounds.maxY, vertex.position[1]);
-		m_localBounds.maxZ = std::max(m_localBounds.maxZ, vertex.position[2]);
-		m_localBounds.collisionRadius = std::max(m_localBounds.collisionRadius, CalculateCollisionRadius(vertex));
+		const XMFLOAT3 position{ vertex.position[0], vertex.position[1], vertex.position[2] };
+		if (m_localBounds.AddPoint(position))
+		{
+			m_collisionRadius = std::max(m_collisionRadius, MathUtils::LengthXZ(position));
+		}
 	}
 }
 
@@ -138,7 +115,7 @@ bool PrimitiveObjectCollider::TryGetTopSurfaceAt(
 	float queryRadius,
 	float& height) const
 {
-	if (!m_switch.IsEnabled() || !ContainsXZ(objectPosition, queryPosition, queryRadius))
+	if (!m_switch.IsEnabled() || m_localBounds.IsEmpty() || !ContainsXZ(objectPosition, queryPosition, queryRadius))
 	{
 		return false;
 	}
@@ -149,17 +126,17 @@ bool PrimitiveObjectCollider::TryGetTopSurfaceAt(
 
 float PrimitiveObjectCollider::GetBottomY(const XMFLOAT3& objectPosition) const
 {
-	return objectPosition.y + m_localBounds.minY;
+	return objectPosition.y + m_localBounds.Min().y;
 }
 
 float PrimitiveObjectCollider::GetTopY(const XMFLOAT3& objectPosition) const
 {
-	return objectPosition.y + m_localBounds.maxY;
+	return objectPosition.y + m_localBounds.Max().y;
 }
 
 float PrimitiveObjectCollider::GetCollisionRadius() const
 {
-	return m_localBounds.collisionRadius;
+	return m_collisionRadius;
 }
 
 bool PrimitiveObjectCollider::ContainsXZ(
@@ -167,10 +144,10 @@ bool PrimitiveObjectCollider::ContainsXZ(
 	const XMFLOAT3& queryPosition,
 	float queryRadius) const
 {
-	const float worldMinX = objectPosition.x + m_localBounds.minX;
-	const float worldMaxX = objectPosition.x + m_localBounds.maxX;
-	const float worldMinZ = objectPosition.z + m_localBounds.minZ;
-	const float worldMaxZ = objectPosition.z + m_localBounds.maxZ;
+	const float worldMinX = objectPosition.x + m_localBounds.Min().x;
+	const float worldMaxX = objectPosition.x + m_localBounds.Max().x;
+	const float worldMinZ = objectPosition.z + m_localBounds.Min().z;
+	const float worldMaxZ = objectPosition.z + m_localBounds.Max().z;
 
 	return queryPosition.x + queryRadius >= worldMinX &&
 		queryPosition.x - queryRadius <= worldMaxX &&
@@ -188,34 +165,43 @@ bool PrimitiveGroundCollision::IsEnabled() const
 	return m_switch.IsEnabled();
 }
 
-void PrimitiveGroundCollision::SetGround(const Ground* ground)
+void PrimitiveGroundCollision::SetGround(const ICollisionSurface* ground)
 {
-	m_ground = ground;
+	m_localWorld.Clear();
+	if (ground != nullptr) m_localWorld.RegisterSurface(*ground);
+}
+
+void PrimitiveGroundCollision::SetCollisionQuery(const ICollisionQuery* query)
+{
+	m_query = query;
 }
 
 bool PrimitiveGroundCollision::Resolve(
 	XMFLOAT3& position,
 	float& verticalVelocity,
-	const PrimitiveObjectCollider& collider) const
+	const PrimitiveObjectCollider& collider,
+	float previousBottomY,
+	const ICollisionSurface* ignoredSurface) const
 {
-	if (!m_switch.IsEnabled() || m_ground == nullptr)
-	{
-		return false;
-	}
-
-	float groundHeight = 0.0f;
-	if (!m_ground->TryGetHeightAt(position, collider.GetCollisionRadius(), groundHeight))
+	if (!m_switch.IsEnabled())
 	{
 		return false;
 	}
 
 	const float bottomY = collider.GetBottomY(position);
-	if (bottomY > groundHeight)
+	const ICollisionQuery& world = m_query != nullptr ? *m_query : m_localWorld;
+	FloorHit hit;
+	if (!world.TryFindFloor({ position, collider.GetCollisionRadius(), previousBottomY, bottomY, 0.05f, ignoredSurface }, hit))
 	{
 		return false;
 	}
 
-	position.y += groundHeight - bottomY;
+	if (bottomY > hit.height)
+	{
+		return false;
+	}
+
+	position.y += hit.height - bottomY;
 	verticalVelocity = 0.0f;
 	return true;
 }

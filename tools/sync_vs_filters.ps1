@@ -1,11 +1,13 @@
 param(
-    [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
+    [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
+    [switch]$Check
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repository = (Resolve-Path -LiteralPath $RepositoryRoot).Path.TrimEnd('\')
+$mismatches = [System.Collections.Generic.List[string]]::new()
 
 function New-FilterGroup {
     param(
@@ -85,6 +87,12 @@ function Get-RepositoryRelativePath {
     $FullPath.Substring($repository.Length + 1).Replace('/', '\')
 }
 
+function Get-OrdinalSortKey {
+    param([string]$Text)
+    # Stable under both Windows PowerShell 5.1 and PowerShell 7 collation.
+    [System.BitConverter]::ToString([System.Text.Encoding]::UTF8.GetBytes($Text.ToUpperInvariant()))
+}
+
 function Get-StableFilterGuid {
     param(
         [Parameter(Mandatory = $true)][string]$Project,
@@ -160,7 +168,7 @@ foreach ($project in $projects) {
                 throw "Expected exactly one managed block '$blockName' in $($project.ProjectFile)"
             }
 
-            $projectLines = @($projectBlocks[$blockName] | Sort-Object Include | ForEach-Object {
+            $projectLines = @($projectBlocks[$blockName] | Sort-Object { Get-OrdinalSortKey $_.Include } | ForEach-Object {
                 "    <$($_.ItemType) Include=`"$($_.Include)`" />"
             })
             $replacement = $beginMarker + $newLine + ($projectLines -join $newLine) + $newLine + '    ' + $endMarker
@@ -172,7 +180,24 @@ foreach ($project in $projects) {
             )
         }
 
-        [System.IO.File]::WriteAllText($projectPath, $projectText, [System.Text.UTF8Encoding]::new($false))
+        if ($Check) {
+            if ([System.IO.File]::ReadAllText($projectPath) -cne $projectText) {
+                $mismatches.Add($project.ProjectFile)
+            }
+        } else {
+            [System.IO.File]::WriteAllText($projectPath, $projectText, [System.Text.UTF8Encoding]::new($false))
+        }
+    }
+
+    # Also inspect unmanaged items (Launcher, shaders and vendor sources).
+    $actualProjectPath = Join-Path $repository ($project.Output -replace '\.filters$', '')
+    [xml]$projectXml = [System.IO.File]::ReadAllText($actualProjectPath)
+    foreach ($group in $project.Groups) {
+        $expected = @($items | Where-Object { $_.ItemType -eq $group.ItemType -and $_.Include.StartsWith($group.SearchRoot + '\') } | ForEach-Object Include)
+        $actual = @($projectXml.SelectNodes("//*[local-name()='$($group.ItemType)'][@Include]") | ForEach-Object { $_.GetAttribute('Include').Replace('/', '\') } | Where-Object { $_.StartsWith($group.SearchRoot + '\') })
+        if (Compare-Object -ReferenceObject @($expected | Sort-Object) -DifferenceObject @($actual | Sort-Object)) {
+            $mismatches.Add("$($project.Output -replace '\.filters$', '') ($($group.SearchRoot), $($group.ItemType))")
+        }
     }
 
     $settings = [System.Xml.XmlWriterSettings]::new()
@@ -183,14 +208,15 @@ foreach ($project in $projects) {
     $settings.NewLineHandling = [System.Xml.NewLineHandling]::Replace
 
     $outputPath = Join-Path $repository $project.Output
-    $writer = [System.Xml.XmlWriter]::Create($outputPath, $settings)
+    $stream = [System.IO.MemoryStream]::new()
+    $writer = [System.Xml.XmlWriter]::Create($stream, $settings)
     try {
         $writer.WriteStartDocument()
         $writer.WriteStartElement('Project', 'http://schemas.microsoft.com/developer/msbuild/2003')
         $writer.WriteAttributeString('ToolsVersion', '4.0')
 
         $writer.WriteStartElement('ItemGroup')
-        foreach ($filter in ($filters | Sort-Object)) {
+        foreach ($filter in ($filters | Sort-Object { Get-OrdinalSortKey $_ })) {
             $writer.WriteStartElement('Filter')
             $writer.WriteAttributeString('Include', $filter)
             $writer.WriteElementString('UniqueIdentifier', (Get-StableFilterGuid -Project $project.Output -Filter $filter))
@@ -199,7 +225,7 @@ foreach ($project in $projects) {
         $writer.WriteEndElement()
 
         foreach ($itemType in @('ClCompile', 'ClInclude', 'None')) {
-            $typedItems = @($items | Where-Object ItemType -eq $itemType | Sort-Object Include)
+            $typedItems = @($items | Where-Object ItemType -eq $itemType | Sort-Object { Get-OrdinalSortKey $_.Include })
             if ($typedItems.Count -eq 0) {
                 continue
             }
@@ -222,6 +248,19 @@ foreach ($project in $projects) {
     finally {
         $writer.Dispose()
     }
-
-    Write-Output "Updated $($project.Output) ($($items.Count) items, $($filters.Count) filters)"
+    $generated = [System.Text.Encoding]::UTF8.GetString($stream.ToArray())
+    $stream.Dispose()
+    if ($Check) {
+        if (!(Test-Path -LiteralPath $outputPath) -or [System.IO.File]::ReadAllText($outputPath) -cne $generated) {
+            $mismatches.Add($project.Output)
+        }
+    } else {
+        [System.IO.File]::WriteAllText($outputPath, $generated, [System.Text.UTF8Encoding]::new($false))
+        Write-Output "Updated $($project.Output) ($($items.Count) items, $($filters.Count) filters)"
+    }
 }
+
+if ($mismatches.Count -gt 0) {
+    throw "Project registration differs: $($mismatches -join ', '). Run tools/sync_vs_filters.ps1 and register any unmanaged items."
+}
+if ($Check) { Write-Output 'Project and filter registration check passed (read-only).' }

@@ -8,6 +8,7 @@ struct ID3D12Device;
 struct ID3D12GraphicsCommandList;
 
 class SkinnedVertexBuffer;
+class FrameUploadBuffer;
 class SpriteMaterial;
 class SpriteVertexBuffer;
 class TexturedMaterial;
@@ -27,13 +28,13 @@ public:
 	static void Bind(const VertexBuffer& buffer, ID3D12GraphicsCommandList* commandList);
 
 	static void Initialize(TexturedVertexBuffer& buffer, ID3D12Device* device, const std::vector<TexturedVertex>& vertices);
-	static void Bind(const TexturedVertexBuffer& buffer, ID3D12GraphicsCommandList* commandList);
+	static void Bind(const TexturedVertexBuffer& buffer, ID3D12GraphicsCommandList* commandList, FrameUploadBuffer& upload);
 
 	static void Initialize(SkinnedVertexBuffer& buffer, ID3D12Device* device, const std::vector<SkinnedVertex>& vertices);
 	static void Bind(const SkinnedVertexBuffer& buffer, ID3D12GraphicsCommandList* commandList);
 
 	static void Initialize(SpriteVertexBuffer& buffer, ID3D12Device* device, std::uint32_t vertexCapacity);
-	static void Bind(const SpriteVertexBuffer& buffer, ID3D12GraphicsCommandList* commandList);
+	static void Bind(const SpriteVertexBuffer& buffer, ID3D12GraphicsCommandList* commandList, FrameUploadBuffer& upload);
 
 	static void InitializeSolidColor(
 		SpriteMaterial& material,

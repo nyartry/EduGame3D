@@ -8,9 +8,6 @@
 #include <DirectXMath.h>
 #include <string_view>
 
-class Ground;
-class PrimitiveObject;
-
 struct PlayerDefinition
 {
 	SkinnedMeshActorDefinition mesh;
@@ -24,14 +21,16 @@ struct PlayerDefinition
 class Player : public SkinnedMeshActor, public CollisionBody
 {
 public:
+	void Prepare(ModelAssetCache& assets) override;
 	void Initialize(IRenderDevice& device) override;
 	void Update(float deltaTime, const Input& input) override;
 	DirectX::XMFLOAT3 GetCollisionPosition() const override;
 	void SetCollisionPosition(const DirectX::XMFLOAT3& position) override;
 	CollisionBodyDefinition GetCollisionBodyDefinition() const override;
 	void SetMovementForward(const DirectX::XMFLOAT3& forward);
-	void SetGround(const Ground* ground);
-	void AddLandingSurface(const PrimitiveObject* surface);
+	void SetCollisionQuery(const ICollisionQuery* query);
+	void SetGround(const ICollisionSurface* ground);
+	void AddLandingSurface(const ICollisionSurface* surface);
 	void ResolveWallCollision();
 	void SetGravityEnabled(bool enabled);
 	bool IsGravityEnabled() const;
@@ -82,6 +81,7 @@ private:
 	float m_attackDurationSeconds{};
 	bool m_hasJoggingAnimation{};
 	bool m_hasAttackAnimation{};
+	bool m_playerPrepared{};
 	bool m_startedJumpThisFrame{};
 	DirectX::XMFLOAT3 m_lastJumpStartPosition{};
 };

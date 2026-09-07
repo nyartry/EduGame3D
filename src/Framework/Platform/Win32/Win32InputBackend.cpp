@@ -37,10 +37,11 @@ namespace
 void Win32InputBackend::Update(HWND window, Input& input) const
 {
 	InputWriter::BeginFrame(input);
+	const bool focused = window != nullptr && GetForegroundWindow() == window;
 	for (std::size_t index = 0; index < static_cast<std::size_t>(InputKey::Count); ++index)
 	{
 		const InputKey key = static_cast<InputKey>(index);
-		InputWriter::SetKey(input, key, (GetAsyncKeyState(ToVirtualKey(key)) & 0x8000) != 0);
+		InputWriter::SetKey(input, key, focused && (GetAsyncKeyState(ToVirtualKey(key)) & 0x8000) != 0);
 	}
 
 	POINT cursorPosition{};
@@ -61,8 +62,8 @@ void Win32InputBackend::Update(HWND window, Input& input) const
 
 	InputWriter::SetPointer(
 		input,
-		(GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0,
-		insideClient,
+		focused && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0,
+		focused && insideClient,
 		cursorPosition.x,
 		cursorPosition.y);
 }

@@ -1,6 +1,7 @@
 #include "Game/Gameplay/Player.h"
 
 #include "Framework/Core/Math/MathUtils.h"
+#include "Framework/Models/ModelAssetCache.h"
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Game/Input/GameActions.h"
 
@@ -22,29 +23,38 @@ const SkinnedMeshActorDefinition& Player::GetSkinnedMeshDefinition() const
 	return GetPlayerDefinition().mesh;
 }
 
-void Player::Initialize(IRenderDevice& device)
+void Player::Prepare(ModelAssetCache& assets)
 {
+	m_playerPrepared = false;
 	const PlayerDefinition& definition = GetPlayerDefinition();
-	SkinnedMeshActor::Initialize(device);
+	SkinnedMeshActor::Prepare(assets);
 	m_moveSpeed = definition.moveSpeed;
 	m_groundProbe.SetSettings(definition.grounding);
 	m_verticalMotion.SetSettings(definition.verticalMotion);
 	m_hasJoggingAnimation = !definition.joggingAnimationPath.empty();
 	if (m_hasJoggingAnimation)
 	{
-		GetModel().AddAnimation(JoggingAnimationName, std::string(definition.joggingAnimationPath));
+		GetModel().PrepareAnimation(assets, JoggingAnimationName, std::string(definition.joggingAnimationPath));
 	}
 
 	m_hasAttackAnimation = !definition.attackAnimationPath.empty();
 	if (m_hasAttackAnimation)
 	{
-		GetModel().AddAnimation(AttackAnimationName, std::string(definition.attackAnimationPath));
+		GetModel().PrepareAnimation(assets, AttackAnimationName, std::string(definition.attackAnimationPath));
 		m_attackDurationSeconds = GetModel().GetAnimationDurationSeconds(AttackAnimationName);
 		if (m_attackDurationSeconds <= 0.0f)
 		{
 			m_attackDurationSeconds = DefaultAttackDurationSeconds;
 		}
 	}
+	m_playerPrepared = true;
+}
+
+void Player::Initialize(IRenderDevice& device)
+{
+	ModelAssetCache assets;
+	if (!m_playerPrepared) Prepare(assets);
+	SkinnedMeshActor::Initialize(device);
 }
 
 void Player::Update(float deltaTime, const Input& input)
@@ -95,12 +105,17 @@ void Player::SetMovementForward(const XMFLOAT3& forward)
 	m_movementForward = normalized;
 }
 
-void Player::SetGround(const Ground* ground)
+void Player::SetCollisionQuery(const ICollisionQuery* query)
+{
+	m_groundProbe.SetCollisionQuery(query);
+}
+
+void Player::SetGround(const ICollisionSurface* ground)
 {
 	m_groundProbe.SetGround(ground);
 }
 
-void Player::AddLandingSurface(const PrimitiveObject* surface)
+void Player::AddLandingSurface(const ICollisionSurface* surface)
 {
 	m_groundProbe.AddLandingSurface(surface);
 }
@@ -288,4 +303,3 @@ XMFLOAT3 Player::TransformInputToWorld(const XMFLOAT3& movement) const
 		right.z * movement.x + m_movementForward.z * movement.z
 	};
 }
-

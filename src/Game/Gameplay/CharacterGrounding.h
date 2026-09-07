@@ -2,10 +2,7 @@
 
 #include <DirectXMath.h>
 
-#include <vector>
-
-class Ground;
-class PrimitiveObject;
+#include "Framework/Physics/CollisionWorld.h"
 
 struct CharacterGroundingSettings
 {
@@ -19,8 +16,9 @@ public:
 	explicit CharacterGroundProbe(CharacterGroundingSettings settings = {});
 
 	void SetSettings(CharacterGroundingSettings settings);
-	void SetGround(const Ground* ground);
-	void AddLandingSurface(const PrimitiveObject* surface);
+	void SetCollisionQuery(const ICollisionQuery* query);
+	void SetGround(const ICollisionSurface* ground);
+	void AddLandingSurface(const ICollisionSurface* surface);
 	void ClearLandingSurfaces();
 
 	bool TryFindFloor(
@@ -32,8 +30,9 @@ public:
 
 private:
 	CharacterGroundingSettings m_settings;
-	const Ground* m_ground{};
-	std::vector<const PrimitiveObject*> m_landingSurfaces;
+	const ICollisionQuery* m_query{};
+	const ICollisionSurface* m_ground{};
+	CollisionWorld m_localWorld;
 };
 
 struct CharacterVerticalMotionSettings

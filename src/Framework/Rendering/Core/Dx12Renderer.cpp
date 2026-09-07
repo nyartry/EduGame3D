@@ -77,6 +77,9 @@ namespace
 
 Dx12Renderer::~Dx12Renderer()
 {
+	// An interrupted frame is never submitted; only previously queued work needs
+	// to finish before the upload pages and deferred resources can be destroyed.
+	m_frameRecording = false;
 	WaitForGpu();
 	CollectDeferredReleases();
 	for (DeferredRelease& deferred : m_deferredReleases)
@@ -145,6 +148,22 @@ void Dx12Renderer::Resize(UINT width, UINT height)
 
 void Dx12Renderer::BeginFrame(const XMMATRIX& viewProjection)
 {
+	if (m_frameRecording)
+	{
+		throw std::logic_error("The previous render frame has not ended.");
+	}
+	const UINT64 completedFence = m_fence->GetCompletedValue();
+	if (completedFence == UINT64_MAX)
+	{
+		ThrowIfFailed(m_device->GetDeviceRemovedReason());
+	}
+	m_basicColorPipeline.BeginFrame(completedFence);
+	m_texturedPipeline.BeginFrame(completedFence);
+	m_skinnedTexturedPipeline.BeginFrame(completedFence);
+	m_spritePipeline.BeginFrame(completedFence);
+	m_dynamicVertexUpload.BeginFrame(completedFence);
+	m_frameRecording = true;
+
 	XMStoreFloat4x4(&m_viewProjection, viewProjection);
 	UpdateClearColor();
 
@@ -220,7 +239,7 @@ void Dx12Renderer::DrawTextured(const TexturedVertexBuffer& vertexBuffer, const 
 	const D3D12_GPU_VIRTUAL_ADDRESS sceneConstantsAddress = m_texturedPipeline.UpdateConstants(worldViewProjection, world);
 	m_commandList->SetGraphicsRootConstantBufferView(0, sceneConstantsAddress);
 	RenderResourceAccess::Bind(material, m_commandList.Get(), 1);
-	RenderResourceAccess::Bind(vertexBuffer, m_commandList.Get());
+	RenderResourceAccess::Bind(vertexBuffer, m_commandList.Get(), m_dynamicVertexUpload);
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
@@ -237,7 +256,7 @@ void Dx12Renderer::DrawSprites(const SpriteVertexBuffer& vertexBuffer, const Spr
 	const D3D12_GPU_VIRTUAL_ADDRESS constantsAddress = m_spritePipeline.UpdateScreenSize(m_width, m_height);
 	m_commandList->SetGraphicsRootConstantBufferView(0, constantsAddress);
 	RenderResourceAccess::Bind(material, m_commandList.Get(), 1);
-	RenderResourceAccess::Bind(vertexBuffer, m_commandList.Get());
+	RenderResourceAccess::Bind(vertexBuffer, m_commandList.Get(), m_dynamicVertexUpload);
 	m_commandList->DrawInstanced(vertexBuffer.GetVertexCount(), 1, 0, 0);
 }
 
@@ -273,6 +292,10 @@ void Dx12Renderer::DrawSkinnedTextured(
 
 void Dx12Renderer::EndFrame()
 {
+	if (!m_frameRecording)
+	{
+		throw std::logic_error("No render frame is being recorded.");
+	}
 	D3D12_RESOURCE_BARRIER barrierToPresent{};
 	barrierToPresent.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrierToPresent.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -286,6 +309,20 @@ void Dx12Renderer::EndFrame()
 
 	ID3D12CommandList* commandLists[] = { m_commandList.Get() };
 	m_commandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
+
+	// Retire every uploaded snapshot against the fence following these commands.
+	// Signal before Present so even a presentation failure leaves submitted work
+	// associated with its resources and command allocator.
+	const UINT64 fenceValue = m_nextFenceValue;
+	ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fenceValue));
+	++m_nextFenceValue;
+	m_fenceValues[m_frameIndex] = fenceValue;
+	m_basicColorPipeline.EndFrame(fenceValue);
+	m_texturedPipeline.EndFrame(fenceValue);
+	m_skinnedTexturedPipeline.EndFrame(fenceValue);
+	m_spritePipeline.EndFrame(fenceValue);
+	m_dynamicVertexUpload.EndFrame(fenceValue);
+	m_frameRecording = false;
 
 	ThrowIfFailed(m_swapChain->Present(1, 0));
 	MoveToNextFrame();
@@ -303,14 +340,14 @@ void Dx12Renderer::DeferRelease(std::function<void()> release)
 		return;
 	}
 
-	const UINT64 latestSubmittedFence = m_nextFenceValue > 1 ? m_nextFenceValue - 1 : 0;
-	if (m_fence == nullptr || latestSubmittedFence == 0 || m_fence->GetCompletedValue() >= latestSubmittedFence)
+	const UINT64 retireFence = m_frameRecording ? m_nextFenceValue : m_nextFenceValue - 1;
+	if (m_fence == nullptr || retireFence == 0 || m_fence->GetCompletedValue() >= retireFence)
 	{
 		release();
 		return;
 	}
 
-	m_deferredReleases.push_back({ latestSubmittedFence, std::move(release) });
+	m_deferredReleases.push_back({ retireFence, std::move(release) });
 }
 
 ID3D12Device* Dx12Renderer::GetDevice() const
@@ -430,6 +467,7 @@ void Dx12Renderer::LoadPipeline()
 
 void Dx12Renderer::LoadAssets()
 {
+	m_dynamicVertexUpload.Initialize(m_device.Get());
 	m_basicColorPipeline.Initialize(m_device.Get());
 	m_texturedPipeline.Initialize(m_device.Get());
 	m_skinnedTexturedPipeline.Initialize(m_device.Get());
@@ -502,10 +540,6 @@ void Dx12Renderer::UpdateClearColor()
 
 void Dx12Renderer::MoveToNextFrame()
 {
-	const UINT64 fenceValue = m_nextFenceValue++;
-	ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fenceValue));
-	m_fenceValues[m_frameIndex] = fenceValue;
-
 	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 
 	if (m_fence->GetCompletedValue() < m_fenceValues[m_frameIndex])
@@ -519,6 +553,10 @@ void Dx12Renderer::MoveToNextFrame()
 
 void Dx12Renderer::FlushGpu()
 {
+	if (m_frameRecording)
+	{
+		throw std::logic_error("End the recorded frame before flushing the GPU.");
+	}
 	if (m_commandQueue == nullptr || m_fence == nullptr || m_fenceEvent == nullptr)
 	{
 		return;

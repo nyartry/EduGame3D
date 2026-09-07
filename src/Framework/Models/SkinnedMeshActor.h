@@ -23,6 +23,7 @@ struct SkinnedMeshActorDefinition
 class SkinnedMeshActor : public Actor
 {
 public:
+	void Prepare(ModelAssetCache& assets) override;
 	void Initialize(IRenderDevice& device) override;
 	void Update(float deltaTime, const Input& input) override;
 	void Draw(IRenderer& renderer) const override;
@@ -30,6 +31,8 @@ public:
 	const DirectX::XMFLOAT3& GetPosition() const;
 	float GetRotationY() const;
 	const Transform& GetTransform() const;
+	std::vector<AnimationEvents::Occurrence> ConsumeAnimationEvents();
+	DirectX::XMFLOAT3 GetAnimationEventPosition(std::string_view boneName) const;
 	void SetRootMotionSettings(const RootMotionSettings& settings);
 	const RootMotionSettings& GetRootMotionSettings() const;
 	void SetRootMotionMode(RootMotionMode mode);
@@ -52,4 +55,5 @@ private:
 	Transform m_transform;
 	RootMotionSettings m_rootMotion;
 	bool m_hasIdleAnimation{};
+	bool m_prepared{};
 };

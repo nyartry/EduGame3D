@@ -45,6 +45,7 @@ public:
 
 private:
 	friend class InputWriter;
+	friend class SimulationInputBuffer;
 
 	static constexpr std::size_t KeyCount = static_cast<std::size_t>(InputKey::Count);
 	static constexpr std::size_t ToIndex(InputKey key) { return static_cast<std::size_t>(key); }
@@ -54,9 +55,11 @@ private:
 	void SetPointer(bool leftButtonDown, bool insideClient, int x, int y);
 
 	std::array<bool, KeyCount> m_currentKeys{};
-	std::array<bool, KeyCount> m_previousKeys{};
+	std::array<bool, KeyCount> m_pressedKeys{};
+	std::array<bool, KeyCount> m_releasedKeys{};
 	bool m_currentLeftMouseDown{};
-	bool m_previousLeftMouseDown{};
+	bool m_leftMousePressed{};
+	bool m_leftMouseReleased{};
 	bool m_mouseInsideClient{};
 	int m_mouseX{};
 	int m_mouseY{};

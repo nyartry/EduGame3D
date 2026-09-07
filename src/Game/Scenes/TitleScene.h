@@ -26,12 +26,14 @@ public:
 
 	void Activate() override;
 	void Unload() override;
-	void Update(float deltaTime, const Input& input) override;
+	void Update(float, const Input&) override {}
+	void UpdateFrame(float deltaTime, const Input& input) override;
 	void RenderOverlay(IRenderer& renderer) const override;
 
 	RenderView GetRenderView() const override;
 	std::string GetRequestedSceneName() const override;
 	bool ShouldLoadRequestedSceneAsync() const override;
+	void OnSceneLoadFailed() override { m_startRequested = false; m_loadFailed = true; }
 
 private:
 	void RebuildBatch();
@@ -46,6 +48,7 @@ private:
 	std::uint32_t m_height{};
 	float m_elapsedTime{};
 	bool m_startRequested{};
+	bool m_loadFailed{};
 	int m_probeButtonClickCount{};
 	float m_probeButtonFlashTime{};
 	int m_selectedSampleButton{};

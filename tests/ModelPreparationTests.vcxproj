@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{5792C6C0-CE9F-4523-8277-83F62D6F5D8C}</ProjectGuid>
+    <RootNamespace>ModelPreparationTests</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(ProjectDir)..\x64\$(Configuration)\ModelPreparationTests\</OutDir>
+    <IntDir>$(OutDir)obj\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'"><AssimpLibrary>assimp-vc143-mtd.lib</AssimpLibrary><AssimpDll>assimp-vc143-mtd.dll</AssimpDll></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'"><AssimpLibrary>assimp-vc143-mt.lib</AssimpLibrary><AssimpDll>assimp-vc143-mt.dll</AssimpDll></PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\src;$(ProjectDir)..\third_party\assimp\include;$(ProjectDir)..\third_party\assimp\build_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link><SubSystem>Console</SubSystem><AdditionalLibraryDirectories>$(ProjectDir)..\third_party\assimp\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories><AdditionalDependencies>$(AssimpLibrary);ole32.lib;windowscodecs.lib;%(AdditionalDependencies)</AdditionalDependencies></Link><PostBuildEvent><Command>copy /Y "$(ProjectDir)..\third_party\assimp\bin\$(Configuration)\$(AssimpDll)" "$(OutDir)"</Command></PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ModelPreparationTests.cpp" />
+    <ClCompile Include="..\src\Framework\Models\ModelAssetCache.cpp" />
+    <ClCompile Include="..\src\Framework\Models\ModelLoader.cpp" />
+    <ClCompile Include="..\src\Framework\Models\ModelTextureResolver.cpp" />
+    <ClCompile Include="..\src\Framework\Models\SkinnedModelLoader.cpp" />
+    <ClCompile Include="..\src\Framework\Models\SkinnedModel.cpp" />
+    <ClCompile Include="..\src\Framework\Models\StaticModel.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\MeshTangentCalculator.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\RootMotionPolicy.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\AnimationSampler.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\AnimationPlayback.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\AnimationEvents.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\RootMotionExtractor.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\CpuSkinnedMeshProcessor.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\GpuSkinnedMeshProcessor.cpp" />
+    <ClCompile Include="..\src\Framework\Assets\AssetPathResolver.cpp" />
+    <ClCompile Include="..\src\Framework\Assets\ImageLoader.cpp" />
+    <ClCompile Include="..\src\Framework\Rendering\Buffers\TexturedVertexBuffer.cpp" />
+    <ClCompile Include="..\src\Framework\Rendering\Buffers\SkinnedVertexBuffer.cpp" />
+    <ClCompile Include="..\src\Framework\Rendering\Core\Dx12BufferHelper.cpp" />
+    <ClCompile Include="..\src\Framework\Rendering\Materials\TexturedMaterial.cpp" />
+    <ClCompile Include="..\src\Framework\Rendering\Materials\Texture2D.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

@@ -7,6 +7,7 @@
 #include "Framework/Scene/Input/Input.h"
 #include "Framework/Gameplay/Actor.h"
 #include "Framework/Gameplay/CollisionBody.h"
+#include "Framework/Physics/CollisionWorld.h"
 #include "Framework/Scene/Cameras/CameraController.h"
 #include "Framework/Scene/Cameras/CameraFollowHeightLock.h"
 #include "Game/UI/HudOverlay.h"
@@ -24,6 +25,7 @@ class IEffectPlayer;
 class IRenderDevice;
 class Player;
 class SkinnedMeshActor;
+struct ImageData;
 
 class GameScene : public IScene
 {
@@ -35,9 +37,11 @@ public:
 		std::uint32_t width,
 		std::uint32_t height);
 
+	void Prepare() override;
 	void Activate() override;
 	void Unload() override;
 	void Update(float deltaTime, const Input& input) override;
+	void UpdateFrame(float deltaTime, const Input& input) override;
 	void RenderWorld(IRenderer& renderer) const override;
 	void RenderOverlay(IRenderer& renderer) const override;
 
@@ -51,7 +55,7 @@ private:
 		TActor& actorReference = *actor;
 		if constexpr (std::derived_from<TActor, CollisionBody>)
 		{
-			m_collisionBodies.push_back(&actorReference);
+			m_collisionWorld.RegisterBody(actorReference);
 		}
 		m_actors.push_back(std::move(actor));
 		return actorReference;
@@ -78,5 +82,7 @@ private:
 	std::array<Sprite, 3> m_primitiveSprites;
 	HudOverlay m_hudOverlay;
 	std::vector<std::unique_ptr<Actor>> m_actors;
-	std::vector<CollisionBody*> m_collisionBodies;
+	CollisionWorld m_collisionWorld;
+	std::vector<std::shared_ptr<const ImageData>> m_preparedImages;
+	bool m_prepared{};
 };

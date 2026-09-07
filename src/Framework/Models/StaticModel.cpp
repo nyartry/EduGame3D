@@ -1,11 +1,11 @@
 #include "Framework/Models/StaticModel.h"
+#include "Framework/Models/ModelFit.h"
+#include "Framework/Models/ModelAssetCache.h"
 
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Core/IRenderer.h"
 
 #include <DirectXMath.h>
-#include <algorithm>
-#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
@@ -22,20 +22,24 @@ void StaticModel::Initialize(
 	const std::string& modelPath,
 	const ModelScaleSettings& scaleSettings)
 {
-	ModelLoader loader;
-	ModelData modelData;
-	if (!loader.Load(modelPath, modelData))
-	{
-		throw std::runtime_error("Failed to load static model: " + loader.GetLastError());
-	}
+	ModelAssetCache assets;
+	Prepare(assets, modelPath, scaleSettings);
+	Activate(device);
+}
 
-	FitModel(modelData, scaleSettings);
+void StaticModel::Prepare(ModelAssetCache& assets, const std::string& modelPath, const ModelScaleSettings& scaleSettings)
+{
+	m_preparedData = *assets.LoadStatic(modelPath);
+	FitModel(m_preparedData, scaleSettings);
+}
 
+void StaticModel::Activate(IRenderDevice& device)
+{
 	m_meshParts.clear();
-	m_meshParts.reserve(modelData.texturedMeshes.size());
+	m_meshParts.reserve(m_preparedData.texturedMeshes.size());
 	std::unordered_map<std::string, std::shared_ptr<TexturedMaterial>> materialCache;
 
-	for (const TexturedMeshData& meshData : modelData.texturedMeshes)
+	for (const TexturedMeshData& meshData : m_preparedData.texturedMeshes)
 	{
 		const std::string baseColorTexturePath = meshData.baseColorTexturePath.empty() ? FallbackTexturePath : meshData.baseColorTexturePath;
 		const std::string materialKey = baseColorTexturePath + "|" + meshData.opacityTexturePath + "|" + meshData.normalTexturePath;
@@ -68,43 +72,27 @@ void StaticModel::FitModel(ModelData& modelData, const ModelScaleSettings& scale
 		return;
 	}
 
-	float minX = std::numeric_limits<float>::max();
-	float minY = std::numeric_limits<float>::max();
-	float minZ = std::numeric_limits<float>::max();
-	float maxX = std::numeric_limits<float>::lowest();
-	float maxY = std::numeric_limits<float>::lowest();
-	float maxZ = std::numeric_limits<float>::lowest();
+	Aabb bounds;
 
 	for (const TexturedMeshData& meshData : modelData.texturedMeshes)
 	{
 		for (const TexturedVertex& vertex : meshData.vertices)
 		{
-			minX = std::min(minX, vertex.position.x);
-			minY = std::min(minY, vertex.position.y);
-			minZ = std::min(minZ, vertex.position.z);
-			maxX = std::max(maxX, vertex.position.x);
-			maxY = std::max(maxY, vertex.position.y);
-			maxZ = std::max(maxZ, vertex.position.z);
+			if (!bounds.AddPoint(vertex.position)) return;
 		}
 	}
 
-	const float height = maxY - minY;
-	if (height <= 0.0f)
+	ModelFit fit;
+	if (!TryCreateModelFit(bounds, scaleSettings.targetHeight, fit))
 	{
 		return;
 	}
-
-	const float centerX = (minX + maxX) * 0.5f;
-	const float centerZ = (minZ + maxZ) * 0.5f;
-	const float scale = scaleSettings.targetHeight / height;
 
 	for (TexturedMeshData& meshData : modelData.texturedMeshes)
 	{
 		for (TexturedVertex& vertex : meshData.vertices)
 		{
-			vertex.position.x = (vertex.position.x - centerX) * scale;
-			vertex.position.y = (vertex.position.y - minY) * scale;
-			vertex.position.z = (vertex.position.z - centerZ) * scale;
+			vertex.position = fit.Apply(vertex.position);
 		}
 	}
 }

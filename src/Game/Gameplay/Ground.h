@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/Gameplay/CollisionComponents.h"
+#include "Framework/Physics/ICollisionQuery.h"
 #include "Framework/Rendering/Buffers/VertexBuffer.h"
 #include "Framework/Rendering/Geometry/Vertex.h"
 
@@ -11,12 +12,17 @@
 class IRenderDevice;
 class IRenderer;
 
-class Ground
+class Ground : public ICollisionSurface
 {
 public:
 	void Initialize(IRenderDevice& device);
 	void Draw(IRenderer& renderer) const;
-	bool TryGetHeightAt(const DirectX::XMFLOAT3& position, float radius, float& height) const;
+	bool TryGetHeightAt(const DirectX::XMFLOAT3& position, float radius, float& height) const override;
+	bool IsOneWayFloor() const override { return false; }
+	bool ResolveBoundaryCollision(DirectX::XMFLOAT3& position, float radius) const override
+	{
+		return ResolveWallCollision(position, radius);
+	}
 	bool ResolveWallCollision(DirectX::XMFLOAT3& position, float radius) const;
 	void SetCollisionEnabled(bool enabled);
 	bool IsCollisionEnabled() const;

@@ -1,4 +1,5 @@
 #include "Framework/Models/SkinnedMeshActor.h"
+#include "Framework/Models/ModelAssetCache.h"
 
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Core/IRenderer.h"
@@ -10,8 +11,9 @@ namespace
 	constexpr const char* IdleAnimationName = "Idle";
 }
 
-void SkinnedMeshActor::Initialize(IRenderDevice& device)
+void SkinnedMeshActor::Prepare(ModelAssetCache& assets)
 {
+	m_prepared = false;
 	const SkinnedMeshActorDefinition& definition = GetSkinnedMeshDefinition();
 	m_transform = Transform{};
 	m_transform.position = definition.initialPosition;
@@ -19,14 +21,24 @@ void SkinnedMeshActor::Initialize(IRenderDevice& device)
 	SetRootMotionSettings(definition.rootMotion);
 	m_hasIdleAnimation = !definition.idleAnimationPath.empty();
 
-	m_model.Initialize(
-		device,
+	m_model.Prepare(
+		assets,
 		std::string(definition.modelPath),
-		ModelScaleSettings::NormalizeToHeight(definition.height),
-		definition.skinningMode);
+		ModelScaleSettings::NormalizeToHeight(definition.height));
 	if (m_hasIdleAnimation)
 	{
-		m_model.AddAnimation(IdleAnimationName, std::string(definition.idleAnimationPath));
+		m_model.PrepareAnimation(assets, IdleAnimationName, std::string(definition.idleAnimationPath));
+	}
+	m_prepared = true;
+}
+
+void SkinnedMeshActor::Initialize(IRenderDevice& device)
+{
+	ModelAssetCache assets;
+	if (!m_prepared) Prepare(assets);
+	m_model.Activate(device, GetSkinnedMeshDefinition().skinningMode);
+	if (m_hasIdleAnimation)
+	{
 		m_model.PlayAnimation(IdleAnimationName);
 	}
 }
@@ -48,6 +60,21 @@ void SkinnedMeshActor::Draw(IRenderer& renderer) const
 SkinnedModel& SkinnedMeshActor::GetModel()
 {
 	return m_model;
+}
+
+std::vector<AnimationEvents::Occurrence> SkinnedMeshActor::ConsumeAnimationEvents()
+{
+	return m_model.ConsumeAnimationEvents();
+}
+
+DirectX::XMFLOAT3 SkinnedMeshActor::GetAnimationEventPosition(std::string_view boneName) const
+{
+	DirectX::XMFLOAT3 local{};
+	if (!boneName.empty() && m_model.TryGetBonePositionLocal(boneName, local))
+	{
+		return m_transform.TransformPoint(local);
+	}
+	return m_transform.position;
 }
 
 const SkinnedModel& SkinnedMeshActor::GetModel() const

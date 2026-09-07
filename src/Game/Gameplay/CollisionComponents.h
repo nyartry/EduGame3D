@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Framework/Rendering/Geometry/Vertex.h"
+#include "Framework/Core/Math/Aabb.h"
+#include "Framework/Physics/CollisionWorld.h"
 
 #include <DirectXMath.h>
 #include <vector>
-
-class Ground;
 
 class CollisionSwitch
 {
@@ -64,24 +64,14 @@ public:
 	float GetCollisionRadius() const;
 
 private:
-	struct LocalBounds
-	{
-		float minX{};
-		float minY{};
-		float minZ{};
-		float maxX{};
-		float maxY{};
-		float maxZ{};
-		float collisionRadius{};
-	};
-
 	bool ContainsXZ(
 		const DirectX::XMFLOAT3& objectPosition,
 		const DirectX::XMFLOAT3& queryPosition,
 		float queryRadius) const;
 
 	CollisionSwitch m_switch;
-	LocalBounds m_localBounds;
+	Aabb m_localBounds;
+	float m_collisionRadius{};
 };
 
 class PrimitiveGroundCollision
@@ -89,14 +79,18 @@ class PrimitiveGroundCollision
 public:
 	void SetEnabled(bool enabled);
 	bool IsEnabled() const;
-	void SetGround(const Ground* ground);
+	void SetGround(const ICollisionSurface* ground);
+	void SetCollisionQuery(const ICollisionQuery* query);
 
 	bool Resolve(
 		DirectX::XMFLOAT3& position,
 		float& verticalVelocity,
-		const PrimitiveObjectCollider& collider) const;
+		const PrimitiveObjectCollider& collider,
+		float previousBottomY,
+		const ICollisionSurface* ignoredSurface = nullptr) const;
 
 private:
 	CollisionSwitch m_switch;
-	const Ground* m_ground{};
+	const ICollisionQuery* m_query{};
+	CollisionWorld m_localWorld;
 };

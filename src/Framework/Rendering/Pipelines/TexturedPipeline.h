@@ -12,6 +12,8 @@ class TexturedPipeline
 {
 public:
 	void Initialize(ID3D12Device* device);
+	void BeginFrame(UINT64 completedFence) { m_sceneConstantBuffer.BeginFrame(completedFence); }
+	void EndFrame(UINT64 submittedFence) { m_sceneConstantBuffer.EndFrame(submittedFence); }
 	D3D12_GPU_VIRTUAL_ADDRESS UpdateConstants(
 		const DirectX::XMMATRIX& worldViewProjection,
 		const DirectX::XMMATRIX& world);

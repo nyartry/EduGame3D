@@ -42,9 +42,13 @@ SkinnedTexturedPipeline::ConstantBufferViews SkinnedTexturedPipeline::UpdateCons
 	m_sceneConstants.boneCount = static_cast<UINT>(boneCount);
 	for (size_t boneIndex = 0; boneIndex < boneCount; ++boneIndex)
 	{
+		const XMMATRIX bone = XMLoadFloat4x4(&boneMatrices[boneIndex]);
 		XMStoreFloat4x4(
 			&m_boneConstants->boneMatrices[boneIndex],
-			XMMatrixTranspose(XMLoadFloat4x4(&boneMatrices[boneIndex])));
+			XMMatrixTranspose(bone));
+		XMStoreFloat4x4(
+			&m_boneConstants->normalBoneMatrices[boneIndex],
+			XMMatrixTranspose(BoneSkinning::CreateNormalMatrix(bone)));
 	}
 
 	return ConstantBufferViews

@@ -1,29 +1,17 @@
 #include "Framework/Rendering/Buffers/SpriteVertexBuffer.h"
 
-#include "Framework/Common/Common.h"
-#include "Framework/Rendering/Core/Dx12BufferHelper.h"
+#include "Framework/Rendering/Core/FrameUploadBuffer.h"
 #include "Framework/Rendering/Core/RenderResourceAccess.h"
 
-#include <Windows.h>
-#include <wrl/client.h>
-
 #include <algorithm>
-#include <cstring>
-#include <d3d12.h>
+#include <limits>
 #include <memory>
 #include <utility>
 
 struct SpriteVertexBuffer::Impl
 {
-	static constexpr std::uint32_t DynamicBufferCopies = 3;
-
-	ID3D12Device* device{};
-	Microsoft::WRL::ComPtr<ID3D12Resource> resource;
-	D3D12_VERTEX_BUFFER_VIEW view{};
-	std::uint32_t vertexCount{};
+	std::vector<SpriteVertex> vertices;
 	std::uint32_t capacity{};
-	std::uint32_t slotSize{};
-	std::uint32_t nextSlot{};
 };
 
 SpriteVertexBuffer::SpriteVertexBuffer()
@@ -42,27 +30,15 @@ void SpriteVertexBuffer::Update(const std::vector<SpriteVertex>& vertices)
 		return;
 	}
 
-	const std::uint32_t vertexCount = std::min<std::uint32_t>(static_cast<std::uint32_t>(vertices.size()), m_impl->capacity);
-	const std::uint32_t bufferOffset = m_impl->nextSlot * m_impl->slotSize;
-	m_impl->nextSlot = (m_impl->nextSlot + 1) % Impl::DynamicBufferCopies;
-
-	void* mappedData = nullptr;
-	const D3D12_RANGE readRange{ 0, 0 };
-	ThrowIfFailed(m_impl->resource->Map(0, &readRange, &mappedData));
-	std::memcpy(
-		static_cast<std::uint8_t*>(mappedData) + bufferOffset,
-		vertices.data(),
-		static_cast<std::size_t>(vertexCount) * sizeof(SpriteVertex));
-	m_impl->resource->Unmap(0, nullptr);
-
-	m_impl->vertexCount = vertexCount;
-	m_impl->view.BufferLocation = m_impl->resource->GetGPUVirtualAddress() + bufferOffset;
-	m_impl->view.SizeInBytes = vertexCount * sizeof(SpriteVertex);
+	// Updates may run zero or many times before a draw. Keep the latest CPU data;
+	// the renderer snapshots it into fence-protected storage when drawing.
+	const auto vertexCount = std::min<std::size_t>(vertices.size(), m_impl->capacity);
+	m_impl->vertices.assign(vertices.begin(), vertices.begin() + vertexCount);
 }
 
 std::uint32_t SpriteVertexBuffer::GetVertexCount() const
 {
-	return m_impl == nullptr ? 0 : m_impl->vertexCount;
+	return m_impl == nullptr ? 0 : static_cast<std::uint32_t>(m_impl->vertices.size());
 }
 
 std::uint32_t SpriteVertexBuffer::GetVertexCapacity() const
@@ -70,29 +46,33 @@ std::uint32_t SpriteVertexBuffer::GetVertexCapacity() const
 	return m_impl == nullptr ? 0 : m_impl->capacity;
 }
 
-void RenderResourceAccess::Initialize(SpriteVertexBuffer& buffer, ID3D12Device* device, std::uint32_t vertexCapacity)
+void RenderResourceAccess::Initialize(SpriteVertexBuffer& buffer, ID3D12Device*, std::uint32_t vertexCapacity)
 {
+	if (vertexCapacity > (std::numeric_limits<UINT>::max)() / sizeof(SpriteVertex))
+	{
+		throw std::length_error("Sprite vertex data exceeds the D3D12 vertex view size.");
+	}
 	if (buffer.m_impl == nullptr)
 	{
 		buffer.m_impl = std::make_unique<SpriteVertexBuffer::Impl>();
 	}
-
-	buffer.m_impl->device = device;
 	buffer.m_impl->capacity = vertexCapacity;
-	buffer.m_impl->slotSize = vertexCapacity * sizeof(SpriteVertex);
-	buffer.m_impl->resource = Dx12BufferHelper::CreateUploadBuffer(
-		device,
-		static_cast<UINT64>(buffer.m_impl->slotSize) * SpriteVertexBuffer::Impl::DynamicBufferCopies);
-	buffer.m_impl->view.StrideInBytes = sizeof(SpriteVertex);
-	buffer.m_impl->view.SizeInBytes = 0;
-	buffer.m_impl->view.BufferLocation = buffer.m_impl->resource->GetGPUVirtualAddress();
-	buffer.m_impl->nextSlot = 0;
+	buffer.m_impl->vertices.clear();
+	buffer.m_impl->vertices.reserve(vertexCapacity);
 }
 
-void RenderResourceAccess::Bind(const SpriteVertexBuffer& buffer, ID3D12GraphicsCommandList* commandList)
+void RenderResourceAccess::Bind(
+	const SpriteVertexBuffer& buffer, ID3D12GraphicsCommandList* commandList, FrameUploadBuffer& upload)
 {
 	if (buffer.m_impl != nullptr)
 	{
-		commandList->IASetVertexBuffers(0, 1, &buffer.m_impl->view);
+		D3D12_VERTEX_BUFFER_VIEW view{};
+		view.StrideInBytes = sizeof(SpriteVertex);
+		view.SizeInBytes = static_cast<UINT>(buffer.m_impl->vertices.size() * sizeof(SpriteVertex));
+		if (view.SizeInBytes != 0)
+		{
+			view.BufferLocation = upload.Write(buffer.m_impl->vertices.data(), view.SizeInBytes);
+		}
+		commandList->IASetVertexBuffers(0, 1, &view);
 	}
 }

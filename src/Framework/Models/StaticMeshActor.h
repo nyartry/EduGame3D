@@ -19,6 +19,7 @@ struct StaticMeshActorDefinition
 class StaticMeshActor : public Actor
 {
 public:
+	void Prepare(ModelAssetCache& assets) override;
 	void Initialize(IRenderDevice& device) override;
 	void Update(float deltaTime, const Input& input) override;
 	void Draw(IRenderer& renderer) const override;
@@ -33,4 +34,5 @@ protected:
 private:
 	StaticModel m_model;
 	Transform m_transform;
+	bool m_prepared{};
 };

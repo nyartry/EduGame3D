@@ -1,6 +1,5 @@
 #include "Game/Gameplay/PrimitiveObject.h"
 
-#include "Game/Gameplay/Ground.h"
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Core/IRenderer.h"
 
@@ -20,8 +19,9 @@ void PrimitiveObject::Initialize(IRenderDevice& device)
 
 void PrimitiveObject::Update(float deltaTime)
 {
+	const float previousBottomY = GetCollisionBottomY();
 	ApplyGravity(deltaTime);
-	ResolveGroundCollision();
+	ResolveGroundCollision(previousBottomY);
 }
 
 void PrimitiveObject::Draw(IRenderer& renderer) const
@@ -65,9 +65,14 @@ float PrimitiveObject::GetCollisionTopY() const
 	return m_collider.GetTopY(m_position);
 }
 
-void PrimitiveObject::SetGround(const Ground* ground)
+void PrimitiveObject::SetGround(const ICollisionSurface* ground)
 {
 	m_groundCollision.SetGround(ground);
+}
+
+void PrimitiveObject::SetCollisionQuery(const ICollisionQuery* query)
+{
+	m_groundCollision.SetCollisionQuery(query);
 }
 
 void PrimitiveObject::SetGravityEnabled(bool enabled)
@@ -135,7 +140,7 @@ void PrimitiveObject::ApplyGravity(float deltaTime)
 	m_position.y += m_verticalVelocity * deltaTime;
 }
 
-void PrimitiveObject::ResolveGroundCollision()
+void PrimitiveObject::ResolveGroundCollision(float previousBottomY)
 {
-	m_isGrounded = m_groundCollision.Resolve(m_position, m_verticalVelocity, m_collider);
+	m_isGrounded = m_groundCollision.Resolve(m_position, m_verticalVelocity, m_collider, previousBottomY, this);
 }

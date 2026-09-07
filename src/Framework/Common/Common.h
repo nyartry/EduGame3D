@@ -1,15 +1,26 @@
 #pragma once
 
 #include <Windows.h>
+#include "Framework/Core/Diagnostics/Diagnostics.h"
 
 #include <stdexcept>
 #include <string>
+#include <source_location>
+#include <sstream>
+#include <iomanip>
 
-inline void ThrowIfFailed(HRESULT hr)
+inline void ThrowIfFailed(HRESULT hr, std::string_view operation = {},
+	const std::source_location location = std::source_location::current())
 {
 	if (FAILED(hr))
 	{
-		throw std::runtime_error("HRESULT failure");
+		std::ostringstream message;
+		message << (operation.empty() ? location.function_name() : operation)
+			<< " failed: HRESULT 0x" << std::hex << std::uppercase << std::setw(8)
+			<< std::setfill('0') << static_cast<unsigned long>(hr)
+			<< " (" << location.file_name() << ':' << std::dec << location.line() << ')';
+		Diagnostics::Write(message.str());
+		throw std::runtime_error(message.str());
 	}
 }
 
@@ -24,4 +35,3 @@ inline std::wstring ToWide(const char* text)
 	}
 	return result;
 }
-

@@ -1233,32 +1233,13 @@ namespace
 				return;
 			}
 
-			std::ofstream file(path, std::ios::binary);
-			if (!file)
+			AnimationEventFileData data{ m_modelPath, m_events };
+			std::string error;
+			if (!SaveAnimationEventFile(path, data, error))
 			{
-				m_status = "Save failed: " + path;
+				m_status = "Save failed: " + error;
 				return;
 			}
-
-			file << "{\n";
-			file << "  \"schema\": \"open-campus-animation-events-v1\",\n";
-			file << "  \"sourceFbx\": \"" << JsonEscape(m_modelPath) << "\",\n";
-			file << "  \"events\": [\n";
-			for (size_t index = 0; index < m_events.size(); ++index)
-			{
-				const AnimationEvent& event = m_events[index];
-				file << "    {\n";
-				file << "      \"animation\": \"" << JsonEscape(event.animation) << "\",\n";
-				file << "      \"time\": " << event.time << ",\n";
-				file << "      \"type\": \"" << JsonEscape(event.type) << "\",\n";
-				file << "      \"name\": \"" << JsonEscape(event.name) << "\",\n";
-				file << "      \"bone\": \"" << JsonEscape(event.bone) << "\",\n";
-				file << "      \"cue\": \"" << JsonEscape(event.cue) << "\"\n";
-				file << "    }" << (index + 1 == m_events.size() ? "\n" : ",\n");
-			}
-			file << "  ]\n";
-			file << "}\n";
-
 			m_defaultSavePath = path;
 			m_lastSavedEvents = m_events;
 			UpdateDirtyFlag();

@@ -50,11 +50,13 @@ public:
 		SceneLoadMode loadMode = SceneLoadMode::Single);
 
 	void Update(float deltaTime, const Input& input);
+	void UpdateFrame(float deltaTime, const Input& input);
 	void RenderWorld(IRenderer& renderer) const;
 	void RenderOverlay(IRenderer& renderer) const;
 
 	RenderView GetRenderView() const;
 	bool IsLoading() const;
+	const std::string& GetLastLoadError() const { return m_lastLoadError; }
 
 private:
 	enum class PendingLoadPhase
@@ -79,6 +81,7 @@ private:
 	void StartPendingLoad();
 	void PollAsyncLoad();
 	void UpdateFadeOverlay(float alpha);
+	void RecoverLoadFailure(std::string message);
 
 	IRenderResourceLifetime* m_resourceLifetime{};
 	std::uint32_t m_width{};
@@ -88,4 +91,5 @@ private:
 	std::unique_ptr<PendingLoad> m_pendingLoad;
 	LoadingOverlay m_loadingOverlay;
 	SpriteBatch m_fadeOverlay;
+	std::string m_lastLoadError;
 };

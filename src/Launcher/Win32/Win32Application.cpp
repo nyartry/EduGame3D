@@ -1,15 +1,19 @@
 #include "Launcher/Win32/Win32Application.h"
 
 #include "Framework/Audio/AudioSystem.h"
+#include "Framework/Core/Time/FixedStepClock.h"
+#include "Framework/Core/Diagnostics/Diagnostics.h"
 #include "Framework/Effects/Effekseer/EffekseerEffectSystem.h"
 #include "Framework/Platform/Win32/Win32InputBackend.h"
 #include "Framework/Rendering/Core/Dx12Renderer.h"
 #include "Framework/Scene/Core/SceneManager.h"
 #include "Framework/Scene/Input/Input.h"
+#include "Framework/Scene/Input/SimulationInputBuffer.h"
 #include "Framework/UI/RmlUi/RmlUiService.h"
 #include "Game/App/Game.h"
 
 #include <chrono>
+#include <algorithm>
 #include <cwchar>
 #include <string>
 
@@ -52,6 +56,11 @@ namespace
 
 int Win32Application::Run(HINSTANCE instance, int showCommand)
 {
+	Diagnostics::SetSink([](std::string_view message)
+	{
+		const std::string line = std::string(message) + "\n";
+		OutputDebugStringA(line.c_str());
+	});
 	const wchar_t className[] = L"DirectX12OpenCampusWindow";
 	WNDCLASSEX windowClass{};
 	windowClass.cbSize = sizeof(WNDCLASSEX);
@@ -90,6 +99,8 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 	SceneManager scenes;
 	Input input;
 	Win32InputBackend inputBackend;
+	FixedStepClock simulationClock;
+	SimulationInputBuffer simulationInput;
 
 	renderer.Initialize(window, WindowWidth, WindowHeight);
 	effects.Initialize(renderer);
@@ -104,6 +115,7 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 	auto lastTickTime = std::chrono::steady_clock::now();
 	auto fpsLastUpdate = lastTickTime;
 	UINT fpsFrameCount = 0;
+	bool wasFocused = GetForegroundWindow() == window;
 	MSG message{};
 	while (message.message != WM_QUIT)
 	{
@@ -116,11 +128,25 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 
 		inputBackend.Update(window, input);
 		const auto now = std::chrono::steady_clock::now();
-		const float deltaTime = std::chrono::duration<float>(now - lastTickTime).count();
+		const double elapsedSeconds = std::chrono::duration<double>(now - lastTickTime).count();
 		lastTickTime = now;
-		scenes.Update(deltaTime, input);
+		const bool focused = GetForegroundWindow() == window && !IsIconic(window);
+		if (!focused || focused != wasFocused)
+		{
+			simulationClock.Reset();
+			simulationInput.Reset();
+		}
+		const unsigned stepCount = focused && wasFocused ? simulationClock.Advance(elapsedSeconds) : 0;
+		wasFocused = focused;
+		if (focused) simulationInput.Capture(input);
+		for (unsigned step = 0; step < stepCount; ++step)
+		{
+			const Input stepInput = simulationInput.ConsumeStep();
+			scenes.Update(simulationClock.GetStepSeconds(), stepInput);
+			effects.Update(simulationClock.GetStepSeconds());
+		}
+		scenes.UpdateFrame(static_cast<float>(std::min(elapsedSeconds, 0.25)), input);
 		audio.Update();
-		effects.Update(deltaTime);
 		const RenderView renderView = scenes.GetRenderView();
 		renderer.BeginFrame(renderView.GetViewProjection());
 		scenes.RenderWorld(renderer);

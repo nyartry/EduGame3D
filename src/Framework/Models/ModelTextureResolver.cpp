@@ -1,5 +1,7 @@
 #include "Framework/Models/ModelTextureResolver.h"
 
+#include "Framework/Assets/AssetPathResolver.h"
+
 #include <algorithm>
 #include <cctype>
 
@@ -55,17 +57,17 @@ std::string ModelTextureResolver::ResolveTexturePath(const std::string& textureP
 		return {};
 	}
 
-	const std::filesystem::path sourcePath = texturePath;
+	const std::filesystem::path sourcePath = AssetPathResolver::FromUtf8(texturePath);
 	const std::filesystem::path directPath = sourcePath.is_absolute()
 		? sourcePath
 		: m_modelDirectory / sourcePath;
 	if (std::filesystem::exists(directPath))
 	{
-		return directPath.string();
+		return AssetPathResolver::ToUtf8(directPath);
 	}
 
 	const std::filesystem::path fileName = sourcePath.filename();
-	const std::string lowerFileName = ToLower(fileName.string());
+	const std::string lowerFileName = ToLower(AssetPathResolver::ToUtf8(fileName));
 	const std::filesystem::path textureDirectories[] =
 	{
 		m_modelDirectory / "textures",
@@ -77,7 +79,7 @@ std::string ModelTextureResolver::ResolveTexturePath(const std::string& textureP
 		const std::filesystem::path siblingPath = textureDirectory / fileName;
 		if (std::filesystem::exists(siblingPath))
 		{
-			return siblingPath.string();
+			return AssetPathResolver::ToUtf8(siblingPath);
 		}
 
 		if (!std::filesystem::exists(textureDirectory))
@@ -87,9 +89,9 @@ std::string ModelTextureResolver::ResolveTexturePath(const std::string& textureP
 
 		for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(textureDirectory))
 		{
-			if (entry.is_regular_file() && ToLower(entry.path().filename().string()) == lowerFileName)
+			if (entry.is_regular_file() && ToLower(AssetPathResolver::ToUtf8(entry.path().filename())) == lowerFileName)
 			{
-				return entry.path().string();
+				return AssetPathResolver::ToUtf8(entry.path());
 			}
 		}
 	}

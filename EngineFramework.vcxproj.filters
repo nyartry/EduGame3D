@@ -19,8 +19,14 @@
     <Filter Include="Framework\Core">
       <UniqueIdentifier>{3f5a15df-05f5-ad01-e54d-af1ec0604960}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Framework\Core\Diagnostics">
+      <UniqueIdentifier>{45a1c01f-d5e5-a282-22c3-825823c11812}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Framework\Core\Math">
       <UniqueIdentifier>{ed3eb449-426d-4cab-b011-fb87eb902cd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Core\Time">
+      <UniqueIdentifier>{2446cd8b-6ff9-825e-4d69-74a886f2774c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Framework\Effects">
       <UniqueIdentifier>{705eef37-6374-6703-83b0-dcafd97c9261}</UniqueIdentifier>
@@ -33,6 +39,9 @@
     </Filter>
     <Filter Include="Framework\Models">
       <UniqueIdentifier>{d8287dbf-86b8-6b5c-b66f-174c9223290b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Physics">
+      <UniqueIdentifier>{d33e7641-f7eb-3058-ce0b-faaa3ddc5810}</UniqueIdentifier>
     </Filter>
     <Filter Include="Framework\Platform">
       <UniqueIdentifier>{580f54e6-94ae-0614-75a2-f33789a180fc}</UniqueIdentifier>
@@ -90,6 +99,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Framework\Animation\AnimationEvents.cpp">
+      <Filter>Framework\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Framework\Animation\AnimationPlayback.cpp">
+      <Filter>Framework\Animation</Filter>
+    </ClCompile>
     <ClCompile Include="src\Framework\Animation\AnimationSampler.cpp">
       <Filter>Framework\Animation</Filter>
     </ClCompile>
@@ -105,10 +120,16 @@
     <ClCompile Include="src\Framework\Animation\RootMotion.cpp">
       <Filter>Framework\Animation</Filter>
     </ClCompile>
+    <ClCompile Include="src\Framework\Animation\RootMotionExtractor.cpp">
+      <Filter>Framework\Animation</Filter>
+    </ClCompile>
     <ClCompile Include="src\Framework\Animation\RootMotionPolicy.cpp">
       <Filter>Framework\Animation</Filter>
     </ClCompile>
     <ClCompile Include="src\Framework\Assets\AssetPathResolver.cpp">
+      <Filter>Framework\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Framework\Assets\ImageLoader.cpp">
       <Filter>Framework\Assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Framework\Audio\AudioSystem.cpp">
@@ -122,6 +143,9 @@
     </ClCompile>
     <ClCompile Include="src\Framework\Gameplay\CollisionBody.cpp">
       <Filter>Framework\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Framework\Models\ModelAssetCache.cpp">
+      <Filter>Framework\Models</Filter>
     </ClCompile>
     <ClCompile Include="src\Framework\Models\ModelLoader.cpp">
       <Filter>Framework\Models</Filter>
@@ -149,6 +173,9 @@
     </ClCompile>
     <ClCompile Include="src\Framework\Models\StaticModel.cpp">
       <Filter>Framework\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Framework\Physics\CollisionWorld.cpp">
+      <Filter>Framework\Physics</Filter>
     </ClCompile>
     <ClCompile Include="src\Framework\Platform\Win32\Win32InputBackend.cpp">
       <Filter>Framework\Platform\Win32</Filter>
@@ -257,7 +284,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Framework\Animation\AnimationEvents.h">
+      <Filter>Framework\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Animation\AnimationPlayback.h">
+      <Filter>Framework\Animation</Filter>
+    </ClInclude>
     <ClInclude Include="src\Framework\Animation\AnimationSampler.h">
+      <Filter>Framework\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Animation\BoneSkinning.h">
       <Filter>Framework\Animation</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Animation\CpuSkinnedMeshProcessor.h">
@@ -275,6 +311,9 @@
     <ClInclude Include="src\Framework\Animation\RootMotion.h">
       <Filter>Framework\Animation</Filter>
     </ClInclude>
+    <ClInclude Include="src\Framework\Animation\RootMotionExtractor.h">
+      <Filter>Framework\Animation</Filter>
+    </ClInclude>
     <ClInclude Include="src\Framework\Animation\RootMotionPolicy.h">
       <Filter>Framework\Animation</Filter>
     </ClInclude>
@@ -282,6 +321,9 @@
       <Filter>Framework\Animation</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Assets\AssetPathResolver.h">
+      <Filter>Framework\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Assets\ImageLoader.h">
       <Filter>Framework\Assets</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Audio\AudioSystem.h">
@@ -296,11 +338,20 @@
     <ClInclude Include="src\Framework\Common\ModelScaleSettings.h">
       <Filter>Framework\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\Framework\Core\Diagnostics\Diagnostics.h">
+      <Filter>Framework\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Core\Math\Aabb.h">
+      <Filter>Framework\Core\Math</Filter>
+    </ClInclude>
     <ClInclude Include="src\Framework\Core\Math\MathUtils.h">
       <Filter>Framework\Core\Math</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Core\Math\Transform.h">
       <Filter>Framework\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Core\Time\FixedStepClock.h">
+      <Filter>Framework\Core\Time</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Effects\Effekseer\EffekseerEffectSystem.h">
       <Filter>Framework\Effects\Effekseer</Filter>
@@ -313,6 +364,12 @@
     </ClInclude>
     <ClInclude Include="src\Framework\Gameplay\CollisionBody.h">
       <Filter>Framework\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Models\ModelAssetCache.h">
+      <Filter>Framework\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Models\ModelFit.h">
+      <Filter>Framework\Models</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Models\ModelLoader.h">
       <Filter>Framework\Models</Filter>
@@ -344,6 +401,12 @@
     <ClInclude Include="src\Framework\Models\StaticModel.h">
       <Filter>Framework\Models</Filter>
     </ClInclude>
+    <ClInclude Include="src\Framework\Physics\CollisionWorld.h">
+      <Filter>Framework\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Physics\ICollisionQuery.h">
+      <Filter>Framework\Physics</Filter>
+    </ClInclude>
     <ClInclude Include="src\Framework\Platform\Win32\Win32InputBackend.h">
       <Filter>Framework\Platform\Win32</Filter>
     </ClInclude>
@@ -369,6 +432,12 @@
       <Filter>Framework\Rendering\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Rendering\Core\Dx12Renderer.h">
+      <Filter>Framework\Rendering\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Rendering\Core\FenceRetiredPagePool.h">
+      <Filter>Framework\Rendering\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Rendering\Core\FrameUploadBuffer.h">
       <Filter>Framework\Rendering\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Rendering\Core\IRenderDevice.h">
@@ -474,6 +543,9 @@
       <Filter>Framework\Scene\Input</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Scene\Input\InputWriter.h">
+      <Filter>Framework\Scene\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework\Scene\Input\SimulationInputBuffer.h">
       <Filter>Framework\Scene\Input</Filter>
     </ClInclude>
     <ClInclude Include="src\Framework\Scene\Overlays\LoadingOverlay.h">

@@ -8,24 +8,6 @@
 
 namespace
 {
-	std::filesystem::path FromUtf8(std::string_view text)
-	{
-		if (text.empty())
-		{
-			return {};
-		}
-		const int length = MultiByteToWideChar(
-			CP_UTF8, 0, text.data(), static_cast<int>(text.size()), nullptr, 0);
-		if (length <= 0)
-		{
-			return std::filesystem::path(std::string(text));
-		}
-		std::wstring wideText(static_cast<std::size_t>(length), L'\0');
-		MultiByteToWideChar(
-			CP_UTF8, 0, text.data(), static_cast<int>(text.size()), wideText.data(), length);
-		return std::filesystem::path(std::move(wideText));
-	}
-
 	std::filesystem::path GetExecutableDirectory()
 	{
 		std::vector<wchar_t> buffer(512);
@@ -56,24 +38,6 @@ namespace
 		return true;
 	}
 
-	std::string ToUtf8(const std::filesystem::path& path)
-	{
-		const std::wstring wideText = path.wstring();
-		if (wideText.empty())
-		{
-			return {};
-		}
-		const int length = WideCharToMultiByte(
-			CP_UTF8, 0, wideText.data(), static_cast<int>(wideText.size()), nullptr, 0, nullptr, nullptr);
-		if (length <= 0)
-		{
-			return path.string();
-		}
-		std::string utf8Text(static_cast<std::size_t>(length), '\0');
-		WideCharToMultiByte(
-			CP_UTF8, 0, wideText.data(), static_cast<int>(wideText.size()), utf8Text.data(), length, nullptr, nullptr);
-		return utf8Text;
-	}
 }
 
 std::filesystem::path AssetPathResolver::Resolve(std::string_view assetPath)
@@ -110,4 +74,17 @@ std::filesystem::path AssetPathResolver::Resolve(std::string_view assetPath)
 std::string AssetPathResolver::ResolveUtf8(std::string_view assetPath)
 {
 	return ToUtf8(Resolve(assetPath));
+}
+
+std::filesystem::path AssetPathResolver::FromUtf8(std::string_view text)
+{
+	if (text.empty()) return {};
+	return std::filesystem::path(std::u8string(
+		reinterpret_cast<const char8_t*>(text.data()), text.size()));
+}
+
+std::string AssetPathResolver::ToUtf8(const std::filesystem::path& path)
+{
+	const auto utf8 = path.u8string();
+	return std::string(reinterpret_cast<const char*>(utf8.data()), utf8.size());
 }

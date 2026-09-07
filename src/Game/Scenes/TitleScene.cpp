@@ -120,7 +120,7 @@ void TitleScene::Unload()
 	m_uiDocument.reset();
 }
 
-void TitleScene::Update(float deltaTime, const Input& input)
+void TitleScene::UpdateFrame(float deltaTime, const Input& input)
 {
 	m_elapsedTime += deltaTime;
 	m_probeButtonFlashTime = std::max(0.0f, m_probeButtonFlashTime - deltaTime);
@@ -192,6 +192,7 @@ void TitleScene::Update(float deltaTime, const Input& input)
 			m_audio.PlaySe(GameContent::ButtonSe);
 		}
 		m_startRequested = true;
+		m_loadFailed = false;
 	}
 	RebuildBatch();
 }
@@ -280,6 +281,10 @@ void TitleScene::RebuildBatch()
 	DrawCenteredText("START GAME", height * 0.58f + 18.0f, 3.0f, UiLabelColor);
 	DrawCenteredText("EXIT", height * 0.58f + 94.0f, 3.0f, SubtleTextColor);
 	DrawCenteredText("PRESS ENTER", centerY + 245.0f + pulse * 6.0f, promptSize, PromptColor);
+	if (m_loadFailed)
+	{
+		DrawCenteredText("LOAD FAILED - PRESS ENTER TO RETRY", height - 32.0f, 2.0f, PromptColor);
+	}
 	m_batch.Upload();
 }
 

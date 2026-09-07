@@ -8,7 +8,7 @@
 
 namespace AnimationEventEditorTool
 {
-	std::string JsonEscape(std::string_view text);
 	std::string MakeDefaultEventPath(const std::string& fbxPath);
 	std::optional<AnimationEventFileData> LoadAnimationEventFile(const std::string& path, std::string& error);
+	bool SaveAnimationEventFile(const std::string& path, const AnimationEventFileData& data, std::string& error);
 }

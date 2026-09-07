@@ -12,10 +12,13 @@
 
 class IRenderDevice;
 class IRenderer;
+class ModelAssetCache;
 
 class StaticModel
 {
 public:
+	void Prepare(ModelAssetCache& assets, const std::string& modelPath, const ModelScaleSettings& scaleSettings);
+	void Activate(IRenderDevice& device);
 	void Initialize(
 		IRenderDevice& device,
 		const std::string& modelPath,
@@ -33,4 +36,5 @@ private:
 	void FitModel(ModelData& modelData, const ModelScaleSettings& scaleSettings) const;
 
 	std::vector<MeshPart> m_meshParts;
+	ModelData m_preparedData;
 };

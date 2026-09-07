@@ -12,6 +12,8 @@ class BasicColorPipeline
 {
 public:
 	void Initialize(ID3D12Device* device);
+	void BeginFrame(UINT64 completedFence) { m_sceneConstantBuffer.BeginFrame(completedFence); }
+	void EndFrame(UINT64 submittedFence) { m_sceneConstantBuffer.EndFrame(submittedFence); }
 	D3D12_GPU_VIRTUAL_ADDRESS UpdateWorldViewProjection(const DirectX::XMMATRIX& worldViewProjection);
 	void Bind(ID3D12GraphicsCommandList* commandList) const;
 
