@@ -53,6 +53,7 @@ bool SceneManager::LoadScene(const std::string& name, SceneLoadType loadType, Sc
 	const auto sceneFactory = m_sceneFactories.find(name);
 	if (sceneFactory == m_sceneFactories.end())
 	{
+		RecoverLoadFailure("Scene is not registered: " + name);
 		return false;
 	}
 

@@ -240,6 +240,31 @@ namespace
 		fixture.manager.UpdateFrame(0.016f, fixture.input);
 		Require(old->failedLoads == 1, "Failed scene request is not repeated every frame");
 	}
+
+	void UnregisteredSceneRequestKeepsActiveScene()
+	{
+		for (const bool requestAsync : { false, true })
+		{
+			Fixture fixture;
+			auto active = std::make_shared<State>();
+			fixture.Register("active", active);
+			Require(fixture.manager.LoadScene("active"), "Initial active scene loads");
+			const std::string missingName = "unregistered_scene";
+			active->request = missingName;
+			active->requestAsync = requestAsync;
+			fixture.manager.UpdateFrame(0.016f, fixture.input);
+			Require(active->request.empty() && active->failedLoads == 1,
+				"An unregistered synchronous or asynchronous scene request is cleared and reports failure once");
+			Require(fixture.manager.GetLastLoadError().find(missingName) != std::string::npos && !fixture.manager.IsLoading(),
+				"The load error names the unregistered scene without starting a transition");
+			Require(active->unloaded == 0 && active->destroyed == 0 && fixture.lifetime.pending.empty(),
+				"An unregistered scene request preserves the active scene and its resources");
+			fixture.manager.Update(0.016f, fixture.input);
+			fixture.manager.UpdateFrame(0.016f, fixture.input);
+			Require(active->updates == 1 && active->frames == 2, "The active scene continues simulation and frame updates after rejection");
+			Require(active->failedLoads == 1 && active->request.empty(), "The rejected scene request does not notify again on the next frame");
+		}
+	}
 }
 
 int main()
@@ -255,5 +280,6 @@ int main()
 	run("async Prepare retention, affinity and recovery", AsynchronousPrepareKeepsOldScene);
 	run("async factory and activation failure recovery", AsyncFactoryAndActivationFailures);
 	run("presentation and fixed simulation contract", PresentationAndSimulationAreIndependent);
+	run("unregistered scene requests preserve active scene", UnregisteredSceneRequestKeepsActiveScene);
 	return failures == 0 ? 0 : 1;
 }
