@@ -4,6 +4,7 @@
 #include "AnimationEventEditorDialogs.h"
 #include "AnimationEventEditorLayout.h"
 #include "AnimationEventJson.h"
+#include "Framework/Assets/AssetPathResolver.h"
 #include "Framework/Common/ModelScaleSettings.h"
 #include "Framework/Core/Math/Transform.h"
 #include "Framework/Models/SkinnedModel.h"
@@ -548,6 +549,20 @@ namespace
 			}
 		}
 
+		bool ValidateAsciiFileName(std::string_view path, std::string_view operation)
+		{
+			const size_t separator = path.find_last_of("/\\");
+			const std::string_view fileName = separator == std::string_view::npos ? path : path.substr(separator + 1);
+			if (fileName.empty() || !std::all_of(fileName.begin(), fileName.end(), [](unsigned char character)
+				{ return character >= 0x20 && character <= 0x7e; }))
+			{
+				m_status = std::string(operation) + " failed: file names must use printable ASCII characters only. "
+					"Use letters, digits, spaces, or ASCII symbols.";
+				return false;
+			}
+			return true;
+		}
+
 		void ProcessPendingModelLoad()
 		{
 			if (!m_pendingModelPath)
@@ -563,6 +578,11 @@ namespace
 
 		void LoadModel(const std::string& path)
 		{
+			if (!ValidateAsciiFileName(path, "Model load"))
+			{
+				return;
+			}
+
 			try
 			{
 				auto model = std::make_unique<SkinnedModel>();
@@ -586,7 +606,7 @@ namespace
 				std::ostringstream stream;
 				stream << "Loaded " << path << " with " << model->GetModelData().animations.size() << " animation(s).";
 				std::error_code existsError;
-				if (std::filesystem::exists(defaultSavePath, existsError))
+				if (std::filesystem::exists(AssetPathResolver::FromUtf8(defaultSavePath), existsError))
 				{
 					std::string loadError;
 					const std::optional<AnimationEventFileData> eventData = LoadAnimationEventFile(defaultSavePath, loadError);
@@ -632,6 +652,11 @@ namespace
 
 		void LoadEvents(const std::string& path)
 		{
+			if (!ValidateAsciiFileName(path, "Event load"))
+			{
+				return;
+			}
+
 			std::string error;
 			const std::optional<AnimationEventFileData> eventData = LoadAnimationEventFile(path, error);
 			if (!eventData)
@@ -1230,6 +1255,10 @@ namespace
 			if (path.empty())
 			{
 				m_status = "Save failed: path is empty.";
+				return;
+			}
+			if (!ValidateAsciiFileName(path, "Save"))
+			{
 				return;
 			}
 

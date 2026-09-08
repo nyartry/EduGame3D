@@ -41,6 +41,10 @@ The editor saves `.anim_events.json` files.
 
 When an FBX is opened, the editor also looks for a sibling `.anim_events.json` file and loads it automatically.
 
+When opening or saving files in the editor, FBX and event JSON file names must use printable ASCII characters: letters, digits, spaces, and ASCII symbols valid in Windows file names. For example, use `walk.fbx` and `walk.anim_events.json`. Folder names may contain Japanese or other Unicode characters.
+
+If a file name is rejected, the Status panel explains the restriction. The current document, edit history, and saved files are preserved.
+
 ## Editing
 
 - `Edit > Undo` / `Ctrl+Z` reverts event edits.
