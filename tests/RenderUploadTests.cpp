@@ -1,9 +1,8 @@
 #include "Framework/Rendering/Core/FenceRetiredPagePool.h"
+#include "TestSupport.h"
 
 #include <algorithm>
-#include <iostream>
 #include <stdexcept>
-#include <string_view>
 #include <vector>
 
 void RunRenderUploadGpuTests();
@@ -103,24 +102,10 @@ namespace
 	}
 }
 
-int main(int argc, char** argv)
-{
-	try
-	{
-		CapacityAndFenceBoundaries();
-		MixedVertexSizesAndOutstandingFrames();
-		ContractValidation();
-		std::cout << "Render upload CPU regression tests passed.\n";
-		if (argc > 1 && std::string_view(argv[1]) == "--gpu")
-		{
-			RunRenderUploadGpuTests();
-			std::cout << "Render upload WARP GPU regression tests passed.\n";
-		}
-		return 0;
-	}
-	catch (const std::exception& exception)
-	{
-		std::cerr << exception.what() << '\n';
-		return 1;
-	}
-}
+#define RENDER_UPLOAD_TEST_CASES(TEST) \
+	TEST(CapacityAndFenceBoundaries, "capacity and fence boundaries", Cpu) \
+	TEST(MixedVertexSizesAndOutstandingFrames, "mixed vertex sizes and outstanding frames", Cpu) \
+	TEST(ContractValidation, "render upload contract validation", Cpu) \
+	TEST(RunRenderUploadGpuTests, "render upload WARP GPU regression", Gpu)
+
+GAME_TEST_SUITE(RenderUploadTests, RENDER_UPLOAD_TEST_CASES)

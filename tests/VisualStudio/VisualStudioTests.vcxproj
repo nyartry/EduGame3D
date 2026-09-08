@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{4E274BE8-0FB4-4C85-AAB6-49E11DF7AF87}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>VisualStudioTests</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectSubType>NativeUnitTestProject</ProjectSubType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <RepositoryRoot>$(ProjectDir)..\..\</RepositoryRoot>
+    <OutDir>$(RepositoryRoot)x64\$(Configuration)\VisualStudioTests\</OutDir>
+    <IntDir>$(OutDir)obj\</IntDir>
+    <TestProjectType>UnitTest</TestProjectType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <AssimpLibrary>assimp-vc143-mtd.lib</AssimpLibrary><AssimpDll>assimp-vc143-mtd.dll</AssimpDll>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <AssimpLibrary>assimp-vc143-mt.lib</AssimpLibrary><AssimpDll>assimp-vc143-mt.dll</AssimpDll>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel><SDLCheck>true</SDLCheck><ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard><DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization Condition="'$(Configuration)'=='Debug'">Disabled</Optimization>
+      <PreprocessorDefinitions>GAME_NATIVE_TESTS;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(RepositoryRoot)src;$(VCInstallDir)Auxiliary\VS\UnitTest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/FC %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem><GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(VCInstallDir)Auxiliary\VS\UnitTest\lib\$(Platform);$(RepositoryRoot)third_party\assimp\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Microsoft.VisualStudio.TestTools.CppUnitTestFramework.lib;$(AssimpLibrary);d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent><Command>copy /Y "$(RepositoryRoot)third_party\assimp\bin\$(Configuration)\$(AssimpDll)" "$(OutDir)"</Command></PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\AssetTests.cpp" />
+    <ClCompile Include="..\DiagnosticsTests.cpp" />
+    <ClCompile Include="..\MathCoreTests.cpp" />
+    <ClCompile Include="..\ModelPreparationTests.cpp" />
+    <ClCompile Include="..\PhysicsTests.cpp" />
+    <ClCompile Include="..\RenderUploadTests.cpp" />
+    <ClCompile Include="..\RenderUploadGpuTests.cpp" />
+    <ClCompile Include="..\RootMotionTests.cpp" />
+    <ClCompile Include="..\AnimationEventTests.cpp" />
+    <ClCompile Include="..\SceneLifecycleTests.cpp" />
+    <ClCompile Include="..\SkinningTests.cpp" />
+    <ClCompile Include="..\SkinningGpuTests.cpp" />
+    <ClCompile Include="..\TimeInputTests.cpp" />
+    <ClCompile Include="..\..\tools\AnimationEventEditor\AnimationEventJson.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\TestSupport.h" />
+    <ClInclude Include="..\SkinningTestCases.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\EngineFramework.vcxproj"><Project>{a04d8f6b-34b4-4c91-af98-158f3bca608d}</Project></ProjectReference>
+    <ProjectReference Include="..\..\GameModule.vcxproj"><Project>{d7c198b4-e252-4630-a617-f0f2a4b4677a}</Project></ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

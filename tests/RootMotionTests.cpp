@@ -1,3 +1,4 @@
+#include "TestSupport.h"
 #include "Framework/Animation/RootMotion.h"
 #include "Framework/Animation/RootMotionExtractor.h"
 #include "Framework/Animation/AnimationSampler.h"
@@ -367,31 +368,16 @@ namespace
 	}
 }
 
-int main()
-{
-	int failures = 0;
-	const auto run = [&failures](const char* name, void (*test)())
-	{
-		try
-		{
-			test();
-			std::cout << "PASS " << name << '\n';
-		}
-		catch (const std::exception& error)
-		{
-			++failures;
-			std::cerr << "FAIL " << name << ": " << error.what() << '\n';
-		}
-	};
-	run("blend weights, Y policy, and yaw", BlendWeightsAndYaw);
-	run("root extraction across complete and partial loops", RootExtractionAcrossLoops);
-	run("playback seeks and invalid time", PlaybackSeekAndInvalidTime);
-	run("once playback stops, seeks, and restarts", OncePlaybackStopsAndRestarts);
-	run("once root motion stops at clip end", OnceRootMotionStopsAtClipEnd);
-	run("animation events and shared editor/runtime JSON", TestAnimationEvents);
-	run("default modes preserve jump", DefaultModesPreserveJump);
-	run("explicit animation Y preserves whole jump", ExplicitAnimationYPreservesWholeJump);
-	run("root-only motion without gravity", RootOnlyMotionWithoutGravity);
-	run("downward animation lands on platform", DownwardAnimationLandsOnPlatform);
-	return failures == 0 ? 0 : 1;
-}
+#define ROOTMOTIONTESTS_CASES(TEST) \
+	TEST(BlendWeightsAndYaw, "blend weights, Y policy, and yaw", Cpu) \
+	TEST(RootExtractionAcrossLoops, "root extraction across complete and partial loops", Cpu) \
+	TEST(PlaybackSeekAndInvalidTime, "playback seeks and invalid time", Cpu) \
+	TEST(OncePlaybackStopsAndRestarts, "once playback stops, seeks, and restarts", Cpu) \
+	TEST(OnceRootMotionStopsAtClipEnd, "once root motion stops at clip end", Cpu) \
+	TEST(TestAnimationEvents, "animation events and shared editor/runtime JSON", Cpu) \
+	TEST(DefaultModesPreserveJump, "default modes preserve jump", Cpu) \
+	TEST(ExplicitAnimationYPreservesWholeJump, "explicit animation Y preserves whole jump", Cpu) \
+	TEST(RootOnlyMotionWithoutGravity, "root-only motion without gravity", Cpu) \
+	TEST(DownwardAnimationLandsOnPlatform, "downward animation lands on platform", Cpu)
+
+GAME_TEST_SUITE(RootMotionTests, ROOTMOTIONTESTS_CASES)

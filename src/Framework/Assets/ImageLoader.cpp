@@ -55,7 +55,7 @@ namespace
 std::shared_ptr<const ImageData> ImageLoader::Load(std::string_view path)
 {
 	const auto resolved = AssetPathResolver::Resolve(path);
-	std::lock_guard lock(cacheMutex);
+	std::unique_lock lock(cacheMutex);
 	if (const auto found = cache.find(resolved); found != cache.end())
 		if (auto existing = found->second.lock()) return existing;
 	std::erase_if(cache, [](const auto& entry) { return entry.second.expired(); });
@@ -64,10 +64,14 @@ std::shared_ptr<const ImageData> ImageLoader::Load(std::string_view path)
 	try { Decode(resolved, *image); }
 	catch (const std::runtime_error& error)
 	{
-		Diagnostics::Write("Image fallback [" + AssetPathResolver::ToUtf8(resolved) + "]: " + error.what());
 		image->width = image->height = 2;
 		image->pixels = {255,255,255,255, 180,180,180,255, 180,180,180,255, 255,255,255,255};
 		image->isFallback = true;
+		// Failed decodes remain retryable while existing consumers use their
+		// fallback. Application diagnostic sinks may themselves load images.
+		lock.unlock();
+		Diagnostics::Write("Image fallback [" + AssetPathResolver::ToUtf8(resolved) + "]: " + error.what());
+		return image;
 	}
 	cache[resolved] = image;
 	return image;

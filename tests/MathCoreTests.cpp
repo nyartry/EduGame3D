@@ -1,3 +1,4 @@
+#include "TestSupport.h"
 #include "Framework/Core/Math/MathUtils.h"
 #include "Framework/Core/Math/Transform.h"
 
@@ -179,20 +180,13 @@ namespace
 	}
 }
 
-int main()
-{
-	int failures = 0;
-	const auto run = [&failures](const char* name, void (*test)())
-	{
-		try { test(); std::cout << "PASS " << name << '\n'; }
-		catch (const std::exception& error) { ++failures; std::cerr << "FAIL " << name << ": " << error.what() << '\n'; }
-	};
-	run("identity, SRT order, points, and directions", IdentityAndSrtOrder);
-	run("legacy actor yaw compatibility", LegacyYawCompatibility);
-	run("normals under rotated nonuniform scale", NonuniformScaleNormals);
-	run("invalid normals and normal matrices", InvalidNormalsAndMatrices);
-	run("safe normalization and in-place output", SafeNormalization);
-	run("shortest angle path across pi", ShortestAnglePath);
-	run("stable smoothing", StableSmoothing);
-	return failures == 0 ? 0 : 1;
-}
+#define MATHCORETESTS_CASES(TEST) \
+	TEST(IdentityAndSrtOrder, "identity, SRT order, points, and directions", Cpu) \
+	TEST(LegacyYawCompatibility, "legacy actor yaw compatibility", Cpu) \
+	TEST(NonuniformScaleNormals, "normals under rotated nonuniform scale", Cpu) \
+	TEST(InvalidNormalsAndMatrices, "invalid normals and normal matrices", Cpu) \
+	TEST(SafeNormalization, "safe normalization and in-place output", Cpu) \
+	TEST(ShortestAnglePath, "shortest angle path across pi", Cpu) \
+	TEST(StableSmoothing, "stable smoothing", Cpu)
+
+GAME_TEST_SUITE(MathCoreTests, MATHCORETESTS_CASES)

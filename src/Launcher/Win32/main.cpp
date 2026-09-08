@@ -1,7 +1,7 @@
 #include "Framework/Common/Common.h"
+#include "Framework/Core/Diagnostics/Diagnostics.h"
+#include "Framework/Core/Diagnostics/ExceptionUtils.h"
 #include "Launcher/Win32/Win32Application.h"
-
-#include <exception>
 
 int WINAPI wWinMain(
 	_In_ HINSTANCE instance,
@@ -13,9 +13,11 @@ int WINAPI wWinMain(
 	{
 		return Win32Application::Run(instance, showCommand);
 	}
-	catch (const std::exception& error)
+	catch (...)
 	{
-		MessageBox(nullptr, ToWide(error.what()).c_str(), L"Fatal error", MB_OK | MB_ICONERROR);
+		const auto message = DescribeException();
+		Diagnostics::Write(message);
+		MessageBoxW(nullptr, ToWide(message.c_str()).c_str(), L"Fatal error", MB_OK | MB_ICONERROR);
 		return 1;
 	}
 }

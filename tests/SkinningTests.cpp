@@ -1,8 +1,7 @@
 #include "SkinningTestCases.h"
+#include "TestSupport.h"
 
-#include <iostream>
 #include <stdexcept>
-#include <string_view>
 
 void RunSkinningGpuTests();
 
@@ -46,22 +45,8 @@ namespace
 	}
 }
 
-int main(int argc, char** argv)
-{
-	try
-	{
-		RunCpuTests();
-		std::cout << "Skinning CPU regression tests passed.\n";
-		if (argc > 1 && std::string_view(argv[1]) == "--gpu")
-		{
-			RunSkinningGpuTests();
-			std::cout << "Skinning WARP GPU regression tests passed.\n";
-		}
-		return 0;
-	}
-	catch (const std::exception& exception)
-	{
-		std::cerr << exception.what() << '\n';
-		return 1;
-	}
-}
+#define SKINNING_TEST_CASES(TEST) \
+	TEST(RunCpuTests, "skinning CPU regression", Cpu) \
+	TEST(RunSkinningGpuTests, "skinning WARP GPU regression", Gpu)
+
+GAME_TEST_SUITE(SkinningTests, SKINNING_TEST_CASES)

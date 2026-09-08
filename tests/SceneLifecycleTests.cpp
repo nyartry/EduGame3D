@@ -1,7 +1,9 @@
+#include "TestSupport.h"
 #include "Framework/Scene/Core/SceneManager.h"
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Core/IRenderResourceLifetime.h"
 #include "Framework/Rendering/Core/RenderResourceAccess.h"
+#include "Framework/Core/Diagnostics/Diagnostics.h"
 
 #include <atomic>
 #include <chrono>
@@ -51,7 +53,7 @@ namespace
 	struct State
 	{
 		std::atomic<int> prepared{}, activated{}, unloaded{}, destroyed{}, updates{}, frames{}, failedLoads{};
-		bool failPrepare{}, failActivate{};
+		bool failPrepare{}, failActivate{}, failNotification{};
 		std::thread::id prepareThread, activateThread;
 		std::promise<void> prepareEntered;
 		std::shared_future<void> allowPrepare;
@@ -84,7 +86,12 @@ namespace
 		RenderView GetRenderView() const override { return {}; }
 		std::string GetRequestedSceneName() const override { return m_state->request; }
 		bool ShouldLoadRequestedSceneAsync() const override { return m_state->requestAsync; }
-		void OnSceneLoadFailed() override { ++m_state->failedLoads; m_state->request.clear(); }
+		void OnSceneLoadFailed() override
+		{
+			++m_state->failedLoads;
+			m_state->request.clear();
+			if (m_state->failNotification) throw std::runtime_error("notification failure");
+		}
 	private:
 		std::shared_ptr<State> m_state;
 	};
@@ -111,6 +118,112 @@ namespace
 			Require(!manager.IsLoading(), "Async transition must finish within five seconds");
 		}
 	};
+
+	struct DiagnosticCapture
+	{
+		std::vector<std::string> messages;
+		DiagnosticCapture()
+		{
+			Diagnostics::SetSink([this](std::string_view message) { messages.emplace_back(message); });
+		}
+		~DiagnosticCapture() { Diagnostics::SetSink({}); }
+	};
+
+	struct CopyFailingFactory
+	{
+		std::shared_ptr<bool> failCopy;
+		explicit CopyFailingFactory(std::shared_ptr<bool> failure) : failCopy(std::move(failure)) {}
+		CopyFailingFactory(const CopyFailingFactory& other) : failCopy(other.failCopy)
+		{
+			if (*failCopy) throw std::runtime_error("factory copy failure");
+		}
+		std::unique_ptr<IScene> operator()() const { return std::make_unique<TestScene>(std::make_shared<State>()); }
+	};
+
+	void AsyncFactoryCopyFailureRecovers()
+	{
+		for (const bool failAtStart : { false, true })
+		{
+			Fixture fixture;
+			auto old = std::make_shared<State>();
+			fixture.Register("old", old);
+			Require(fixture.manager.LoadScene("old"), "Initial scene loads");
+			auto failCopy = std::make_shared<bool>(false);
+			fixture.manager.RegisterScene("copy_failure", CopyFailingFactory(failCopy));
+			if (failAtStart)
+			{
+				Require(fixture.manager.LoadScene("copy_failure", SceneLoadType::Asynchronous), "Request queues before copy fails");
+				*failCopy = true;
+				fixture.manager.UpdateFrame(0.5f, fixture.input);
+			}
+			else
+			{
+				*failCopy = true;
+				Require(!fixture.manager.LoadScene("copy_failure", SceneLoadType::Asynchronous), "Request copy failure returns false");
+			}
+			Require(!fixture.manager.IsLoading() && old->failedLoads == 1, "Copy failure resets transition and notifies once");
+			Require(fixture.manager.GetLastLoadError().find("factory copy failure") != std::string::npos,
+				"Copy failure preserves original cause");
+			fixture.manager.Update(0.016f, fixture.input);
+			Require(old->updates == 1 && old->unloaded == 0 && fixture.lifetime.pending.empty(), "Copy failure retains active scene");
+			*failCopy = false;
+			Require(fixture.manager.LoadScene("copy_failure", SceneLoadType::Asynchronous), "Failed request can be retried");
+			fixture.FinishTransition();
+			Require(fixture.manager.GetLastLoadError().empty(), "Successful retry clears previous failure");
+		}
+	}
+
+	void LoadFailuresIncludeContextAndReportOnce()
+	{
+		for (const auto type : { SceneLoadType::Synchronous, SceneLoadType::Asynchronous })
+		{
+			for (const bool failActivate : { false, true })
+			{
+				Fixture fixture;
+				auto next = std::make_shared<State>();
+				next->failPrepare = !failActivate;
+				next->failActivate = failActivate;
+				fixture.Register("broken_scene", next);
+				DiagnosticCapture diagnostics;
+				const bool accepted = fixture.manager.LoadScene("broken_scene", type);
+				Require(accepted == (type == SceneLoadType::Asynchronous), "Sync failure rejects; async failure follows accepted request");
+				fixture.FinishTransition();
+				const auto& error = fixture.manager.GetLastLoadError();
+				Require(error.find("broken_scene") != std::string::npos &&
+					error.find(failActivate ? "activation" : "preparation") != std::string::npos &&
+					error.find(failActivate ? "activate failure" : "prepare failure") != std::string::npos,
+					"Failure identifies scene, operation and original cause");
+				Require(diagnostics.messages.size() == 1 && diagnostics.messages.front().find(error) != std::string::npos,
+					"Recovery reports each load failure exactly once");
+			}
+		}
+	}
+
+	void FailingNotificationDoesNotReplaceLoadFailure()
+	{
+		for (const auto type : { SceneLoadType::Synchronous, SceneLoadType::Asynchronous })
+		{
+			Fixture fixture;
+			auto first = std::make_shared<State>();
+			auto second = std::make_shared<State>();
+			first->failNotification = true;
+			fixture.Register("first", first);
+			fixture.Register("second", second);
+			Require(fixture.manager.LoadScene("first") &&
+				fixture.manager.LoadScene("second", SceneLoadType::Synchronous, SceneLoadMode::Additive), "Both active scenes load");
+			fixture.manager.RegisterScene("bad", []() -> std::unique_ptr<IScene> { throw std::runtime_error("original failure"); });
+			DiagnosticCapture diagnostics;
+			fixture.manager.LoadScene("bad", type);
+			fixture.FinishTransition();
+			Require(first->failedLoads == 1 && second->failedLoads == 1, "Every active scene is notified despite a throwing observer");
+			Require(fixture.manager.GetLastLoadError().find("original failure") != std::string::npos,
+				"Observer error does not replace original load error");
+			Require(diagnostics.messages.size() == 2 && diagnostics.messages.back().find("notification failure") != std::string::npos,
+				"Observer failure is separately diagnosed");
+			fixture.manager.Update(0.016f, fixture.input);
+			Require(first->updates == 1 && second->updates == 1, "All retained scenes resume after observer failure");
+		}
+	}
 
 	void SynchronousFailureKeepsOldScene()
 	{
@@ -267,19 +380,15 @@ namespace
 	}
 }
 
-int main()
-{
-	int failures = 0;
-	const auto run = [&](const char* name, void (*test)())
-	{
-		try { test(); std::cout << "PASS " << name << '\n'; }
-		catch (const std::exception& error) { ++failures; std::cerr << "FAIL " << name << ": " << error.what() << '\n'; }
-	};
-	run("sync load failures preserve active scene", SynchronousFailureKeepsOldScene);
-	run("additive load and fence-deferred retirement", DeferredRetirementAndAdditiveLoad);
-	run("async Prepare retention, affinity and recovery", AsynchronousPrepareKeepsOldScene);
-	run("async factory and activation failure recovery", AsyncFactoryAndActivationFailures);
-	run("presentation and fixed simulation contract", PresentationAndSimulationAreIndependent);
-	run("unregistered scene requests preserve active scene", UnregisteredSceneRequestKeepsActiveScene);
-	return failures == 0 ? 0 : 1;
-}
+#define SCENELIFECYCLETESTS_CASES(TEST) \
+	TEST(SynchronousFailureKeepsOldScene, "sync load failures preserve active scene", Cpu) \
+	TEST(DeferredRetirementAndAdditiveLoad, "additive load and fence-deferred retirement", Cpu) \
+	TEST(AsynchronousPrepareKeepsOldScene, "async Prepare retention, affinity and recovery", Cpu) \
+	TEST(AsyncFactoryAndActivationFailures, "async factory and activation failure recovery", Cpu) \
+	TEST(PresentationAndSimulationAreIndependent, "presentation and fixed simulation contract", Cpu) \
+	TEST(UnregisteredSceneRequestKeepsActiveScene, "unregistered scene requests preserve active scene", Cpu) \
+	TEST(AsyncFactoryCopyFailureRecovers, "async factory copy failures recover and retry", Cpu) \
+	TEST(LoadFailuresIncludeContextAndReportOnce, "load failures carry context and report once", Cpu) \
+	TEST(FailingNotificationDoesNotReplaceLoadFailure, "notification failures preserve load error and other observers", Cpu)
+
+GAME_TEST_SUITE(SceneLifecycleTests, SCENELIFECYCLETESTS_CASES)

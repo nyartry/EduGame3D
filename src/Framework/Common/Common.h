@@ -19,7 +19,6 @@ inline void ThrowIfFailed(HRESULT hr, std::string_view operation = {},
 			<< " failed: HRESULT 0x" << std::hex << std::uppercase << std::setw(8)
 			<< std::setfill('0') << static_cast<unsigned long>(hr)
 			<< " (" << location.file_name() << ':' << std::dec << location.line() << ')';
-		Diagnostics::Write(message.str());
 		throw std::runtime_error(message.str());
 	}
 }

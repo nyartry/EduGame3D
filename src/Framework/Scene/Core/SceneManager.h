@@ -68,6 +68,7 @@ private:
 
 	struct PendingLoad
 	{
+		std::string name;
 		SceneLoadMode mode{ SceneLoadMode::Single };
 		SceneFactory factory;
 		std::future<std::unique_ptr<IScene>> future;
@@ -82,6 +83,7 @@ private:
 	void PollAsyncLoad();
 	void UpdateFadeOverlay(float alpha);
 	void RecoverLoadFailure(std::string message);
+	void RecoverLoadException(const std::string& name, const char* operation);
 
 	IRenderResourceLifetime* m_resourceLifetime{};
 	std::uint32_t m_width{};

@@ -1,11 +1,12 @@
 #include "AnimationEventEditorApp.h"
+#include "Framework/Common/Common.h"
+#include "Framework/Core/Diagnostics/Diagnostics.h"
+#include "Framework/Core/Diagnostics/ExceptionUtils.h"
 
 #include <backends/imgui_impl_win32.h>
 #include <imgui.h>
 
 #include <Windows.h>
-
-#include <stdexcept>
 
 using namespace AnimationEventEditorTool;
 
@@ -128,9 +129,11 @@ int APIENTRY wWinMain(
 		GApp = nullptr;
 		return static_cast<int>(message.wParam);
 	}
-	catch (const std::exception& exception)
+	catch (...)
 	{
-		MessageBoxA(nullptr, exception.what(), "Animation Event Editor Error", MB_OK | MB_ICONERROR);
+		const auto message = DescribeException();
+		Diagnostics::Write(message);
+		MessageBoxW(nullptr, ToWide(message.c_str()).c_str(), L"Animation Event Editor Error", MB_OK | MB_ICONERROR);
 		return 1;
 	}
 }

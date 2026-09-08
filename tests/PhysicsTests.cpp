@@ -1,3 +1,4 @@
+#include "TestSupport.h"
 #include "Framework/Core/Math/Aabb.h"
 #include "Framework/Core/Time/FixedStepClock.h"
 #include "Framework/Models/ModelFit.h"
@@ -266,20 +267,13 @@ namespace
 	}
 }
 
-int main()
-{
-	int failures = 0;
-	const auto run = [&failures](const char* name, void (*test)())
-	{
-		try { test(); std::cout << "PASS " << name << '\n'; }
-		catch (const std::exception& error) { ++failures; std::cerr << "FAIL " << name << ": " << error.what() << '\n'; }
-	};
-	run("floor selection and removal", FloorSelectionAndRemoval);
-	run("registration and invalid queries", RegistrationAndInvalidQueries);
-	run("unified sides and boundaries", UnifiedSidesAndBoundaries);
-	run("primitive swept floors and self exclusion", PrimitiveUsesSweptFloorsAndExcludesSelf);
-	run("character uses abstract world", CharacterUsesAbstractWorld);
-	run("fixed-step jump at 30/60/144 FPS and stall", FixedStepJumpAcrossFrameRatesAndStall);
-	run("AABB and model fit contracts", AabbAndModelFitContracts);
-	return failures == 0 ? 0 : 1;
-}
+#define PHYSICSTESTS_CASES(TEST) \
+	TEST(FloorSelectionAndRemoval, "floor selection and removal", Cpu) \
+	TEST(RegistrationAndInvalidQueries, "registration and invalid queries", Cpu) \
+	TEST(UnifiedSidesAndBoundaries, "unified sides and boundaries", Cpu) \
+	TEST(PrimitiveUsesSweptFloorsAndExcludesSelf, "primitive swept floors and self exclusion", Cpu) \
+	TEST(CharacterUsesAbstractWorld, "character uses abstract world", Cpu) \
+	TEST(FixedStepJumpAcrossFrameRatesAndStall, "fixed-step jump at 30/60/144 FPS and stall", Cpu) \
+	TEST(AabbAndModelFitContracts, "AABB and model fit contracts", Cpu)
+
+GAME_TEST_SUITE(PhysicsTests, PHYSICSTESTS_CASES)

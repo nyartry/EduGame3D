@@ -40,3 +40,7 @@ Open `GameFramework.sln` in Visual Studio 2022, then build and run `GameApp` wit
 ## Dependency check
 
 `tools/check_architecture.ps1` prevents Game from directly or transitively depending on Win32, DX12, RmlUi, Effekseer, Assimp, or other backend implementation types. It runs automatically when `EngineFramework` builds.
+
+See [error handling and TDD](docs/error-handling.md) for failure recovery, diagnostic ownership, and regression test commands.
+
+The solution also includes `VisualStudioTests`, a native C++ test project. Build it and open **Test > Test Explorer** to run or debug individual tests. See [Visual Studio testing](docs/visual-studio-tests.md) for setup and command-line equivalents.

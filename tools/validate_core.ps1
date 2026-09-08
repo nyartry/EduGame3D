@@ -33,7 +33,9 @@ else {
 }
 
 foreach ($configuration in $Configurations) {
-    & $msbuildPath (Join-Path $repositoryRoot 'GameFramework.sln') /nologo /m /v:minimal "/p:Configuration=$configuration" /p:Platform=x64
+    # The game and editor stage the same DLL into one output directory.
+    # Serialize their post-build copies to avoid sharing violations.
+    & $msbuildPath (Join-Path $repositoryRoot 'GameFramework.sln') /nologo /m:1 /v:minimal "/p:Configuration=$configuration" /p:Platform=x64
     if ($LASTEXITCODE -ne 0) { throw "$configuration solution build failed." }
     foreach ($test in (Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests') -Filter '*Tests.vcxproj' -File | Sort-Object Name)) {
         & $msbuildPath $test.FullName /nologo /v:minimal "/p:Configuration=$configuration" /p:Platform=x64
@@ -42,6 +44,8 @@ foreach ($configuration in $Configurations) {
         & (Join-Path $repositoryRoot "x64\$configuration\$($test.BaseName)\$($test.BaseName).exe") @testArguments
         if ($LASTEXITCODE -ne 0) { throw "$($test.BaseName) failed ($configuration)." }
     }
+    & (Join-Path $PSScriptRoot 'test_visual_studio.ps1') -Configuration $configuration -NoBuild
+    if ($LASTEXITCODE -ne 0) { throw "Native Test Explorer tests failed ($configuration)." }
     $shaderOutput = Join-Path $repositoryRoot "x64\$configuration\ShaderValidation"
     [void](New-Item -ItemType Directory -Path $shaderOutput -Force)
     foreach ($shader in (Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\Framework\Rendering\Shaders') -Filter '*.hlsl' -File)) {
@@ -52,4 +56,4 @@ foreach ($configuration in $Configurations) {
         }
     }
 }
-Write-Output 'Core validation passed: architecture, project registration, builds, regression tests and shaders.'
+Write-Output 'Core validation passed: architecture, project registration, builds, console and native regression tests and shaders.'

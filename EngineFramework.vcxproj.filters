@@ -341,6 +341,9 @@
     <ClInclude Include="src\Framework\Core\Diagnostics\Diagnostics.h">
       <Filter>Framework\Core\Diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="src\Framework\Core\Diagnostics\ExceptionUtils.h">
+      <Filter>Framework\Core\Diagnostics</Filter>
+    </ClInclude>
     <ClInclude Include="src\Framework\Core\Math\Aabb.h">
       <Filter>Framework\Core\Math</Filter>
     </ClInclude>

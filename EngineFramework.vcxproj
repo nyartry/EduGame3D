@@ -130,6 +130,7 @@
     <ClInclude Include="src\Framework\Common\Common.h" />
     <ClInclude Include="src\Framework\Common\ModelScaleSettings.h" />
     <ClInclude Include="src\Framework\Core\Diagnostics\Diagnostics.h" />
+    <ClInclude Include="src\Framework\Core\Diagnostics\ExceptionUtils.h" />
     <ClInclude Include="src\Framework\Core\Math\Aabb.h" />
     <ClInclude Include="src\Framework\Core\Math\MathUtils.h" />
     <ClInclude Include="src\Framework\Core\Math\Transform.h" />

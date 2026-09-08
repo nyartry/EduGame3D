@@ -1,3 +1,4 @@
+#include "TestSupport.h"
 #include "Framework/Assets/AssetPathResolver.h"
 #include "Framework/Assets/ImageLoader.h"
 #include "Framework/Models/ModelAssetCache.h"
@@ -410,22 +411,15 @@ namespace
 	}
 }
 
-int main()
-{
-	int failures = 0;
-	const auto run = [&failures](const char* name, void (*test)())
-	{
-		try { test(); std::cout << "PASS " << name << '\n'; }
-		catch (const std::exception& error) { ++failures; std::cerr << "FAIL " << name << ": " << error.what() << '\n'; }
-	};
-	run("worker preparation and activation without source", WorkerPrepareThenActivationWithoutSource);
-	run("failed model import remains retryable", FailedImportsDoNotPoisonCache);
-	run("cache lifetime and synchronous compatibility", CacheLifetimeAndSynchronousCompatibility);
-	run("explicit model playback and rejected requests", ExplicitModelPlaybackRequests);
-	run("one-shot model events fire once", OneShotModelEventsFireOnce);
-	run("player rejects early, late and held combo input", PlayerRejectsOutOfWindowAndHeldInput);
-	run("player queues one combo and preserves final-frame events", PlayerQueuesOneComboAndPreservesFinalEvents);
-	run("player uses edited combo-window events", PlayerUsesEditedComboWindowEvents);
-	run("player without locomotion clips exits attack", PlayerWithoutLocomotionClipsCanLeaveAttack);
-	return failures == 0 ? 0 : 1;
-}
+#define MODELPREPARATIONTESTS_CASES(TEST) \
+	TEST(WorkerPrepareThenActivationWithoutSource, "worker preparation and activation without source", Cpu) \
+	TEST(FailedImportsDoNotPoisonCache, "failed model import remains retryable", Cpu) \
+	TEST(CacheLifetimeAndSynchronousCompatibility, "cache lifetime and synchronous compatibility", Cpu) \
+	TEST(ExplicitModelPlaybackRequests, "explicit model playback and rejected requests", Cpu) \
+	TEST(OneShotModelEventsFireOnce, "one-shot model events fire once", Cpu) \
+	TEST(PlayerRejectsOutOfWindowAndHeldInput, "player rejects early, late and held combo input", Cpu) \
+	TEST(PlayerQueuesOneComboAndPreservesFinalEvents, "player queues one combo and preserves final-frame events", Cpu) \
+	TEST(PlayerUsesEditedComboWindowEvents, "player uses edited combo-window events", Cpu) \
+	TEST(PlayerWithoutLocomotionClipsCanLeaveAttack, "player without locomotion clips exits attack", Cpu)
+
+GAME_TEST_SUITE(ModelPreparationTests, MODELPREPARATIONTESTS_CASES)

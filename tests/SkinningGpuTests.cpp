@@ -1,10 +1,10 @@
 #include "SkinningTestCases.h"
+#include "TestSupport.h"
 #include "Framework/Rendering/Pipelines/SkinnedTexturedPipeline.h"
 
 #include <array>
 #include <d3dcompiler.h>
 #include <dxgi1_6.h>
-#include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <stdexcept>
@@ -14,31 +14,6 @@ using namespace DirectX;
 
 namespace
 {
-	struct RepositoryDirectory
-	{
-		std::filesystem::path previous = std::filesystem::current_path();
-		RepositoryDirectory()
-		{
-			std::array<wchar_t, 32768> executable{};
-			const auto length = GetModuleFileNameW(nullptr, executable.data(), static_cast<DWORD>(executable.size()));
-			if (length == 0 || length >= executable.size()) throw std::runtime_error("Cannot resolve the test executable.");
-			auto root = std::filesystem::path(executable.data()).parent_path();
-			while (!root.empty())
-			{
-				if (std::filesystem::exists(root / "src/Framework/Rendering/Shaders/SkinnedTextured.hlsl"))
-				{
-					std::filesystem::current_path(root);
-					return;
-				}
-				const auto parent = root.parent_path();
-				if (parent == root) break;
-				root = parent;
-			}
-			throw std::runtime_error("Cannot locate the production skinning shader.");
-		}
-		~RepositoryDirectory() { std::error_code error; std::filesystem::current_path(previous, error); }
-	};
-
 	ComPtr<ID3D12Resource> CreateBuffer(ID3D12Device* device, UINT64 size, D3D12_HEAP_TYPE type,
 		D3D12_RESOURCE_STATES state, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE)
 	{
@@ -61,7 +36,7 @@ namespace
 
 void RunSkinningGpuTests()
 {
-	RepositoryDirectory repository;
+	TestSupport::RepositoryDirectory repository;
 	const auto cases = CreateSkinningTestCases();
 	constexpr UINT outputStride = 12 * sizeof(float);
 	const auto resultBytes = cases.size() * outputStride;
