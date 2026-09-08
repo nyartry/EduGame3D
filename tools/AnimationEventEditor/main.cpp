@@ -45,16 +45,6 @@ namespace
 				GApp->OpenFbx();
 				return 0;
 			}
-			if ((GetKeyState(VK_CONTROL) & 0x8000) != 0 && wParam == 'Z' && GApp != nullptr)
-			{
-				GApp->Undo();
-				return 0;
-			}
-			if ((GetKeyState(VK_CONTROL) & 0x8000) != 0 && wParam == 'Y' && GApp != nullptr)
-			{
-				GApp->Redo();
-				return 0;
-			}
 			if ((GetKeyState(VK_CONTROL) & 0x8000) != 0 && wParam == 'S' && GApp != nullptr)
 			{
 				GApp->SaveDefaultEvents();
