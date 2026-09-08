@@ -19,6 +19,12 @@ class IRenderDevice;
 class IRenderer;
 class ModelAssetCache;
 
+struct AnimationPlayOptions
+{
+	AnimationPlaybackMode mode{ AnimationPlaybackMode::Loop };
+	bool restart{};
+};
+
 class SkinnedModel
 {
 public:
@@ -31,11 +37,13 @@ public:
 		const ModelScaleSettings& scaleSettings = ModelScaleSettings::OriginalSize(),
 		SkinningMode skinningMode = SkinningMode::Cpu);
 	void AddAnimation(const std::string& animationName, const std::string& animationPath);
-	void PlayAnimation(const std::string& animationName);
-	void PlayAnimationByIndex(size_t animationIndex);
+	// Same clip/mode continues unless restart is requested. Invalid requests leave playback unchanged.
+	bool PlayAnimation(const std::string& animationName, const AnimationPlayOptions& options = {});
+	bool PlayAnimationByIndex(size_t animationIndex, const AnimationPlayOptions& options = {});
 	float GetAnimationDurationSeconds(const std::string& animationName) const;
 	float GetCurrentAnimationDurationSeconds() const;
 	float GetAnimationTimeSeconds() const;
+	bool IsAnimationFinished() const { return m_playback.IsFinished(); }
 	size_t GetCurrentAnimationIndex() const;
 	const SkinnedModelData& GetModelData() const;
 	void SetAnimationTimeSeconds(float animationTimeSeconds);
@@ -43,6 +51,8 @@ public:
 	// Drains the latest simulation update's events once, before the next Update.
 	// Seek and clip switches clear pending events.
 	std::vector<AnimationEvents::Occurrence> ConsumeAnimationEvents();
+	// Non-consuming view for gameplay; valid until the next update, seek, switch or drain.
+	const std::vector<AnimationEvents::Occurrence>& GetAnimationEvents() const { return m_pendingAnimationEvents; }
 	// Animation is model-local; world placement belongs to the actor/editor.
 	void Draw(IRenderer& renderer, const DirectX::XMMATRIX& world) const;
 

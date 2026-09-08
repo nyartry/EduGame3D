@@ -152,6 +152,90 @@ namespace
 		Near(static_cast<float>(GetAnimationDurationSeconds(clip)), 0.0f, "Invalid tick rate has zero duration");
 	}
 
+	void OncePlaybackStopsAndRestarts()
+	{
+		AnimationPlayback playback;
+		Require(playback.GetMode() == AnimationPlaybackMode::Loop && !playback.IsFinished(), "Default playback keeps looping");
+		for (const double finalDelta : { 0.75, 2.0, (std::numeric_limits<double>::max)() })
+		{
+			playback.Reset(AnimationPlaybackMode::Once);
+			Require(playback.GetMode() == AnimationPlaybackMode::Once && !playback.IsFinished() &&
+				playback.GetLocalTimeSeconds() == 0.0, "Once reset clears the old completion and time");
+			const auto partial = playback.Advance(0.25, 1.0);
+			Require(partial.advanced && partial.fromSeconds == 0.0 && partial.toSeconds == 0.25 &&
+				partial.completedLoops == 0 && !playback.IsFinished(), "Once advances through the clip without wrapping");
+			for (const double invalidDelta : { 0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN() })
+			{
+				const auto stationary = playback.Advance(invalidDelta, 1.0);
+				Require(!stationary.advanced && stationary.completedLoops == 0 &&
+					stationary.fromSeconds == 0.25 && stationary.toSeconds == 0.25 && !playback.IsFinished(),
+					"Invalid Once delta preserves playback and completion state");
+			}
+			const auto terminal = playback.Advance(finalDelta, 1.0);
+			Require(terminal.advanced && terminal.fromSeconds == 0.25 && terminal.toSeconds == 1.0 &&
+				terminal.completedLoops == 0 && playback.IsFinished() && playback.GetLocalTimeSeconds() == 1.0,
+				"Exact and overshooting Once advances stop at the final pose");
+			const auto finished = playback.Advance(10.0, 1.0);
+			Require(!finished.advanced && finished.completedLoops == 0 && finished.fromSeconds == 1.0 &&
+				finished.toSeconds == 1.0 && playback.IsFinished(), "Finished Once playback remains stationary");
+		}
+
+		playback.Seek(-1.0, 1.0);
+		Require(playback.GetMode() == AnimationPlaybackMode::Once && playback.GetLocalTimeSeconds() == 0.0 &&
+			!playback.IsFinished(), "Once seek clamps negative time and retains its mode");
+		playback.Seek(2.0, 1.0);
+		Require(playback.GetLocalTimeSeconds() == 1.0 && playback.IsFinished(), "Once seek beyond the end finishes without wrapping");
+		playback.Seek(0.5, 1.0);
+		Require(playback.GetLocalTimeSeconds() == 0.5 && !playback.IsFinished(), "Seeking inside Once allows playback to continue");
+		playback.Seek(std::numeric_limits<double>::quiet_NaN(), 1.0);
+		Require(playback.GetLocalTimeSeconds() == 0.0 && !playback.IsFinished(), "Invalid Once seek time resets to zero");
+		for (const double invalidDuration : { 0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN() })
+		{
+			playback.Reset(AnimationPlaybackMode::Once);
+			Require(!playback.Advance(0.0, invalidDuration).advanced && playback.IsFinished(), "Invalid Once duration finishes immediately");
+			Require(!playback.Advance(1.0, 1.0).advanced && playback.IsFinished(), "Invalid-duration completion persists until an explicit restart");
+			playback.Reset(AnimationPlaybackMode::Once);
+			playback.Seek(0.25, invalidDuration);
+			Require(playback.GetLocalTimeSeconds() == 0.0 && playback.IsFinished(), "Seeking an invalid Once duration also finishes");
+		}
+		playback.Reset();
+		Require(playback.GetMode() == AnimationPlaybackMode::Loop && !playback.IsFinished(), "Default reset restores looping");
+		const auto loop = playback.Advance(1.25, 1.0);
+		Require(loop.completedLoops == 1 && loop.toSeconds == 0.25 && !playback.IsFinished(), "Returning to Loop retains existing wrap behavior");
+	}
+
+	void OnceRootMotionStopsAtClipEnd()
+	{
+		AnimationClip clip;
+		clip.durationTicks = 30.0;
+		clip.rootMotionBoneAnimationIndex = 0;
+		BoneAnimation animation;
+		animation.boneIndex = 0;
+		// The final key extends beyond the clip, so extraction must sample its actual endpoint.
+		animation.translations = { { 0.0, { 3.0f, 1.0f, 2.0f } }, { 60.0, { 5.0f, 5.0f, 8.0f } } };
+		clip.boneAnimations.push_back(animation);
+		std::vector<BoneData> bones(1);
+		XMStoreFloat4x4(&bones[0].localBindTransform, XMMatrixIdentity());
+		AnimationPlayback playback;
+		for (int play = 0; play < 2; ++play)
+		{
+			playback.Reset(AnimationPlaybackMode::Once);
+			XMFLOAT3 total{};
+			for (const double delta : { 0.25, 0.5, 5.0, 5.0 })
+			{
+				const auto interval = playback.Advance(delta, 1.0);
+				const auto root = ExtractRootMotionDelta(clip, bones, interval, 2.0f);
+				total.x += root.translation.x;
+				total.y += root.translation.y;
+				total.z += root.translation.z;
+				Require(interval.completedLoops == 0, "Once root extraction must never include another cycle");
+			}
+			Near(total, { 2.0f, 4.0f, 6.0f }, "Overshoot and finished updates contribute only one clip of scaled root motion on every replay");
+			Near(ExtractRootMotionDelta(clip, bones, playback.Advance(1.0, 1.0), 2.0f).translation,
+				{}, "Finished Once playback emits no more root displacement");
+		}
+	}
+
 	void DefaultModesPreserveJump()
 	{
 		Ground ground;
@@ -302,6 +386,8 @@ int main()
 	run("blend weights, Y policy, and yaw", BlendWeightsAndYaw);
 	run("root extraction across complete and partial loops", RootExtractionAcrossLoops);
 	run("playback seeks and invalid time", PlaybackSeekAndInvalidTime);
+	run("once playback stops, seeks, and restarts", OncePlaybackStopsAndRestarts);
+	run("once root motion stops at clip end", OnceRootMotionStopsAtClipEnd);
 	run("animation events and shared editor/runtime JSON", TestAnimationEvents);
 	run("default modes preserve jump", DefaultModesPreserveJump);
 	run("explicit animation Y preserves whole jump", ExplicitAnimationYPreservesWholeJump);

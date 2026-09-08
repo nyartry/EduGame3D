@@ -52,7 +52,7 @@ void SkinnedModel::Prepare(ModelAssetCache& assets, const std::string& modelPath
 {
 	m_modelData = *assets.LoadSkinned(modelPath);
 	m_preparedModelPath = modelPath;
-	m_playback.Seek(0.0, 0.0);
+	m_playback.Reset();
 	m_currentAnimationIndex = 0;
 	m_animationEvents.clear();
 	m_pendingAnimationEvents.clear();
@@ -133,34 +133,34 @@ std::vector<AnimationEvents::Occurrence> SkinnedModel::ConsumeAnimationEvents()
 	return result;
 }
 
-void SkinnedModel::PlayAnimation(const std::string& animationName)
+bool SkinnedModel::PlayAnimation(const std::string& animationName, const AnimationPlayOptions& options)
 {
 	for (size_t animationIndex = 0; animationIndex < m_modelData.animations.size(); ++animationIndex)
 	{
 		if (m_modelData.animations[animationIndex].name == animationName)
 		{
-			if (m_currentAnimationIndex != animationIndex)
-			{
-				m_currentAnimationIndex = animationIndex;
-				m_playback.Seek(0.0, 0.0);
-				m_pendingAnimationEvents.clear();
-			}
-			return;
+			return PlayAnimationByIndex(animationIndex, options);
 		}
 	}
+	return false;
 }
 
-void SkinnedModel::PlayAnimationByIndex(size_t animationIndex)
+bool SkinnedModel::PlayAnimationByIndex(size_t animationIndex, const AnimationPlayOptions& options)
 {
 	if (animationIndex >= m_modelData.animations.size())
 	{
-		return;
+		return false;
+	}
+	if (options.mode == AnimationPlaybackMode::Once &&
+		::GetAnimationDurationSeconds(m_modelData.animations[animationIndex]) <= 0.0)
+	{
+		return false;
 	}
 
-	if (m_currentAnimationIndex != animationIndex)
+	if (m_currentAnimationIndex != animationIndex || m_playback.GetMode() != options.mode || options.restart)
 	{
 		m_currentAnimationIndex = animationIndex;
-		m_playback.Seek(0.0, 0.0);
+		m_playback.Reset(options.mode);
 		m_pendingAnimationEvents.clear();
 		UpdateBoneMatrices();
 		for (std::unique_ptr<ISkinnedMeshProcessor>& meshProcessor : m_meshProcessors)
@@ -168,6 +168,7 @@ void SkinnedModel::PlayAnimationByIndex(size_t animationIndex)
 			meshProcessor->Update(m_boneMatrices, m_modelCenterX, m_modelMinY, m_modelCenterZ, m_modelScale);
 		}
 	}
+	return true;
 }
 
 float SkinnedModel::GetAnimationDurationSeconds(const std::string& animationName) const

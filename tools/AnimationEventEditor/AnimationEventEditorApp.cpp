@@ -1170,6 +1170,8 @@ namespace
 				"PlayEffect",
 				"HitboxStart",
 				"HitboxEnd",
+				"ComboWindowOpen",
+				"ComboWindowClose",
 				"Custom"
 			};
 			int selectedType = 0;

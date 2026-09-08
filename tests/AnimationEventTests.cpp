@@ -43,6 +43,34 @@ namespace
 		Require(rejected, "Occurrence overflow is explicit and bounded");
 	}
 
+	void OnceEventIntervals()
+	{
+		const std::vector<AnimationEvents::Event> events
+		{
+			{ 0.0, "attack", "Start", "zero" },
+			{ 0.25, "attack", "HitboxStart", "hit" },
+			{ 1.0, "attack", "End", "end" },
+			{ 1.25, "attack", "Invalid", "outside clip" }
+		};
+		AnimationPlayback playback;
+		playback.Reset(AnimationPlaybackMode::Once);
+		auto fired = AnimationEvents::Collect(events, "attack", playback.Advance(0.5, 1.0));
+		Require(fired.size() == 1 && fired[0].event.name == "hit" && fired[0].offsetSeconds == 0.25,
+			"Once playback emits the crossed interior event and excludes initial zero");
+		fired = AnimationEvents::Collect(events, "attack", playback.Advance(5.0, 1.0));
+		Require(fired.size() == 1 && fired[0].event.name == "end" && fired[0].offsetSeconds == 0.5 && playback.IsFinished(),
+			"Overshooting Once playback emits its terminal event once without next-cycle zero");
+		Require(AnimationEvents::Collect(events, "attack", playback.Advance(5.0, 1.0)).empty(),
+			"Finished Once playback cannot repeat its terminal event");
+		playback.Reset(AnimationPlaybackMode::Once);
+		fired = AnimationEvents::Collect(events, "attack", playback.Advance(10.0, 1.0));
+		Require(fired.size() == 2 && fired[0].event.name == "hit" && fired[1].event.name == "end" &&
+			fired[1].offsetSeconds == 1.0, "Once replay emits exactly one clip of events even in a single long update");
+		playback.Seek(1.0, 1.0);
+		Require(AnimationEvents::Collect(events, "attack", playback.Advance(1.0, 1.0)).empty(),
+			"Seeking to the Once endpoint produces no traversal events");
+	}
+
 	void JsonContract()
 	{
 		std::string error;
@@ -110,6 +138,7 @@ namespace
 void TestAnimationEvents()
 {
 	EventIntervals();
+	OnceEventIntervals();
 	JsonContract();
 	EditorAndRuntimeRoundTrip();
 }

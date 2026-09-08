@@ -124,6 +124,10 @@ void GameScene::Activate()
 	{
 		actor->Initialize(m_renderDevice);
 	}
+	if (m_followTarget != nullptr)
+	{
+		m_camera->SetTarget(GetActiveCameraTargetPosition(), m_followTarget->GetRotationY());
+	}
 	m_preparedImages.clear();
 }
 

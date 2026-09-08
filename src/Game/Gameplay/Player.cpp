@@ -6,6 +6,7 @@
 #include "Game/Input/GameActions.h"
 
 #include <cmath>
+#include <stdexcept>
 #include <string>
 
 using namespace DirectX;
@@ -15,7 +16,6 @@ namespace
 	constexpr const char* IdleAnimationName = "Idle";
 	constexpr const char* JoggingAnimationName = "Jogging";
 	constexpr const char* AttackAnimationName = "Attack";
-	constexpr float DefaultAttackDurationSeconds = 1.0f;
 }
 
 const SkinnedMeshActorDefinition& Player::GetSkinnedMeshDefinition() const
@@ -28,6 +28,9 @@ void Player::Prepare(ModelAssetCache& assets)
 	m_playerPrepared = false;
 	const PlayerDefinition& definition = GetPlayerDefinition();
 	SkinnedMeshActor::Prepare(assets);
+	m_animationState = AnimationState::Idle;
+	m_comboWindowOpen = false;
+	m_attackQueued = false;
 	m_moveSpeed = definition.moveSpeed;
 	m_groundProbe.SetSettings(definition.grounding);
 	m_verticalMotion.SetSettings(definition.verticalMotion);
@@ -41,10 +44,10 @@ void Player::Prepare(ModelAssetCache& assets)
 	if (m_hasAttackAnimation)
 	{
 		GetModel().PrepareAnimation(assets, AttackAnimationName, std::string(definition.attackAnimationPath));
-		m_attackDurationSeconds = GetModel().GetAnimationDurationSeconds(AttackAnimationName);
-		if (m_attackDurationSeconds <= 0.0f)
+		const float attackDuration = GetModel().GetAnimationDurationSeconds(AttackAnimationName);
+		if (!std::isfinite(attackDuration) || attackDuration <= 0.0f)
 		{
-			m_attackDurationSeconds = DefaultAttackDurationSeconds;
+			throw std::runtime_error("Player attack animation must have a finite, positive duration.");
 		}
 	}
 	m_playerPrepared = true;
@@ -61,16 +64,13 @@ void Player::Update(float deltaTime, const Input& input)
 {
 	m_startedJumpThisFrame = false;
 
-	if (GameActions::WasPressed(input, GameAction::Attack) && m_hasAttackAnimation)
-	{
-		StartAttack();
-	}
-
 	const MovementInput movementInput = ReadMovementInput(input);
+	UpdateAttackState(GameActions::WasPressed(input, GameAction::Attack) && m_hasAttackAnimation,
+		movementInput.hasDirection);
 	const bool isAttacking = IsAttacking();
 	const XMFLOAT3 inputDisplacement = BuildInputDisplacement(movementInput, deltaTime, isAttacking);
 	ApplyMovement(deltaTime, GameActions::WasPressed(input, GameAction::Jump), inputDisplacement);
-	UpdateAttackTimer(deltaTime, movementInput.hasDirection);
+	UpdateComboWindow();
 }
 
 XMFLOAT3 Player::GetCollisionPosition() const
@@ -131,36 +131,78 @@ void Player::ResolveWallCollision()
 
 void Player::StartAttack()
 {
-	m_attackTimeRemaining = m_attackDurationSeconds;
-	SetAnimationState(AnimationState::Attack);
+	SetAnimationState(AnimationState::Attack, { .mode = AnimationPlaybackMode::Once, .restart = true });
 }
 
-void Player::SetAnimationState(AnimationState state)
+void Player::SetAnimationState(AnimationState state, const AnimationPlayOptions& options)
 {
-	if (m_animationState == state)
+	if (m_animationState == state && !options.restart)
 	{
 		return;
 	}
 
-	m_animationState = state;
-	switch (m_animationState)
+	const char* animationName = nullptr;
+	switch (state)
 	{
 	case AnimationState::Idle:
-		GetModel().PlayAnimation(IdleAnimationName);
+		animationName = IdleAnimationName;
 		break;
 	case AnimationState::Jogging:
 		if (m_hasJoggingAnimation)
 		{
-			GetModel().PlayAnimation(JoggingAnimationName);
+			animationName = JoggingAnimationName;
 		}
 		break;
 	case AnimationState::Attack:
 		if (m_hasAttackAnimation)
 		{
-			GetModel().PlayAnimation(AttackAnimationName);
+			animationName = AttackAnimationName;
 		}
 		break;
 	}
+	const bool startedPlayback = animationName != nullptr && GetModel().PlayAnimation(animationName, options);
+	if (state == AnimationState::Attack && !startedPlayback)
+	{
+		return;
+	}
+	// Missing optional locomotion clips must not keep gameplay locked in Attack.
+	m_animationState = state;
+	m_comboWindowOpen = false;
+	m_attackQueued = false;
+}
+
+void Player::UpdateAttackState(bool wantsAttack, bool hasMovementInput)
+{
+	if (!IsAttacking())
+	{
+		if (wantsAttack) StartAttack();
+		return;
+	}
+
+	// Transition on the next update so the scene can consume the completed
+	// attack's terminal events before a clip switch clears them.
+	if (GetModel().IsAnimationFinished())
+	{
+		if (m_attackQueued || wantsAttack) StartAttack();
+		else SetAnimationState(GetLocomotionState(hasMovementInput));
+		return;
+	}
+
+	if (wantsAttack && m_comboWindowOpen)
+	{
+		m_attackQueued = true;
+	}
+}
+
+void Player::UpdateComboWindow()
+{
+	if (!IsAttacking()) return;
+	for (const auto& occurrence : GetModel().GetAnimationEvents())
+	{
+		if (occurrence.event.type == "ComboWindowOpen") m_comboWindowOpen = true;
+		else if (occurrence.event.type == "ComboWindowClose") m_comboWindowOpen = false;
+	}
+	if (GetModel().IsAnimationFinished()) m_comboWindowOpen = false;
 }
 
 Player::MovementInput Player::ReadMovementInput(const Input& input) const
@@ -234,20 +276,6 @@ void Player::ApplyMovement(
 		m_lastJumpStartPosition = jumpStartPosition;
 	}
 	SetPosition(position);
-}
-
-void Player::UpdateAttackTimer(float deltaTime, bool hasMovementInput)
-{
-	if (!IsAttacking())
-	{
-		return;
-	}
-
-	m_attackTimeRemaining -= deltaTime;
-	if (m_attackTimeRemaining <= 0.0f)
-	{
-		SetAnimationState(GetLocomotionState(hasMovementInput));
-	}
 }
 
 Player::AnimationState Player::GetLocomotionState(bool hasMovementInput) const

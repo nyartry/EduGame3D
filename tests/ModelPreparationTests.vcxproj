@@ -38,6 +38,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ModelPreparationTests.cpp" />
+    <ClCompile Include="..\src\Game\Gameplay\Player.cpp" />
+    <ClCompile Include="..\src\Game\Input\GameActions.cpp" />
+    <ClCompile Include="..\src\Game\Gameplay\CharacterGrounding.cpp" />
+    <ClCompile Include="..\src\Framework\Models\SkinnedMeshActor.cpp" />
+    <ClCompile Include="..\src\Framework\Scene\Input\Input.cpp" />
+    <ClCompile Include="..\src\Framework\Core\Math\Transform.cpp" />
+    <ClCompile Include="..\src\Framework\Animation\RootMotion.cpp" />
+    <ClCompile Include="..\src\Framework\Physics\CollisionWorld.cpp" />
+    <ClCompile Include="..\src\Framework\Gameplay\CollisionBody.cpp" />
     <ClCompile Include="..\src\Framework\Models\ModelAssetCache.cpp" />
     <ClCompile Include="..\src\Framework\Models\ModelLoader.cpp" />
     <ClCompile Include="..\src\Framework\Models\ModelTextureResolver.cpp" />

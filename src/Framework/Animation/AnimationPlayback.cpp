@@ -2,6 +2,7 @@
 
 #include "Framework/Models/SkinnedModelData.h"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
@@ -20,10 +21,25 @@ double GetAnimationDurationSeconds(const AnimationClip& clip)
 	return IsDurationValid(duration) ? duration : 0.0;
 }
 
+void AnimationPlayback::Reset(AnimationPlaybackMode mode)
+{
+	m_localTimeSeconds = 0.0;
+	m_mode = mode;
+	m_finished = false;
+}
+
 void AnimationPlayback::Seek(double seconds, double durationSeconds)
 {
+	if (m_mode == AnimationPlaybackMode::Once)
+	{
+		m_localTimeSeconds = IsDurationValid(durationSeconds) && std::isfinite(seconds)
+			? std::clamp(seconds, 0.0, durationSeconds) : 0.0;
+		m_finished = !IsDurationValid(durationSeconds) || m_localTimeSeconds >= durationSeconds;
+		return;
+	}
 	m_localTimeSeconds = IsDurationValid(durationSeconds) && std::isfinite(seconds) && seconds > 0.0
 		? std::fmod(seconds, durationSeconds) : 0.0;
+	m_finished = false;
 }
 
 AnimationPlaybackInterval AnimationPlayback::Advance(double deltaSeconds, double durationSeconds)
@@ -31,11 +47,24 @@ AnimationPlaybackInterval AnimationPlayback::Advance(double deltaSeconds, double
 	if (!IsDurationValid(durationSeconds))
 	{
 		m_localTimeSeconds = 0.0;
+		m_finished = m_mode == AnimationPlaybackMode::Once;
 		return {};
 	}
+	if (m_finished)
+		return { durationSeconds, m_localTimeSeconds, m_localTimeSeconds };
 	Seek(m_localTimeSeconds, durationSeconds);
 	AnimationPlaybackInterval interval{ durationSeconds, m_localTimeSeconds, m_localTimeSeconds };
-	if (!std::isfinite(deltaSeconds) || deltaSeconds <= 0.0) return interval;
+	if (m_finished || !std::isfinite(deltaSeconds) || deltaSeconds <= 0.0) return interval;
+	if (m_mode == AnimationPlaybackMode::Once)
+	{
+		const double distanceToEnd = durationSeconds - m_localTimeSeconds;
+		interval.toSeconds = deltaSeconds >= distanceToEnd
+			? durationSeconds : m_localTimeSeconds + deltaSeconds;
+		interval.advanced = interval.toSeconds > interval.fromSeconds;
+		m_localTimeSeconds = interval.toSeconds;
+		m_finished = m_localTimeSeconds >= durationSeconds;
+		return interval;
+	}
 
 	// Split before adding so small updates retain precision even after many cycles.
 	const double remainder = std::fmod(deltaSeconds, durationSeconds);

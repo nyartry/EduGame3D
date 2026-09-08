@@ -57,7 +57,9 @@ private:
 	};
 
 	void StartAttack();
-	void SetAnimationState(AnimationState state);
+	void SetAnimationState(AnimationState state, const AnimationPlayOptions& options = {});
+	void UpdateAttackState(bool wantsAttack, bool hasMovementInput);
+	void UpdateComboWindow();
 	MovementInput ReadMovementInput(const Input& input) const;
 	DirectX::XMFLOAT3 BuildInputDisplacement(
 		const MovementInput& movementInput,
@@ -67,7 +69,6 @@ private:
 		float deltaTime,
 		bool wantsJump,
 		const DirectX::XMFLOAT3& inputDisplacement);
-	void UpdateAttackTimer(float deltaTime, bool hasMovementInput);
 	AnimationState GetLocomotionState(bool hasMovementInput) const;
 	bool IsAttacking() const;
 	DirectX::XMFLOAT3 TransformInputToWorld(const DirectX::XMFLOAT3& movement) const;
@@ -77,8 +78,8 @@ private:
 	CharacterVerticalMotion m_verticalMotion;
 	DirectX::XMFLOAT3 m_movementForward{ 0.0f, 0.0f, 1.0f };
 	float m_moveSpeed{ 3.0f };
-	float m_attackTimeRemaining{};
-	float m_attackDurationSeconds{};
+	bool m_comboWindowOpen{};
+	bool m_attackQueued{};
 	bool m_hasJoggingAnimation{};
 	bool m_hasAttackAnimation{};
 	bool m_playerPrepared{};

@@ -1,0 +1,22 @@
+{
+  "schema": "open-campus-animation-events-v1",
+  "sourceFbx": "Content\\Models\\Player\\Mma Kick\\Mma Kick.fbx",
+  "events": [
+    {
+      "animation": "mixamo.com",
+      "time": 0.5,
+      "type": "ComboWindowOpen",
+      "name": "Combo input opens",
+      "bone": "",
+      "cue": ""
+    },
+    {
+      "animation": "mixamo.com",
+      "time": 1.2,
+      "type": "ComboWindowClose",
+      "name": "Combo input closes",
+      "bone": "",
+      "cue": ""
+    }
+  ]
+}
