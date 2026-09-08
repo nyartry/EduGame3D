@@ -42,11 +42,11 @@ XMMATRIX AnimationSampler::SampleLocalTransform(
 	XMVECTOR bindTranslation = XMVectorZero();
 	XMMatrixDecompose(&bindScale, &bindRotation, &bindTranslation, LoadMatrix(bindPose.localBindTransform));
 
+	const double animationTimeTicks = GetAnimationTimeTicks(clip, animationTimeSeconds);
 	const XMVECTOR translation = RemoveRootMotionTranslation(
 		boneAnimation,
-		SampleTranslation(clip, boneAnimation, bindPose, animationTimeSeconds),
+		SampleVectorKey(boneAnimation.translations, animationTimeTicks, bindTranslation),
 		bindTranslation);
-	const double animationTimeTicks = GetAnimationTimeTicks(clip, animationTimeSeconds);
 	const XMVECTOR rotation = SampleQuaternionKey(boneAnimation.rotations, animationTimeTicks, bindRotation);
 	const XMVECTOR scale = SampleVectorKey(boneAnimation.scales, animationTimeTicks, bindScale);
 
