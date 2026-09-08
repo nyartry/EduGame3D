@@ -63,7 +63,6 @@ $projects = @(
         Groups = @(
             (New-FilterGroup -ItemType ClCompile -SearchRoot 'src\Launcher' -Pattern '*.cpp' -FilterRoot 'src')
             (New-FilterGroup -ItemType ClInclude -SearchRoot 'src\Launcher' -Pattern '*.h' -FilterRoot 'src')
-            (New-FilterGroup -ItemType None -SearchRoot 'src\Framework\Rendering\Shaders' -Pattern '*.hlsl' -FilterRoot 'src')
         )
     }
     [pscustomobject]@{

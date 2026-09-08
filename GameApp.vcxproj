@@ -32,12 +32,6 @@
     <ClInclude Include="src\Launcher\Win32\Win32Application.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Framework\Rendering\Shaders\BasicColor.hlsl" />
-    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
-    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
-    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="EngineFramework.vcxproj"><Project>{a04d8f6b-34b4-4c91-af98-158f3bca608d}</Project></ProjectReference>
     <ProjectReference Include="GameModule.vcxproj"><Project>{d7c198b4-e252-4630-a617-f0f2a4b4677a}</Project></ProjectReference>
   </ItemGroup>
