@@ -2,6 +2,12 @@
 
 Windows desktop DirectX 12 starter project for Visual Studio 2022.
 
+## Purpose and handoff
+
+This is a student starter project for building 3D portfolio games. The framework should support different game genres without prescribing gameplay rules; completing the included sample as a game is not the goal.
+
+See [学生配布用3Dゲームひな型のコア調査・引き継ぎ](docs/student-template-core-handoff.md) for the project intent, current implementation, proposed improvements, validation results, and instructions for continuing work on another PC.
+
 ## What is included
 
 - Win32 window creation
