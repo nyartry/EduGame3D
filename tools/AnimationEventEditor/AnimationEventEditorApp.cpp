@@ -6,6 +6,7 @@
 #include "AnimationEventJson.h"
 #include "Framework/Assets/AssetPathResolver.h"
 #include "Framework/Common/ModelScaleSettings.h"
+#include "Framework/Core/Diagnostics/Diagnostics.h"
 #include "Framework/Core/Math/Transform.h"
 #include "Framework/Models/SkinnedModel.h"
 #include "Framework/Rendering/Core/Dx12Renderer.h"
@@ -119,6 +120,8 @@ namespace
 	struct AnimationEventEditorApp::Impl
 	{
 	public:
+		~Impl() { Shutdown(); }
+
 		void Initialize(HWND hwnd)
 		{
 			m_hwnd = hwnd;
@@ -129,12 +132,39 @@ namespace
 			m_status = "Open an FBX file to begin.";
 		}
 
-		void Shutdown()
+		void Shutdown() noexcept
 		{
-			m_renderer.WaitForGpu();
-			ImGui_ImplDX12_Shutdown();
-			ImGui_ImplWin32_Shutdown();
-			ImGui::DestroyContext();
+			// Quiesce submitted work and abandon any interrupted frame while the
+			// model, grid, and ImGui resources are still alive.
+			m_renderer.Shutdown();
+			if (m_imguiContext == nullptr)
+			{
+				return;
+			}
+
+			ImGuiContext* previousContext = ImGui::GetCurrentContext();
+			ImGuiContext* ownedContext = m_imguiContext;
+			m_imguiContext = nullptr;
+			ImGui::SetCurrentContext(ownedContext);
+			try
+			{
+				// The backends publish their state during initialization, so these
+				// checks also cover failure before Initialize returns successfully.
+				if (ImGui::GetIO().BackendRendererUserData != nullptr)
+				{
+					ImGui_ImplDX12_Shutdown();
+				}
+				if (ImGui::GetIO().BackendPlatformUserData != nullptr)
+				{
+					ImGui_ImplWin32_Shutdown();
+				}
+				ImGui::DestroyContext(ownedContext);
+			}
+			catch (...)
+			{
+				Diagnostics::Write("Animation Event Editor UI shutdown failed.");
+			}
+			ImGui::SetCurrentContext(previousContext == ownedContext ? nullptr : previousContext);
 		}
 
 		void Tick()
@@ -464,7 +494,8 @@ namespace
 			m_imguiSrvDescriptorAllocated.fill(false);
 
 			IMGUI_CHECKVERSION();
-			ImGui::CreateContext();
+			m_imguiContext = ImGui::CreateContext();
+			ImGui::SetCurrentContext(m_imguiContext);
 			ImGuiIO& io = ImGui::GetIO();
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 			m_imguiIniPath = PathToUtf8String(MakeEditorSettingsDirectory() / L"imgui.ini");
@@ -472,7 +503,10 @@ namespace
 			io.IniFilename = m_imguiIniPath.c_str();
 			ImGui::StyleColorsDark();
 
-			ImGui_ImplWin32_Init(m_hwnd);
+			if (!ImGui_ImplWin32_Init(m_hwnd))
+			{
+				throw std::runtime_error("Failed to initialize ImGui Win32 backend.");
+			}
 
 			ImGui_ImplDX12_InitInfo initInfo{};
 			initInfo.Device = m_renderer.GetDevice();
@@ -1357,6 +1391,7 @@ namespace
 		Dx12Renderer m_renderer;
 		VertexBuffer m_viewportGrid;
 		ComPtr<ID3D12DescriptorHeap> m_imguiSrvHeap;
+		ImGuiContext* m_imguiContext{};
 		std::array<bool, ImGuiSrvDescriptorCount> m_imguiSrvDescriptorAllocated{};
 		UINT m_imguiSrvDescriptorSize{};
 		std::unique_ptr<SkinnedModel> m_model;
@@ -1408,7 +1443,7 @@ void AnimationEventEditorApp::Initialize(HWND hwnd)
 	m_impl->Initialize(hwnd);
 }
 
-void AnimationEventEditorApp::Shutdown()
+void AnimationEventEditorApp::Shutdown() noexcept
 {
 	m_impl->Shutdown();
 }

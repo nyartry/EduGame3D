@@ -25,6 +25,18 @@ namespace
 		scene->Prepare();
 		return scene;
 	}
+
+	void UnloadScene(IScene& scene) noexcept
+	{
+		try { scene.Unload(); }
+		catch (...)
+		{
+			// Cleanup must reach every scene, including during stack unwinding.
+			// Formatting the diagnostic can fail independently of the sink.
+			try { Diagnostics::Write("Scene unload failed: " + DescribeException()); }
+			catch (...) { Diagnostics::Write("Scene unload failed (error details unavailable)"); }
+		}
+	}
 }
 
 SceneManager::~SceneManager()
@@ -207,7 +219,7 @@ void SceneManager::ClearActiveScenes()
 {
 	for (const std::unique_ptr<IScene>& scene : m_activeScenes)
 	{
-		scene->Unload();
+		UnloadScene(*scene);
 	}
 	m_activeScenes.clear();
 }
@@ -221,12 +233,12 @@ void SceneManager::RetireActiveScenes()
 		{
 			m_resourceLifetime->DeferRelease([retiredScene]()
 			{
-				retiredScene->Unload();
+				UnloadScene(*retiredScene);
 			});
 		}
 		else
 		{
-			retiredScene->Unload();
+			UnloadScene(*retiredScene);
 		}
 	}
 	m_activeScenes.clear();

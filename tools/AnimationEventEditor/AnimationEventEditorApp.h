@@ -19,7 +19,7 @@ namespace AnimationEventEditorTool
 		AnimationEventEditorApp& operator=(const AnimationEventEditorApp&) = delete;
 
 		void Initialize(HWND hwnd);
-		void Shutdown();
+		void Shutdown() noexcept;
 		void Tick();
 
 		void OpenFbx();

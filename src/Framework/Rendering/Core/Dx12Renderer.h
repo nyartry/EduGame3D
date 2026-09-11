@@ -32,12 +32,16 @@ public:
 	static constexpr UINT FrameCount = 2;
 
 	Dx12Renderer() = default;
-	~Dx12Renderer();
+	~Dx12Renderer() noexcept;
 
 	Dx12Renderer(const Dx12Renderer&) = delete;
 	Dx12Renderer& operator=(const Dx12Renderer&) = delete;
 
-	void Initialize(HWND hwnd, UINT width, UINT height);
+	// An explicit adapter is useful for software rendering and diagnostics.
+	void Initialize(HWND hwnd, UINT width, UINT height, IDXGIAdapter* adapter = nullptr);
+	// Terminal, idempotent operation. Call while scenes/UI/effects are still alive.
+	// Abandons the current recording, waits for submitted work, then drains releases.
+	void Shutdown() noexcept;
 	void Resize(UINT width, UINT height);
 	void BeginFrame(const DirectX::XMMATRIX& viewProjection);
 	void Draw(const VertexBuffer& vertexBuffer, const DirectX::XMMATRIX& world) override;
@@ -86,12 +90,13 @@ public:
 	UINT GetHeight() const override;
 
 private:
-	void LoadPipeline();
+	void LoadPipeline(IDXGIAdapter* adapter);
 	void LoadAssets();
 	void CreateDepthBuffer();
 	void UpdateClearColor();
 	void MoveToNextFrame();
 	void FlushGpu();
+	void WaitForFence(UINT64 fenceValue);
 	void CollectDeferredReleases();
 
 	struct DeferredRelease
@@ -127,6 +132,21 @@ private:
 	std::array<UINT64, FrameCount> m_fenceValues{};
 	UINT64 m_nextFenceValue{ 1 };
 	bool m_frameRecording{};
+	bool m_shutdown{};
+	bool m_gpuStopped{};
 	FrameUploadBuffer m_dynamicVertexUpload;
 	std::vector<DeferredRelease> m_deferredReleases;
+};
+
+// Declare after every GPU resource owner, before initialization or rendering.
+// Reverse destruction order then stops the GPU before those owners are destroyed.
+class RenderShutdownGuard final
+{
+public:
+	explicit RenderShutdownGuard(Dx12Renderer& renderer) noexcept : m_renderer(renderer) {}
+	~RenderShutdownGuard() noexcept { m_renderer.Shutdown(); }
+	RenderShutdownGuard(const RenderShutdownGuard&) = delete;
+	RenderShutdownGuard& operator=(const RenderShutdownGuard&) = delete;
+private:
+	Dx12Renderer& m_renderer;
 };

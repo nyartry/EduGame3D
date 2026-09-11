@@ -57,6 +57,7 @@
     <ClCompile Include="..\PhysicsTests.cpp" />
     <ClCompile Include="..\RenderUploadTests.cpp" />
     <ClCompile Include="..\RenderUploadGpuTests.cpp" />
+    <ClCompile Include="..\RendererLifecycleTests.cpp" />
     <ClCompile Include="..\RootMotionTests.cpp" />
     <ClCompile Include="..\AnimationEventTests.cpp" />
     <ClCompile Include="..\SceneLifecycleTests.cpp" />

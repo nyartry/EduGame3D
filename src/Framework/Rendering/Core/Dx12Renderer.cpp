@@ -1,6 +1,7 @@
 #include "Framework/Rendering/Core/Dx12Renderer.h"
 
 #include "Framework/Common/Common.h"
+#include "Framework/Core/Diagnostics/ExceptionUtils.h"
 #include "Framework/Rendering/Buffers/SkinnedVertexBuffer.h"
 #include "Framework/Rendering/Materials/SpriteMaterial.h"
 #include "Framework/Rendering/Buffers/SpriteVertexBuffer.h"
@@ -73,39 +74,89 @@ void Dx12Renderer::CreateTexturedMaterial(
 namespace
 {
 	constexpr DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+	constexpr DWORD GpuWaitTimeoutMilliseconds = 10'000;
+
+	void ReportCleanupFailure(const char* operation, std::exception_ptr error = std::current_exception()) noexcept
+	{
+		try { Diagnostics::Write(std::string(operation) + ": " + DescribeException(error)); }
+		catch (...) { Diagnostics::Write(operation); }
+	}
+
+	void InvokeRelease(std::function<void()>& release) noexcept
+	{
+		try { release(); }
+		catch (...) { ReportCleanupFailure("Deferred resource release failed"); }
+	}
 }
 
-Dx12Renderer::~Dx12Renderer()
+Dx12Renderer::~Dx12Renderer() noexcept
 {
-	// An interrupted frame is never submitted; only previously queued work needs
-	// to finish before the upload pages and deferred resources can be destroyed.
-	m_frameRecording = false;
-	WaitForGpu();
-	CollectDeferredReleases();
-	for (DeferredRelease& deferred : m_deferredReleases)
-	{
-		deferred.release();
-	}
-	m_deferredReleases.clear();
+	Shutdown();
 	if (m_fenceEvent != nullptr)
 	{
 		CloseHandle(m_fenceEvent);
 	}
 }
 
-void Dx12Renderer::Initialize(HWND hwnd, UINT width, UINT height)
+void Dx12Renderer::Shutdown() noexcept
 {
+	if (m_shutdown) return;
+	m_shutdown = true;
+	// Do not submit or reset an interrupted command list. A fresh queue signal
+	// also covers ExecuteCommandLists followed by a failed EndFrame signal.
+	m_frameRecording = false;
+	std::exception_ptr waitFailure;
+	bool forcedDeviceRemoval = false;
+	try { FlushGpu(); }
+	catch (...)
+	{
+		waitFailure = std::current_exception();
+		bool removed = m_device && FAILED(m_device->GetDeviceRemovedReason());
+		if (!removed && m_device)
+		{
+			// A timeout alone never permits releasing resources still used by GPU.
+			ComPtr<ID3D12Device5> removableDevice;
+			if (SUCCEEDED(m_device.As(&removableDevice)))
+			{
+				removableDevice->RemoveDevice();
+				removed = FAILED(m_device->GetDeviceRemovedReason());
+				forcedDeviceRemoval = removed;
+			}
+		}
+		if (!removed)
+		{
+			ReportCleanupFailure("GPU shutdown wait failed", waitFailure);
+			Diagnostics::Write("Cannot confirm GPU completion or device removal; stopping before unsafe resource destruction.");
+			std::terminate();
+		}
+	}
+
+	// Completion or device removal is now established. Reentrant releases can
+	// run immediately; each callback is consumed even if it throws.
+	m_commandList.Reset();
+	m_gpuStopped = true;
+	if (waitFailure) ReportCleanupFailure("GPU shutdown wait failed", waitFailure);
+	if (forcedDeviceRemoval) Diagnostics::Write("GPU device removed to finish shutdown safely.");
+	std::vector<DeferredRelease> releases;
+	releases.swap(m_deferredReleases);
+	for (auto& deferred : releases) InvokeRelease(deferred.release);
+}
+
+void Dx12Renderer::Initialize(HWND hwnd, UINT width, UINT height, IDXGIAdapter* adapter)
+{
+	if (m_shutdown) throw std::logic_error("A stopped renderer cannot be initialized again.");
 	m_hwnd = hwnd;
 	m_width = width;
 	m_height = height;
 
-	LoadPipeline();
+	LoadPipeline(adapter);
 	LoadAssets();
 	m_startTime = std::chrono::steady_clock::now();
 }
 
 void Dx12Renderer::Resize(UINT width, UINT height)
 {
+	if (m_shutdown) throw std::logic_error("A stopped renderer cannot be resized.");
 	if (width == 0 || height == 0 || m_swapChain == nullptr)
 	{
 		return;
@@ -148,6 +199,7 @@ void Dx12Renderer::Resize(UINT width, UINT height)
 
 void Dx12Renderer::BeginFrame(const XMMATRIX& viewProjection)
 {
+	if (m_shutdown) throw std::logic_error("A stopped renderer cannot begin a frame.");
 	if (m_frameRecording)
 	{
 		throw std::logic_error("The previous render frame has not ended.");
@@ -292,6 +344,7 @@ void Dx12Renderer::DrawSkinnedTextured(
 
 void Dx12Renderer::EndFrame()
 {
+	if (m_shutdown) throw std::logic_error("A stopped renderer cannot submit a frame.");
 	if (!m_frameRecording)
 	{
 		throw std::logic_error("No render frame is being recorded.");
@@ -330,6 +383,7 @@ void Dx12Renderer::EndFrame()
 
 void Dx12Renderer::WaitForGpu()
 {
+	if (m_shutdown) return;
 	FlushGpu();
 }
 
@@ -339,11 +393,18 @@ void Dx12Renderer::DeferRelease(std::function<void()> release)
 	{
 		return;
 	}
+	if (m_shutdown && !m_gpuStopped)
+	{
+		// A diagnostic sink may reenter during an unsuccessful shutdown. Only
+		// the terminal drain may release these, after completion/removal proof.
+		m_deferredReleases.push_back({ UINT64_MAX, std::move(release) });
+		return;
+	}
 
 	const UINT64 retireFence = m_frameRecording ? m_nextFenceValue : m_nextFenceValue - 1;
-	if (m_fence == nullptr || retireFence == 0 || m_fence->GetCompletedValue() >= retireFence)
+	if (m_shutdown || m_fence == nullptr || retireFence == 0 || m_fence->GetCompletedValue() >= retireFence)
 	{
-		release();
+		InvokeRelease(release);
 		return;
 	}
 
@@ -375,7 +436,7 @@ UINT Dx12Renderer::GetHeight() const
 	return m_height;
 }
 
-void Dx12Renderer::LoadPipeline()
+void Dx12Renderer::LoadPipeline(IDXGIAdapter* requestedAdapter)
 {
 	UINT dxgiFactoryFlags = 0;
 
@@ -391,8 +452,12 @@ void Dx12Renderer::LoadPipeline()
 	ComPtr<IDXGIFactory6> factory;
 	ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
 
+	if (requestedAdapter)
+	{
+		ThrowIfFailed(D3D12CreateDevice(requestedAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_device)));
+	}
 	ComPtr<IDXGIAdapter1> adapter;
-	for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != factory->EnumAdapters1(adapterIndex, &adapter); ++adapterIndex)
+	for (UINT adapterIndex = 0; !m_device && DXGI_ERROR_NOT_FOUND != factory->EnumAdapters1(adapterIndex, &adapter); ++adapterIndex)
 	{
 		DXGI_ADAPTER_DESC1 desc{};
 		adapter->GetDesc1(&desc);
@@ -541,12 +606,7 @@ void Dx12Renderer::UpdateClearColor()
 void Dx12Renderer::MoveToNextFrame()
 {
 	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
-
-	if (m_fence->GetCompletedValue() < m_fenceValues[m_frameIndex])
-	{
-		ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent));
-		WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
-	}
+	WaitForFence(m_fenceValues[m_frameIndex]);
 	CollectDeferredReleases();
 
 }
@@ -562,16 +622,16 @@ void Dx12Renderer::FlushGpu()
 		return;
 	}
 
-	const UINT64 fenceValue = m_nextFenceValue++;
-	ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fenceValue));
-	ThrowIfFailed(m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent));
-	WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
+	const UINT64 fenceValue = m_nextFenceValue;
+	ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fenceValue), "Signal GPU flush fence");
+	++m_nextFenceValue;
+	WaitForFence(fenceValue);
 
 	for (UINT64& frameFenceValue : m_fenceValues)
 	{
 		frameFenceValue = fenceValue;
 	}
-	CollectDeferredReleases();
+	if (!m_shutdown) CollectDeferredReleases();
 }
 
 void Dx12Renderer::CollectDeferredReleases()
@@ -582,17 +642,42 @@ void Dx12Renderer::CollectDeferredReleases()
 	}
 
 	const UINT64 completedFence = m_fence->GetCompletedValue();
-	const auto removeBegin = std::remove_if(
-		m_deferredReleases.begin(),
-		m_deferredReleases.end(),
-		[completedFence](DeferredRelease& deferred)
+	for (std::size_t index = 0; index < m_deferredReleases.size();)
+	{
+		if (m_deferredReleases[index].fenceValue <= completedFence)
 		{
-			if (deferred.fenceValue > completedFence)
-			{
-				return false;
-			}
-			deferred.release();
-			return true;
-		});
-	m_deferredReleases.erase(removeBegin, m_deferredReleases.end());
+			auto release = std::move(m_deferredReleases[index].release);
+			m_deferredReleases.erase(m_deferredReleases.begin() + index);
+			InvokeRelease(release);
+		}
+		else ++index;
+	}
+}
+
+void Dx12Renderer::WaitForFence(UINT64 fenceValue)
+{
+	auto completed = m_fence->GetCompletedValue();
+	if (completed != UINT64_MAX && completed >= fenceValue) return;
+	ThrowIfFailed(m_device->GetDeviceRemovedReason(), "Wait for GPU fence: device removed");
+	if (completed == UINT64_MAX) throw std::runtime_error("GPU fence is invalid after device removal.");
+	ThrowIfFailed(m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent), "Register GPU fence event");
+	const ULONGLONG deadline = GetTickCount64() + GpuWaitTimeoutMilliseconds;
+	for (;;)
+	{
+		const ULONGLONG now = GetTickCount64();
+		const DWORD remaining = now < deadline ? static_cast<DWORD>(deadline - now) : 0;
+		const DWORD waitResult = WaitForSingleObjectEx(m_fenceEvent, remaining, FALSE);
+		const DWORD waitError = waitResult == WAIT_FAILED ? GetLastError() : ERROR_SUCCESS;
+		completed = m_fence->GetCompletedValue();
+		// Completion can race with a timeout. The fence, rather than the event
+		// alone, proves that resources and command allocators may be reused.
+		if (completed != UINT64_MAX && completed >= fenceValue) return;
+		ThrowIfFailed(m_device->GetDeviceRemovedReason(), "Wait for GPU fence: device removed");
+		if (waitResult == WAIT_FAILED) ThrowIfFailed(HRESULT_FROM_WIN32(waitError), "Wait for GPU fence event");
+		if (waitResult == WAIT_TIMEOUT || GetTickCount64() >= deadline)
+			throw std::runtime_error("GPU fence wait timed out after 10000 milliseconds.");
+		// A registration from an earlier timed-out wait can still signal this
+		// event. Ignore that wakeup without extending the current deadline.
+		if (waitResult != WAIT_OBJECT_0) throw std::runtime_error("GPU fence wait ended without confirmed completion.");
+	}
 }

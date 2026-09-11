@@ -102,6 +102,7 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 	Win32InputBackend inputBackend;
 	FixedStepClock simulationClock;
 	SimulationInputBuffer simulationInput;
+	RenderShutdownGuard shutdown(renderer);
 
 	renderer.Initialize(window, WindowWidth, WindowHeight);
 	effects.Initialize(renderer);
@@ -174,6 +175,5 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 		}
 	}
 
-	renderer.WaitForGpu();
 	return static_cast<int>(message.wParam);
 }

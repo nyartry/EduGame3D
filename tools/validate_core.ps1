@@ -40,7 +40,7 @@ foreach ($configuration in $Configurations) {
     foreach ($test in (Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests') -Filter '*Tests.vcxproj' -File | Sort-Object Name)) {
         & $msbuildPath $test.FullName /nologo /v:minimal "/p:Configuration=$configuration" /p:Platform=x64
         if ($LASTEXITCODE -ne 0) { throw "$($test.BaseName) build failed ($configuration)." }
-        [string[]]$testArguments = if ($test.BaseName -in @('RenderUploadTests', 'SkinningTests', 'AssetTests')) { @('--gpu') } else { @() }
+        [string[]]$testArguments = if ($test.BaseName -in @('RenderUploadTests', 'RendererLifecycleTests', 'SkinningTests', 'AssetTests')) { @('--gpu') } else { @() }
         & (Join-Path $repositoryRoot "x64\$configuration\$($test.BaseName)\$($test.BaseName).exe") @testArguments
         if ($LASTEXITCODE -ne 0) { throw "$($test.BaseName) failed ($configuration)." }
     }

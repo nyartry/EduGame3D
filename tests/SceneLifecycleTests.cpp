@@ -53,7 +53,7 @@ namespace
 	struct State
 	{
 		std::atomic<int> prepared{}, activated{}, unloaded{}, destroyed{}, updates{}, frames{}, failedLoads{};
-		bool failPrepare{}, failActivate{}, failNotification{};
+		bool failPrepare{}, failActivate{}, failNotification{}, failUnload{};
 		std::thread::id prepareThread, activateThread;
 		std::promise<void> prepareEntered;
 		std::shared_future<void> allowPrepare;
@@ -80,7 +80,11 @@ namespace
 			++m_state->activated;
 			if (m_state->failActivate) throw std::runtime_error("activate failure");
 		}
-		void Unload() override { ++m_state->unloaded; }
+		void Unload() override
+		{
+			++m_state->unloaded;
+			if (m_state->failUnload) throw std::runtime_error("unload failure");
+		}
 		void Update(float, const Input&) override { ++m_state->updates; }
 		void UpdateFrame(float, const Input&) override { ++m_state->frames; }
 		RenderView GetRenderView() const override { return {}; }
@@ -315,6 +319,74 @@ namespace
 			"GPU completion unloads and destroys each retired scene once");
 	}
 
+	void DeferredUnloadFailureDoesNotSkipLaterCleanup()
+	{
+		Fixture fixture;
+		DiagnosticCapture diagnostics;
+		auto failing = std::make_shared<State>();
+		auto later = std::make_shared<State>();
+		auto replacement = std::make_shared<State>();
+		failing->failUnload = true;
+		fixture.Register("failing", failing);
+		fixture.Register("later", later);
+		fixture.Register("replacement", replacement);
+		Require(fixture.manager.LoadScene("failing") &&
+			fixture.manager.LoadScene("later", SceneLoadType::Synchronous, SceneLoadMode::Additive), "Both retiring scenes load");
+		Require(fixture.manager.LoadScene("replacement"), "A successful replacement retires both scenes");
+		Require(failing->unloaded == 0 && later->unloaded == 0 && fixture.lifetime.pending.size() == 2,
+			"Even a failing Unload waits until the existing GPU retirement boundary");
+		int laterReleaseCount = 0;
+		fixture.lifetime.DeferRelease([&laterReleaseCount]() { ++laterReleaseCount; });
+		fixture.lifetime.CompleteGpuWork();
+		Require(failing->unloaded == 1 && failing->destroyed == 1 && later->unloaded == 1 && later->destroyed == 1,
+			"A failing retired Unload must not skip another scene or repeat cleanup");
+		Require(laterReleaseCount == 1 && fixture.lifetime.pending.empty(),
+			"Deferred release continues through callbacks following a failed scene Unload");
+		Require(diagnostics.messages.size() == 1 && diagnostics.messages.front().find("unload failure") != std::string::npos,
+			"The failed deferred Unload reports its original cause once");
+		fixture.lifetime.CompleteGpuWork();
+		Require(failing->unloaded == 1 && later->unloaded == 1 && laterReleaseCount == 1,
+			"Completing GPU work again must not repeat scene cleanup or callbacks");
+	}
+
+	void ActiveUnloadFailurePreservesOriginalException()
+	{
+		for (const bool failSink : { false, true })
+		{
+			DiagnosticCapture diagnostics;
+			if (failSink)
+			{
+				Diagnostics::SetSink([&diagnostics](std::string_view message)
+				{
+					diagnostics.messages.emplace_back(message);
+					throw std::runtime_error("diagnostic sink failure");
+				});
+			}
+			auto failing = std::make_shared<State>();
+			auto later = std::make_shared<State>();
+			failing->failUnload = true;
+			bool originalExceptionCaught = false;
+			try
+			{
+				Fixture fixture;
+				fixture.Register("failing", failing);
+				fixture.Register("later", later);
+				Require(fixture.manager.LoadScene("failing") &&
+					fixture.manager.LoadScene("later", SceneLoadType::Synchronous, SceneLoadMode::Additive), "Both active scenes load");
+				throw std::runtime_error("original update failure");
+			}
+			catch (const std::runtime_error& error)
+			{
+				originalExceptionCaught = std::string_view(error.what()) == "original update failure";
+			}
+			Require(originalExceptionCaught, "Unload or diagnostic sink failures must not replace the exception that caused shutdown");
+			Require(failing->unloaded == 1 && failing->destroyed == 1 && later->unloaded == 1 && later->destroyed == 1,
+				"Destruction attempts Unload and destroys each active scene once despite an earlier failure");
+			Require(diagnostics.messages.size() == 1 && diagnostics.messages.front().find("unload failure") != std::string::npos,
+				"The failed active Unload reports its original cause once, including with a throwing sink");
+		}
+	}
+
 	void AsynchronousPrepareKeepsOldScene()
 	{
 		for (const bool failPrepare : { false, true })
@@ -426,6 +498,8 @@ namespace
 	TEST(InitialLoadFailuresLeaveNoActiveSceneAndCanRetry, "initial load failures preserve cause and permit retry", Cpu) \
 	TEST(SynchronousFailureKeepsOldScene, "sync load failures preserve active scene", Cpu) \
 	TEST(DeferredRetirementAndAdditiveLoad, "additive load and fence-deferred retirement", Cpu) \
+	TEST(DeferredUnloadFailureDoesNotSkipLaterCleanup, "deferred unload failures preserve later cleanup", Cpu) \
+	TEST(ActiveUnloadFailurePreservesOriginalException, "active unload and sink failures preserve the original exception", Cpu) \
 	TEST(AsynchronousPrepareKeepsOldScene, "async Prepare retention, affinity and recovery", Cpu) \
 	TEST(AsyncFactoryAndActivationFailures, "async factory and activation failure recovery", Cpu) \
 	TEST(PresentationAndSimulationAreIndependent, "presentation and fixed simulation contract", Cpu) \

@@ -131,6 +131,7 @@ int APIENTRY wWinMain(
 	}
 	catch (...)
 	{
+		GApp = nullptr;
 		const auto message = DescribeException();
 		Diagnostics::Write(message);
 		MessageBoxW(nullptr, ToWide(message.c_str()).c_str(), L"Animation Event Editor Error", MB_OK | MB_ICONERROR);
