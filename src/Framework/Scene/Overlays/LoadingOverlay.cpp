@@ -3,6 +3,7 @@
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Core/IRenderer.h"
 
+#include <algorithm>
 #include <cmath>
 #include <string>
 #include <string_view>
@@ -26,6 +27,14 @@ void LoadingOverlay::Initialize(IRenderDevice& device, std::uint32_t width, std:
 	RebuildBatch();
 }
 
+void LoadingOverlay::Resize(std::uint32_t width, std::uint32_t height)
+{
+	if (width == 0 || height == 0 || (width == m_width && height == m_height)) return;
+	m_width = width;
+	m_height = height;
+	RebuildBatch();
+}
+
 void LoadingOverlay::Update(float deltaTime)
 {
 	m_elapsedTime += deltaTime;
@@ -40,15 +49,16 @@ void LoadingOverlay::Render(IRenderer& renderer) const
 void LoadingOverlay::RebuildBatch()
 {
 	const int frameIndex = static_cast<int>(m_elapsedTime * 8.0f) % SegmentCount;
+	const float scale = std::min({ 1.0f, static_cast<float>(m_width) / 720.0f, static_cast<float>(m_height) / 240.0f });
 
 	m_batch.Clear();
 	m_batch.DrawRectangle(0.0f, 0.0f, static_cast<float>(m_width), static_cast<float>(m_height), DimColor);
 
-	constexpr float textPixelSize = 5.0f;
+	const float textPixelSize = 5.0f * scale;
 	constexpr std::string_view text = "NOW LOADING...";
 	const XMFLOAT2 textSize = m_batch.MeasureText(text, textPixelSize);
 	float textX = (static_cast<float>(m_width) - textSize.x) * 0.5f;
-	const float textY = static_cast<float>(m_height) * 0.5f - 72.0f;
+	const float textY = static_cast<float>(m_height) * 0.5f - 72.0f * scale;
 	for (size_t index = 0; index < text.size(); ++index)
 	{
 		const float wave = std::sin(m_elapsedTime * 7.0f + static_cast<float>(index) * 0.58f);
@@ -61,16 +71,16 @@ void LoadingOverlay::RebuildBatch()
 			0.58f + 0.42f * letterPulse
 		};
 		const char letter = text[index];
-		m_batch.DrawText(std::string_view(&letter, 1), textX, textY + wave * 9.0f, textPixelSize, letterColor);
+		m_batch.DrawText(std::string_view(&letter, 1), textX, textY + wave * 9.0f * scale, textPixelSize, letterColor);
 		textX += 6.0f * textPixelSize;
 	}
 
-	constexpr float segmentWidth = 48.0f;
-	constexpr float segmentHeight = 14.0f;
-	constexpr float segmentGap = 8.0f;
+	const float segmentWidth = 48.0f * scale;
+	const float segmentHeight = 14.0f * scale;
+	const float segmentGap = 8.0f * scale;
 	const float totalWidth = static_cast<float>(SegmentCount) * segmentWidth + static_cast<float>(SegmentCount - 1) * segmentGap;
 	float x = (static_cast<float>(m_width) - totalWidth) * 0.5f;
-	const float y = static_cast<float>(m_height) * 0.5f + 26.0f;
+	const float y = static_cast<float>(m_height) * 0.5f + 26.0f * scale;
 
 	for (int index = 0; index < SegmentCount; ++index)
 	{

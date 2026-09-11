@@ -40,6 +40,7 @@ public:
 	void Prepare() override;
 	void Activate() override;
 	void Unload() override;
+	void OnResize(std::uint32_t width, std::uint32_t height) override;
 	void Update(float deltaTime, const Input& input) override;
 	void UpdateFrame(float deltaTime, const Input& input) override;
 	void RenderWorld(IRenderer& renderer) const override;

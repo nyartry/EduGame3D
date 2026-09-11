@@ -49,6 +49,10 @@ public:
 		SceneLoadType loadType = SceneLoadType::Synchronous,
 		SceneLoadMode loadMode = SceneLoadMode::Single);
 
+	// Call on the main thread between frames, after the renderer has resized.
+	// Zero and unchanged sizes are ignored. Active-scene failures propagate to
+	// the caller so rendering cannot continue with mismatched viewport state.
+	void Resize(std::uint32_t width, std::uint32_t height);
 	void Update(float deltaTime, const Input& input);
 	void UpdateFrame(float deltaTime, const Input& input);
 	void RenderWorld(IRenderer& renderer) const;
@@ -93,5 +97,6 @@ private:
 	std::unique_ptr<PendingLoad> m_pendingLoad;
 	LoadingOverlay m_loadingOverlay;
 	SpriteBatch m_fadeOverlay;
+	float m_fadeAlpha{};
 	std::string m_lastLoadError;
 };

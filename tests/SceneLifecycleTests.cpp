@@ -52,9 +52,11 @@ namespace
 
 	struct State
 	{
-		std::atomic<int> prepared{}, activated{}, unloaded{}, destroyed{}, updates{}, frames{}, failedLoads{};
-		bool failPrepare{}, failActivate{}, failNotification{}, failUnload{};
-		std::thread::id prepareThread, activateThread;
+		std::atomic<int> prepared{}, resized{}, activated{}, unloaded{}, destroyed{}, updates{}, frames{}, failedLoads{};
+		bool failPrepare{}, failResize{}, failActivate{}, failNotification{}, failUnload{};
+		std::thread::id prepareThread, resizeThread, activateThread;
+		std::uint32_t width{}, height{}, activationWidth{}, activationHeight{};
+		std::vector<std::string> lifecycle;
 		std::promise<void> prepareEntered;
 		std::shared_future<void> allowPrepare;
 		std::string request;
@@ -70,13 +72,26 @@ namespace
 		{
 			m_state->prepareThread = std::this_thread::get_id();
 			++m_state->prepared;
+			m_state->lifecycle.push_back("prepare");
 			m_state->prepareEntered.set_value();
 			if (m_state->allowPrepare.valid()) m_state->allowPrepare.wait();
 			if (m_state->failPrepare) throw std::runtime_error("prepare failure");
 		}
+		void OnResize(std::uint32_t width, std::uint32_t height) override
+		{
+			m_state->resizeThread = std::this_thread::get_id();
+			m_state->width = width;
+			m_state->height = height;
+			m_state->lifecycle.push_back("resize");
+			++m_state->resized;
+			if (m_state->failResize) throw std::runtime_error("resize failure");
+		}
 		void Activate() override
 		{
 			m_state->activateThread = std::this_thread::get_id();
+			m_state->activationWidth = m_state->width;
+			m_state->activationHeight = m_state->height;
+			m_state->lifecycle.push_back("activate");
 			++m_state->activated;
 			if (m_state->failActivate) throw std::runtime_error("activate failure");
 		}
@@ -133,6 +148,20 @@ namespace
 		~DiagnosticCapture() { Diagnostics::SetSink({}); }
 	};
 
+	struct PreparationGate
+	{
+		std::promise<void> signal;
+		~PreparationGate() { Open(); }
+		void Open()
+		{
+			if (opened) return;
+			signal.set_value();
+			opened = true;
+		}
+	private:
+		bool opened{};
+	};
+
 	struct CopyFailingFactory
 	{
 		std::shared_ptr<bool> failCopy;
@@ -143,6 +172,153 @@ namespace
 		}
 		std::unique_ptr<IScene> operator()() const { return std::make_unique<TestScene>(std::make_shared<State>()); }
 	};
+
+	void ResizePrecedesActivationOnMainThread()
+	{
+		Fixture fixture;
+		auto initial = std::make_shared<State>();
+		fixture.Register("initial", initial);
+		Require(fixture.manager.LoadScene("initial"), "The initial scene loads");
+		Require(initial->lifecycle == std::vector<std::string>{ "prepare", "resize", "activate" },
+			"Initial resize runs after CPU preparation and before resource activation");
+		Require(initial->resizeThread == std::this_thread::get_id() && initial->activateThread == std::this_thread::get_id(),
+			"Initial viewport notification and activation run on the main thread");
+		Require(initial->activationWidth == 640 && initial->activationHeight == 480 && initial->resized == 1,
+			"The first Activate observes the initialized client size exactly once");
+
+		fixture.manager.Resize(1200, 700);
+		auto replacement = std::make_shared<State>();
+		fixture.Register("replacement", replacement);
+		Require(fixture.manager.LoadScene("replacement"), "A replacement loads after the window resizes");
+		Require(replacement->activationWidth == 1200 && replacement->activationHeight == 700 && replacement->resized == 1,
+			"A newly created scene receives the current size before Activate");
+	}
+
+	void ResizeNotifiesAllActiveScenesAndIgnoresInvalidOrUnchangedSizes()
+	{
+		Fixture fixture;
+		auto first = std::make_shared<State>();
+		auto second = std::make_shared<State>();
+		fixture.Register("first", first);
+		fixture.Register("second", second);
+		Require(fixture.manager.LoadScene("first") &&
+			fixture.manager.LoadScene("second", SceneLoadType::Synchronous, SceneLoadMode::Additive), "Both active scenes load");
+		fixture.manager.Resize(640, 480);
+		fixture.manager.Resize(0, 480);
+		fixture.manager.Resize(640, 0);
+		fixture.manager.Resize(0, 0);
+		Require(first->resized == 1 && second->resized == 1 && first->width == 640 && first->height == 480,
+			"Unchanged and zero dimensions preserve the last usable scene viewport without notification");
+		fixture.manager.Resize(960, 540);
+		Require(first->resized == 2 && second->resized == 2 && first->width == 960 && first->height == 540 &&
+			second->width == 960 && second->height == 540,
+			"Every active additive scene receives the changed dimensions");
+		Require(first->resizeThread == std::this_thread::get_id() && second->resizeThread == std::this_thread::get_id(),
+			"All active viewport notifications run on the calling main thread");
+		fixture.manager.Resize(0, 0);
+		fixture.manager.Resize(960, 540);
+		Require(first->resized == 2 && second->resized == 2,
+			"Minimization followed by the same client size needs no repeated resource update");
+	}
+
+	void AsyncResizeWaitsForPreparationAndUsesLatestSize()
+	{
+		Fixture fixture;
+		auto old = std::make_shared<State>();
+		auto next = std::make_shared<State>();
+		// Destroyed before the fixture, so any throwing assertion or frame update
+		// releases Prepare before SceneManager joins its worker during destruction.
+		PreparationGate gate;
+		next->allowPrepare = gate.signal.get_future().share();
+		auto entered = next->prepareEntered.get_future();
+		fixture.Register("old", old);
+		fixture.Register("next", next);
+		Require(fixture.manager.LoadScene("old"), "The current scene loads");
+		Require(fixture.manager.LoadScene("next", SceneLoadType::Asynchronous), "An asynchronous transition starts");
+		fixture.manager.Resize(800, 600);
+		Require(old->resized == 2 && next->resized == 0, "Fade-out resizes only the existing scene before worker preparation");
+		fixture.manager.UpdateFrame(0.5f, fixture.input);
+		const bool workerStarted = entered.wait_for(std::chrono::seconds(5)) == std::future_status::ready;
+		fixture.manager.Resize(1024, 720);
+		fixture.manager.Resize(1200, 700);
+		fixture.manager.UpdateFrame(1.0f, fixture.input);
+		const bool candidateUntouched = next->resized == 0 && next->activated == 0;
+		const bool oldResized = old->resized == 4 && old->width == 1200 && old->height == 700 && old->unloaded == 0;
+		gate.Open();
+		Require(workerStarted && candidateUntouched && oldResized,
+			"Resizing during CPU preparation updates retained scenes without touching the candidate or activating early");
+		const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+		while (next->activated == 0 && fixture.manager.IsLoading() && std::chrono::steady_clock::now() < deadline)
+		{
+			fixture.manager.UpdateFrame(0.25f, fixture.input);
+			std::this_thread::yield();
+		}
+		Require(next->activated == 1 && fixture.manager.IsLoading(), "Successful preparation enters fade-in");
+		Require(next->lifecycle == std::vector<std::string>{ "prepare", "resize", "activate" } && next->resized == 1,
+			"The candidate receives one size notification after Prepare and before Activate");
+		Require(next->prepareThread != std::this_thread::get_id() && next->resizeThread == std::this_thread::get_id() &&
+			next->activateThread == std::this_thread::get_id(), "Only CPU preparation runs on the worker");
+		Require(next->activationWidth == 1200 && next->activationHeight == 700,
+			"Activation uses the latest resize during preparation instead of the originally queued dimensions");
+		fixture.manager.Resize(900, 600);
+		Require(next->resized == 2 && next->width == 900 && next->height == 600 && old->resized == 4,
+			"Fade-in resizes the newly active scene without touching the retired scene");
+		fixture.FinishTransition();
+	}
+
+	void CandidateResizeFailureKeepsOldSceneAndCanRetry()
+	{
+		for (const auto type : { SceneLoadType::Synchronous, SceneLoadType::Asynchronous })
+		{
+			Fixture fixture;
+			auto old = std::make_shared<State>();
+			auto failed = std::make_shared<State>();
+			failed->failResize = true;
+			fixture.Register("old", old);
+			fixture.Register("next", failed);
+			Require(fixture.manager.LoadScene("old"), "The current scene loads");
+			fixture.manager.Resize(1000, 700);
+			DiagnosticCapture diagnostics;
+			Require(fixture.manager.LoadScene("next", type) == (type == SceneLoadType::Asynchronous),
+				"A synchronous resize failure rejects the load; asynchronous failure follows an accepted request");
+			fixture.FinishTransition();
+			const auto& error = fixture.manager.GetLastLoadError();
+			Require(error.find("next") != std::string::npos && error.find("] resize:") != std::string::npos &&
+				error.find("resize failure") != std::string::npos, "The load error identifies scene, resize phase and cause");
+			Require(diagnostics.messages.size() == 1 && diagnostics.messages.front().find(error) != std::string::npos,
+				"A failed candidate viewport notification is diagnosed exactly once");
+			Require(failed->prepared == 1 && failed->resized == 1 && failed->activated == 0 && failed->destroyed == 1,
+				"A resize failure destroys the prepared candidate before activation");
+			Require(old->failedLoads == 1 && old->unloaded == 0 && old->destroyed == 0 && fixture.lifetime.pending.empty(),
+				"Resize failure retains the current scene and notifies it without retiring its GPU resources");
+			fixture.manager.Update(0.016f, fixture.input);
+			Require(old->updates == 1 && old->width == 1000 && old->height == 700,
+				"The retained scene resumes with the updated viewport after failure");
+			fixture.manager.Resize(1100, 800);
+			auto retry = std::make_shared<State>();
+			fixture.Register("next", retry);
+			Require(fixture.manager.LoadScene("next", type), "A failed resize permits retry with a new candidate");
+			fixture.FinishTransition();
+			Require(retry->activationWidth == 1100 && retry->activationHeight == 800 && retry->activated == 1 &&
+				fixture.manager.GetLastLoadError().empty() && diagnostics.messages.size() == 1,
+				"A successful retry activates at the latest size and clears the old error without repeating its diagnostic");
+		}
+	}
+
+	void ActiveResizeFailurePropagatesToCaller()
+	{
+		Fixture fixture;
+		auto active = std::make_shared<State>();
+		fixture.Register("active", active);
+		Require(fixture.manager.LoadScene("active"), "The active scene loads before resize failure");
+		active->failResize = true;
+		bool originalFailureCaught = false;
+		try { fixture.manager.Resize(1000, 700); }
+		catch (const std::runtime_error& error) { originalFailureCaught = std::string_view(error.what()) == "resize failure"; }
+		Require(originalFailureCaught, "An active-scene resize failure reaches the caller to stop rendering");
+		Require(active->failedLoads == 0 && fixture.manager.GetLastLoadError().empty() && fixture.lifetime.pending.empty(),
+			"An active resize failure is not mistaken for a recoverable scene replacement failure");
+	}
 
 	void AsyncFactoryCopyFailureRecovers()
 	{
@@ -495,6 +671,11 @@ namespace
 }
 
 #define SCENELIFECYCLETESTS_CASES(TEST) \
+	TEST(ResizePrecedesActivationOnMainThread, "scene resize precedes activation on the main thread", Cpu) \
+	TEST(ResizeNotifiesAllActiveScenesAndIgnoresInvalidOrUnchangedSizes, "resize updates additive scenes and ignores zero or unchanged dimensions", Cpu) \
+	TEST(AsyncResizeWaitsForPreparationAndUsesLatestSize, "async resize waits for CPU preparation and activates with the latest size", Cpu) \
+	TEST(CandidateResizeFailureKeepsOldSceneAndCanRetry, "candidate resize failure preserves active scene and permits retry", Cpu) \
+	TEST(ActiveResizeFailurePropagatesToCaller, "active resize failure propagates to stop mismatched rendering", Cpu) \
 	TEST(InitialLoadFailuresLeaveNoActiveSceneAndCanRetry, "initial load failures preserve cause and permit retry", Cpu) \
 	TEST(SynchronousFailureKeepsOldScene, "sync load failures preserve active scene", Cpu) \
 	TEST(DeferredRetirementAndAdditiveLoad, "additive load and fence-deferred retirement", Cpu) \

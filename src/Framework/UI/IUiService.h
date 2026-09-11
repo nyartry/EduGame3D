@@ -2,16 +2,30 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 
 class SpriteBatch;
+
+struct UiElementBounds
+{
+	float x{};
+	float y{};
+	float width{};
+	float height{};
+};
 
 class IUiDocument
 {
 public:
 	virtual ~IUiDocument() = default;
 
+	// Layout and pointer input use the same client pixel coordinates. A zero
+	// dimension (for example, while minimized) preserves the last valid layout.
+	virtual void Resize(std::uint32_t width, std::uint32_t height) = 0;
+	// The border box from the latest layout lets sprite labels follow controls.
+	virtual std::optional<UiElementBounds> GetElementBounds(std::string_view elementId) const = 0;
 	virtual void ProcessPointerMove(int x, int y) = 0;
 	virtual void ProcessPointerLeave() = 0;
 	virtual void ProcessPointerButtonDown(int button) = 0;

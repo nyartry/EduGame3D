@@ -197,6 +197,7 @@ namespace
 				return;
 			}
 			m_document->Show();
+			m_context->Update();
 		}
 
 		~RmlUiDocument() override
@@ -206,6 +207,34 @@ namespace
 				m_context->UnloadAllDocuments();
 				Rml::RemoveContext(m_contextName);
 			}
+		}
+
+		void Resize(std::uint32_t width, std::uint32_t height) override
+		{
+			if (m_context == nullptr || width == 0 || height == 0)
+			{
+				return;
+			}
+			m_context->SetDimensions(Rml::Vector2i(static_cast<int>(width), static_cast<int>(height)));
+			// Commit layout before this frame's first pointer event, not only when
+			// RenderTo later runs. Otherwise the first click uses the old hit boxes.
+			m_context->Update();
+		}
+
+		std::optional<UiElementBounds> GetElementBounds(std::string_view elementId) const override
+		{
+			if (m_document == nullptr)
+			{
+				return std::nullopt;
+			}
+			Rml::Element* element = m_document->GetElementById(Rml::String(elementId));
+			if (element == nullptr)
+			{
+				return std::nullopt;
+			}
+			const auto offset = element->GetAbsoluteOffset(Rml::BoxArea::Border);
+			const auto size = element->GetBox().GetSize(Rml::BoxArea::Border);
+			return UiElementBounds{ offset.x, offset.y, size.x, size.y };
 		}
 
 		void ProcessPointerMove(int x, int y) override

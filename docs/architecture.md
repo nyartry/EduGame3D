@@ -35,6 +35,8 @@ Pimpl is used selectively for backend-heavy resource and service classes. It pre
 
 Scene loading has two explicit phases: `Prepare()` is worker-thread, CPU-only work, and `Activate()` is main-thread GPU/UI work. Scene factories receive their required services through constructors instead of a general service bag.
 
+`IScene::OnResize(width, height)` runs on the main thread after preparation, immediately before activation with the latest client dimensions, and whenever an active scene's viewport changes. Preparing candidates are never resized on the worker. The launcher applies positive dimensions to the renderer and scene manager before starting a frame; zero dimensions suspend rendering. See [viewport-resize.md](viewport-resize.md) for UI coordinates and resume behavior.
+
 Root motion uses one `RootMotionSettings` contract shared by mesh actors and players. Horizontal movement can ignore, blend, or apply animation translation while programmatic jump and gravity retain control of vertical movement by default. See [root-motion.md](root-motion.md) for configuration and optional animation-driven vertical movement.
 
 `Framework/Core/Math` is independent of scenes and rendering backends. Mesh actors own their world `Transform`; models receive a world matrix at draw time instead of storing duplicate placement state. See [core-math.md](core-math.md) for coordinate conventions, numerical contracts, and tests.

@@ -52,6 +52,7 @@ void SceneManager::Initialize(
 	std::uint32_t width,
 	std::uint32_t height)
 {
+	if (width == 0 || height == 0) throw std::invalid_argument("SceneManager requires a nonzero render size");
 	m_resourceLifetime = &resourceLifetime;
 	m_width = width;
 	m_height = height;
@@ -85,6 +86,8 @@ bool SceneManager::LoadScene(const std::string& name, SceneLoadType loadType, Sc
 		if (loadType == SceneLoadType::Synchronous)
 		{
 			auto scene = PrepareScene(sceneFactory->second);
+			operation = "resize";
+			scene->OnResize(m_width, m_height);
 			operation = "activation";
 			scene->Activate();
 			operation = "commit";
@@ -99,10 +102,23 @@ bool SceneManager::LoadScene(const std::string& name, SceneLoadType loadType, Sc
 		pendingLoad->factory = sceneFactory->second;
 
 		m_pendingLoad = std::move(pendingLoad);
+		UpdateFadeOverlay(0.0f);
 		return true;
 	}
 	catch (...) { RecoverLoadException(name, operation); }
 	return false;
+}
+
+void SceneManager::Resize(std::uint32_t width, std::uint32_t height)
+{
+	if (width == 0 || height == 0 || (width == m_width && height == m_height)) return;
+	m_width = width;
+	m_height = height;
+	m_loadingOverlay.Resize(width, height);
+	UpdateFadeOverlay(m_fadeAlpha);
+	for (const auto& scene : m_activeScenes) scene->OnResize(width, height);
+	// The pending candidate belongs to Prepare's worker until future.get().
+	// Its first notification uses these latest dimensions immediately before activation.
 }
 
 void SceneManager::Update(float deltaTime, const Input& input)
@@ -293,6 +309,8 @@ void SceneManager::PollAsyncLoad()
 			return;
 		}
 		std::unique_ptr<IScene> scene = m_pendingLoad->future.get();
+		operation = "resize";
+		scene->OnResize(m_width, m_height);
 		operation = "activation";
 		scene->Activate();
 		operation = "commit";
@@ -328,6 +346,7 @@ void SceneManager::RecoverLoadFailure(std::string message)
 
 void SceneManager::UpdateFadeOverlay(float alpha)
 {
+	m_fadeAlpha = alpha;
 	const XMFLOAT4 color{ 0.0f, 0.0f, 0.0f, alpha };
 	m_fadeOverlay.Clear();
 	m_fadeOverlay.DrawRectangle(0.0f, 0.0f, static_cast<float>(m_width), static_cast<float>(m_height), color);

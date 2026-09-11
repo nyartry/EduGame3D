@@ -142,6 +142,24 @@ void GameScene::Unload()
 	m_followTarget = nullptr;
 }
 
+void GameScene::OnResize(std::uint32_t width, std::uint32_t height)
+{
+	if (width == 0 || height == 0)
+	{
+		return;
+	}
+	m_width = width;
+	m_height = height;
+	// Before Activate, only remember the dimensions for resource creation.
+	if (m_camera != nullptr)
+	{
+		m_camera->SetLens(XMConvertToRadians(CameraFovYDegrees),
+			static_cast<float>(width) / static_cast<float>(height), CameraNearZ, CameraFarZ);
+		m_generatedImageSprite.SetPosition(42.0f, static_cast<float>(height) - 202.0f);
+		m_hudOverlay.Resize(width, height);
+	}
+}
+
 void GameScene::Update(float deltaTime, const Input& input)
 {
 	m_audio.PlayBgm(GameContent::GameBgm);

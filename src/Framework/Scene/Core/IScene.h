@@ -3,6 +3,7 @@
 #include "Framework/Scene/Input/Input.h"
 
 #include <DirectXMath.h>
+#include <cstdint>
 #include <string>
 
 class IRenderer;
@@ -27,8 +28,12 @@ public:
 	// Prepare runs on a worker thread during asynchronous transitions and must
 	// only perform CPU-side work owned by the scene.
 	virtual void Prepare() {}
+	// Main-thread notification of a nonzero client size, first after Prepare
+	// and before Activate, then whenever an active scene's viewport changes.
+	// The first notification must tolerate GPU/UI resources not yet existing.
+	virtual void OnResize(std::uint32_t width, std::uint32_t height) { (void)width; (void)height; }
 	// Activate always runs on the main thread and may create GPU/UI resources.
-	// A Prepare/Activate failure destroys the candidate through RAII. Resources
+	// A Prepare/OnResize/Activate failure destroys the candidate through RAII. Resources
 	// acquired before success must therefore be owned by destructible members.
 	virtual void Activate() = 0;
 	virtual void Unload() {}

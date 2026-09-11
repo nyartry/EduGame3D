@@ -23,7 +23,22 @@ void HudOverlay::Initialize(IRenderDevice& device, std::uint32_t width, std::uin
 	m_width = width;
 	m_height = height;
 	m_batch.Initialize(device, 384);
+	m_initialized = true;
 	RebuildBatch();
+}
+
+void HudOverlay::Resize(std::uint32_t width, std::uint32_t height)
+{
+	if (width == 0 || height == 0)
+	{
+		return;
+	}
+	m_width = width;
+	m_height = height;
+	if (m_initialized)
+	{
+		RebuildBatch();
+	}
 }
 
 void HudOverlay::Update(float deltaTime)

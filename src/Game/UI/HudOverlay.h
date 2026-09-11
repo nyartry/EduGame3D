@@ -11,6 +11,7 @@ class HudOverlay
 {
 public:
 	void Initialize(IRenderDevice& device, std::uint32_t width, std::uint32_t height);
+	void Resize(std::uint32_t width, std::uint32_t height);
 	void Update(float deltaTime);
 	void Render(IRenderer& renderer) const;
 
@@ -21,4 +22,5 @@ private:
 	std::uint32_t m_width{};
 	std::uint32_t m_height{};
 	float m_elapsedTime{};
+	bool m_initialized{};
 };

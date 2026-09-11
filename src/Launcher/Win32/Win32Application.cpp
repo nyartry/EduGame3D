@@ -23,12 +23,54 @@ namespace
 	constexpr UINT WindowWidth = 1280;
 	constexpr UINT WindowHeight = 720;
 
+	struct WindowState
+	{
+		bool sizeChanged = true;
+		bool resetTiming = false;
+	};
+
+	// Keep the HWND and its callback data alive through renderer shutdown,
+	// including when Run unwinds before the outer error dialog is displayed.
+	struct WindowOwner
+	{
+		HWND handle{};
+		~WindowOwner()
+		{
+			if (!IsWindow(handle)) return;
+			// Teardown must not leave WM_QUIT for the outer exception dialog.
+			SetWindowLongPtr(handle, GWLP_USERDATA, 0);
+			DestroyWindow(handle);
+		}
+	};
+
 	LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 	{
+		if (message == WM_NCCREATE)
+		{
+			const auto* create = reinterpret_cast<const CREATESTRUCT*>(lParam);
+			SetWindowLongPtr(window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(create->lpCreateParams));
+		}
+		auto* state = reinterpret_cast<WindowState*>(GetWindowLongPtr(window, GWLP_USERDATA));
 		switch (message)
 		{
+		case WM_SIZE:
+			if (state != nullptr)
+			{
+				// GPU/UI work stays outside this Windows callback. Coalesce size
+				// messages and read the actual client rectangle at the next frame.
+				state->sizeChanged = true;
+				state->resetTiming = true;
+			}
+			return 0;
+		case WM_ENTERSIZEMOVE:
+		case WM_EXITSIZEMOVE:
+			if (state != nullptr) state->resetTiming = true;
+			return 0;
+		case WM_NCDESTROY:
+			SetWindowLongPtr(window, GWLP_USERDATA, 0);
+			return DefWindowProc(window, message, wParam, lParam);
 		case WM_DESTROY:
-			PostQuitMessage(0);
+			if (state != nullptr) PostQuitMessage(0);
 			return 0;
 		case WM_KEYDOWN:
 			if (wParam == VK_ESCAPE)
@@ -74,7 +116,9 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 
 	RECT windowRect = { 0, 0, static_cast<LONG>(WindowWidth), static_cast<LONG>(WindowHeight) };
 	AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
-	HWND window = CreateWindowEx(
+	WindowState windowState;
+	WindowOwner ownedWindow;
+	ownedWindow.handle = CreateWindowEx(
 		0,
 		className,
 		L"DirectX12 Open Campus Game",
@@ -86,7 +130,8 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 		nullptr,
 		nullptr,
 		instance,
-		nullptr);
+		&windowState);
+	const HWND window = ownedWindow.handle;
 	if (window == nullptr)
 	{
 		return 1;
@@ -135,15 +180,49 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 			continue;
 		}
 
+		RECT clientRect{};
+		if (!GetClientRect(window, &clientRect))
+		{
+			throw std::runtime_error("Cannot read the game window client dimensions.");
+		}
+		const UINT width = static_cast<UINT>(clientRect.right - clientRect.left);
+		const UINT height = static_cast<UINT>(clientRect.bottom - clientRect.top);
+		if (IsIconic(window) || width == 0 || height == 0)
+		{
+			// Release UI input on suspension, retaining the last positive
+			// viewport. No frame or fixed update is submitted while minimized.
+			inputBackend.Update(nullptr, input);
+			scenes.UpdateFrame(0.0f, input);
+			audio.Update();
+			simulationClock.Reset();
+			simulationInput.Reset();
+			wasFocused = false;
+			windowState.resetTiming = true;
+			WaitMessage();
+			continue;
+		}
+		if (windowState.sizeChanged)
+		{
+			renderer.Resize(width, height);
+			scenes.Resize(width, height);
+			windowState.sizeChanged = false;
+		}
+
 		inputBackend.Update(window, input);
 		const auto now = std::chrono::steady_clock::now();
-		const double elapsedSeconds = std::chrono::duration<double>(now - lastTickTime).count();
+		const double elapsedSeconds = windowState.resetTiming ? 0.0 : std::chrono::duration<double>(now - lastTickTime).count();
 		lastTickTime = now;
 		const bool focused = GetForegroundWindow() == window && !IsIconic(window);
-		if (!focused || focused != wasFocused)
+		if (!focused || focused != wasFocused || windowState.resetTiming)
 		{
 			simulationClock.Reset();
 			simulationInput.Reset();
+		}
+		if (windowState.resetTiming)
+		{
+			fpsLastUpdate = now;
+			fpsFrameCount = 0;
+			windowState.resetTiming = false;
 		}
 		const unsigned stepCount = focused && wasFocused ? simulationClock.Advance(elapsedSeconds) : 0;
 		wasFocused = focused;

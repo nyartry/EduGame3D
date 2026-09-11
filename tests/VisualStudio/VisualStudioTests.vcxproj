@@ -44,8 +44,8 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem><GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(VCInstallDir)Auxiliary\VS\UnitTest\lib\$(Platform);$(RepositoryRoot)third_party\assimp\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Microsoft.VisualStudio.TestTools.CppUnitTestFramework.lib;$(AssimpLibrary);d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VCInstallDir)Auxiliary\VS\UnitTest\lib\$(Platform);$(RepositoryRoot)third_party\assimp\lib\$(Configuration);$(RepositoryRoot)third_party\rmlui\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Microsoft.VisualStudio.TestTools.CppUnitTestFramework.lib;$(AssimpLibrary);rmlui.lib;d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent><Command>copy /Y "$(RepositoryRoot)third_party\assimp\bin\$(Configuration)\$(AssimpDll)" "$(OutDir)"</Command></PostBuildEvent>
   </ItemDefinitionGroup>
@@ -64,6 +64,7 @@
     <ClCompile Include="..\SkinningTests.cpp" />
     <ClCompile Include="..\SkinningGpuTests.cpp" />
     <ClCompile Include="..\TimeInputTests.cpp" />
+    <ClCompile Include="..\UiViewportTests.cpp" />
     <ClCompile Include="..\..\tools\AnimationEventEditor\AnimationEventJson.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -11,6 +11,7 @@
 #include <string>
 #include <thread>
 #include <type_traits>
+#include <utility>
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -117,6 +118,33 @@ namespace
 		fixture.renderer.Shutdown();
 		fixture.renderer.Shutdown();
 		RequireLogicError([&] { fixture.renderer.BeginFrame(XMMatrixIdentity()); }, "Submitted renderer remains terminal after shutdown");
+	}
+
+	void ResizedFramesKeepValidTargets()
+	{
+		Fixture fixture;
+		// Exercise both swap-chain buffers, landscape/portrait, repeated sizes,
+		// and the zero-sized notification produced by minimizing a window.
+		for (const auto& size : { std::pair<UINT, UINT>{ 96, 48 }, { 48, 96 }, { 48, 96 }, { 64, 64 } })
+		{
+			fixture.renderer.Resize(size.first, size.second);
+			Require(fixture.renderer.GetWidth() == size.first && fixture.renderer.GetHeight() == size.second,
+				"Renderer uses the latest positive dimensions");
+			fixture.renderer.Resize(0, size.second);
+			fixture.renderer.Resize(size.first, 0);
+			Require(fixture.renderer.GetWidth() == size.first && fixture.renderer.GetHeight() == size.second,
+				"Zero dimensions preserve the last valid render targets");
+			for (UINT frame = 0; frame <= Dx12Renderer::FrameCount; ++frame)
+			{
+				fixture.renderer.BeginFrame(XMMatrixIdentity());
+				RequireLogicError([&] { fixture.renderer.Resize(size.first + 1, size.second + 1); },
+					"Changed dimensions cannot be applied during frame recording");
+				fixture.renderer.EndFrame();
+			}
+			fixture.renderer.WaitForGpu();
+			Require(SUCCEEDED(fixture.renderer.GetDevice()->GetDeviceRemovedReason()),
+				"Resized color/depth targets remain valid for submitted frames");
+		}
 	}
 
 	ComPtr<ID3D12Resource> Buffer(ID3D12Device* device, D3D12_HEAP_TYPE type, D3D12_RESOURCE_STATES state)
@@ -358,6 +386,7 @@ namespace
 	TEST(UninitializedShutdownIsIdempotentAndTerminal, "uninitialized renderer shutdown is idempotent and terminal", Cpu) \
 	TEST(PartialInitializationCanShutdown, "WARP partial renderer initialization can shut down", Gpu) \
 	TEST(SubmittedFrameCanShutdownTwice, "WARP submitted frame can shut down twice", Gpu) \
+	TEST(ResizedFramesKeepValidTargets, "WARP resized frames retain valid color and depth targets", Gpu) \
 	TEST(ShutdownGuardWaitsBeforeOwnersAndPreservesException, "WARP shutdown waits before owners and preserves the original exception", Gpu) \
 	TEST(DeferredFailuresAndReentrantCallbacksDrainOnce, "WARP shutdown contains release failures and drains reentrant callbacks", Gpu) \
 	TEST(ShutdownTimeoutRemovesDeviceBeforeRelease, "WARP shutdown timeout removes the device before releasing resources", Gpu) \

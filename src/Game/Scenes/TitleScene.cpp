@@ -23,49 +23,42 @@ namespace
 	constexpr XMFLOAT4 PromptColor{ 1.0f, 0.78f, 0.32f, 0.96f };
 	constexpr XMFLOAT4 SubtleTextColor{ 0.62f, 0.74f, 0.84f, 0.92f };
 	constexpr XMFLOAT4 UiLabelColor{ 0.95f, 0.99f, 1.0f, 1.0f };
-	constexpr float ProbeButtonX = 32.0f;
-	constexpr float ProbeButtonY = 32.0f;
-	constexpr float ProbeButtonWidth = 270.0f;
-	constexpr float SampleButtonY = 32.0f;
-	constexpr float SampleButtonWidth = 145.0f;
-	constexpr float SampleButtonGap = 12.0f;
-	constexpr float SampleButtonX0 = ProbeButtonX + ProbeButtonWidth + 28.0f;
-	constexpr float SampleButtonX1 = SampleButtonX0 + SampleButtonWidth + SampleButtonGap;
-	constexpr float SampleButtonX2 = SampleButtonX1 + SampleButtonWidth + SampleButtonGap;
-	constexpr float SampleButtonX3 = SampleButtonX2 + SampleButtonWidth + SampleButtonGap;
 	constexpr std::string_view SampleButtonIds[] = { "sample-a", "sample-b", "sample-c", "sample-d" };
 
+	// Viewport units keep the sample controls visible as the client area changes.
+	// Sprite labels below read these controls' actual border boxes from the UI.
 	constexpr std::string_view TitleMarkup = R"(
 <rml>
 <head>
 	<style>
 		body { width: 100vw; height: 100vh; margin: 0; padding: 0; }
+		button { box-sizing: border-box; }
 		#probe {
-			position: absolute; left: 32px; top: 32px; width: 270px; height: 70px;
+			position: absolute; left: 2.5vw; top: 4.444444vh; width: 21.71875vw; height: 10.833333vh;
 			background-color: rgb(34, 96, 55); border-width: 4px;
 			border-color: rgb(121, 255, 166); padding: 0;
 		}
 		#probe:hover { background-color: rgb(45, 132, 74); border-color: rgb(255, 220, 99); }
 		#probe.flashed { background-color: rgb(128, 82, 24); border-color: rgb(255, 220, 99); }
 		.sample-button {
-			position: absolute; top: 32px; width: 145px; height: 70px;
+			position: absolute; top: 4.444444vh; width: 11.796875vw; height: 10.555556vh;
 			padding: 0; border-width: 3px;
 		}
-		#sample-a { left: 330px; background-color: rgb(22, 65, 105); border-color: rgb(74, 190, 255); }
+		#sample-a { left: 25.78125vw; background-color: rgb(22, 65, 105); border-color: rgb(74, 190, 255); }
 		#sample-a:hover { background-color: rgb(32, 92, 148); border-color: rgb(154, 225, 255); }
-		#sample-b { left: 487px; background-color: rgb(77, 47, 15); border-color: rgb(255, 183, 72); }
+		#sample-b { left: 38.046875vw; background-color: rgb(77, 47, 15); border-color: rgb(255, 183, 72); }
 		#sample-b:hover { background-color: rgb(112, 69, 24); border-color: rgb(255, 222, 128); }
-		#sample-c { left: 644px; background-color: rgb(75, 28, 42); border-color: rgb(255, 102, 139); }
+		#sample-c { left: 50.3125vw; background-color: rgb(75, 28, 42); border-color: rgb(255, 102, 139); }
 		#sample-c:hover { background-color: rgb(117, 39, 62); border-color: rgb(255, 174, 194); }
-		#sample-d { left: 801px; background-color: rgb(27, 36, 56); border-color: rgb(184, 204, 230); }
+		#sample-d { left: 62.578125vw; background-color: rgb(27, 36, 56); border-color: rgb(184, 204, 230); }
 		#sample-d:hover { background-color: rgb(47, 59, 86); border-color: rgb(255, 255, 255); }
 		#sample-a.selected { background-color: rgb(14, 122, 102); border-color: rgb(121, 255, 229); }
 		#sample-b.selected { background-color: rgb(14, 122, 102); border-color: rgb(121, 255, 229); }
 		#sample-c.selected { background-color: rgb(14, 122, 102); border-color: rgb(121, 255, 229); }
 		#sample-d.selected { background-color: rgb(14, 122, 102); border-color: rgb(121, 255, 229); }
-		#menu { position: absolute; left: 430px; top: 418px; width: 420px; }
+		#menu { position: absolute; left: 33.4375vw; top: 58vh; width: 33.125vw; }
 		#menu button {
-			display: block; width: 420px; height: 58px; margin-bottom: 18px;
+			display: block; width: 100%; height: 8.611111vh; margin-bottom: 2.5vh;
 			background-color: rgb(13, 49, 71); border-width: 2px;
 			border-color: rgb(82, 215, 255); padding: 0;
 		}
@@ -113,11 +106,32 @@ void TitleScene::Activate()
 		}
 	}
 	RebuildBatch();
+	m_active = true;
 }
 
 void TitleScene::Unload()
 {
+	m_active = false;
 	m_uiDocument.reset();
+}
+
+void TitleScene::OnResize(std::uint32_t width, std::uint32_t height)
+{
+	if (width == 0 || height == 0)
+	{
+		return;
+	}
+	m_width = width;
+	m_height = height;
+	if (!m_active)
+	{
+		return;
+	}
+	if (m_uiDocument != nullptr)
+	{
+		m_uiDocument->Resize(width, height);
+	}
+	RebuildBatch();
 }
 
 void TitleScene::UpdateFrame(float deltaTime, const Input& input)
@@ -221,69 +235,74 @@ void TitleScene::RebuildBatch()
 {
 	const float width = static_cast<float>(m_width);
 	const float height = static_cast<float>(m_height);
+	const float uiScale = std::min(width / 1280.0f, height / 720.0f);
 	const float pulse = (std::sin(m_elapsedTime * 3.2f) + 1.0f) * 0.5f;
-	const float titleSize = std::clamp(width / 118.0f, 4.0f, 8.0f);
-	const float subtitleSize = std::clamp(width / 260.0f, 2.0f, 4.0f);
-	const float promptSize = std::clamp(width / 260.0f, 2.6f, 4.4f);
+	const float titleSize = 8.0f * uiScale;
+	const float subtitleSize = 4.0f * uiScale;
+	const float promptSize = 4.4f * uiScale;
 	const float centerX = width * 0.5f;
 	const float centerY = height * 0.5f;
 
 	m_batch.Clear();
 	m_batch.DrawRectangle(0.0f, 0.0f, width, height, BackgroundColor);
-	m_batch.DrawRectangle(0.0f, height * 0.22f, width, 2.0f, AccentDarkColor);
-	m_batch.DrawRectangle(0.0f, height * 0.78f, width, 2.0f, AccentDarkColor);
-	const float panelWidth = std::min(width - 80.0f, 760.0f);
-	const float panelHeight = std::min(height * 0.42f, 310.0f);
+	m_batch.DrawRectangle(0.0f, height * 0.22f, width, 2.0f * uiScale, AccentDarkColor);
+	m_batch.DrawRectangle(0.0f, height * 0.78f, width, 2.0f * uiScale, AccentDarkColor);
+	const float panelWidth = std::min(width - 80.0f * uiScale, 760.0f * uiScale);
+	const float panelHeight = std::min(height * 0.42f, 310.0f * uiScale);
 	const float panelX = centerX - panelWidth * 0.5f;
 	const float panelY = centerY - panelHeight * 0.5f;
 	m_batch.DrawRectangle(panelX, panelY, panelWidth, panelHeight, { 0.025f, 0.04f, 0.065f, 0.72f });
-	m_batch.DrawRectangle(panelX, panelY, 5.0f, panelHeight, AccentColor);
-	m_batch.DrawRectangle(panelX + panelWidth - 5.0f, panelY, 5.0f, panelHeight, AccentColor);
-	const float markerWidth = 88.0f + 18.0f * pulse;
-	m_batch.DrawRectangle(centerX - markerWidth * 0.5f, panelY + 34.0f, markerWidth, 5.0f, PromptColor);
-	m_batch.DrawRectangle(centerX - markerWidth * 0.5f, panelY + panelHeight - 39.0f, markerWidth, 5.0f, PromptColor);
+	m_batch.DrawRectangle(panelX, panelY, 5.0f * uiScale, panelHeight, AccentColor);
+	m_batch.DrawRectangle(panelX + panelWidth - 5.0f * uiScale, panelY, 5.0f * uiScale, panelHeight, AccentColor);
+	const float markerWidth = (88.0f + 18.0f * pulse) * uiScale;
+	m_batch.DrawRectangle(centerX - markerWidth * 0.5f, panelY + 34.0f * uiScale, markerWidth, 5.0f * uiScale, PromptColor);
+	m_batch.DrawRectangle(centerX - markerWidth * 0.5f, panelY + panelHeight - 39.0f * uiScale, markerWidth, 5.0f * uiScale, PromptColor);
 
-	DrawCenteredText("TITLE", centerY - 70.0f, titleSize, TitleColor);
-	DrawCenteredText("OPEN CAMPUS GAME", centerY + 8.0f, subtitleSize, SubtleTextColor);
+	DrawCenteredText("TITLE", centerY - 70.0f * uiScale, titleSize, TitleColor);
+	DrawCenteredText("OPEN CAMPUS GAME", centerY + 8.0f * uiScale, subtitleSize, SubtleTextColor);
 	if (m_uiDocument != nullptr)
 	{
 		m_uiDocument->RenderTo(m_batch);
 	}
 	if (m_uiDocument == nullptr || !m_uiDocument->IsLoaded())
 	{
-		m_batch.DrawText("UI LOAD FAILED", 32.0f, 96.0f, 2.0f, PromptColor);
+		m_batch.DrawText("UI LOAD FAILED", width * 0.025f, height * 0.17f, 2.0f * uiScale, PromptColor);
 		if (m_uiDocument != nullptr)
 		{
-			m_batch.DrawText(m_uiDocument->GetLastError().substr(0, 46), 32.0f, 122.0f, 1.5f, SubtleTextColor);
+			m_batch.DrawText(m_uiDocument->GetLastError().substr(0, 46), width * 0.025f, height * 0.20f, 1.5f * uiScale, SubtleTextColor);
 		}
 	}
 	else if (m_uiDocument->GetLastRenderedTriangleCount() == 0)
 	{
-		m_batch.DrawText("UI ZERO GEOMETRY", 32.0f, 96.0f, 2.0f, PromptColor);
+		m_batch.DrawText("UI ZERO GEOMETRY", width * 0.025f, height * 0.17f, 2.0f * uiScale, PromptColor);
 	}
 
-	m_batch.DrawText("UI BUTTON", ProbeButtonX + 24.0f, ProbeButtonY + 18.0f, 2.1f, UiLabelColor);
+	DrawButtonText("probe", "UI BUTTON", 0.33f, 2.1f * uiScale, UiLabelColor);
 	const std::string probeText = m_probeButtonClickCount > 0 ? "CLICKED " + std::to_string(m_probeButtonClickCount) : "CLICK ME";
-	m_batch.DrawText(probeText, ProbeButtonX + 24.0f, ProbeButtonY + 44.0f, 1.6f, PromptColor);
-	m_batch.DrawText("BLUE", SampleButtonX0 + 18.0f, SampleButtonY + 20.0f, 1.55f, UiLabelColor);
-	m_batch.DrawText("FLAT", SampleButtonX0 + 18.0f, SampleButtonY + 46.0f, 1.25f, SubtleTextColor);
-	m_batch.DrawText("GOLD", SampleButtonX1 + 18.0f, SampleButtonY + 20.0f, 1.55f, UiLabelColor);
-	m_batch.DrawText("ALERT", SampleButtonX1 + 18.0f, SampleButtonY + 46.0f, 1.25f, PromptColor);
-	m_batch.DrawText("RED", SampleButtonX2 + 18.0f, SampleButtonY + 20.0f, 1.55f, UiLabelColor);
-	m_batch.DrawText("DANGER", SampleButtonX2 + 18.0f, SampleButtonY + 46.0f, 1.25f, SubtleTextColor);
-	m_batch.DrawText("STEEL", SampleButtonX3 + 14.0f, SampleButtonY + 20.0f, 1.35f, UiLabelColor);
-	m_batch.DrawText("OUTLINE", SampleButtonX3 + 14.0f, SampleButtonY + 46.0f, 1.15f, SubtleTextColor);
-	if (m_selectedSampleButton != 0)
+	DrawButtonText("probe", probeText, 0.66f, 1.6f * uiScale, PromptColor);
+	DrawButtonText("sample-a", "BLUE", 0.34f, 1.55f * uiScale, UiLabelColor);
+	DrawButtonText("sample-a", "FLAT", 0.68f, 1.25f * uiScale, SubtleTextColor);
+	DrawButtonText("sample-b", "GOLD", 0.34f, 1.55f * uiScale, UiLabelColor);
+	DrawButtonText("sample-b", "ALERT", 0.68f, 1.25f * uiScale, PromptColor);
+	DrawButtonText("sample-c", "RED", 0.34f, 1.55f * uiScale, UiLabelColor);
+	DrawButtonText("sample-c", "DANGER", 0.68f, 1.25f * uiScale, SubtleTextColor);
+	DrawButtonText("sample-d", "STEEL", 0.34f, 1.35f * uiScale, UiLabelColor);
+	DrawButtonText("sample-d", "OUTLINE", 0.68f, 1.15f * uiScale, SubtleTextColor);
+	if (m_selectedSampleButton != 0 && m_uiDocument != nullptr)
 	{
 		const std::string selectedText = "SAMPLE " + std::to_string(m_selectedSampleButton) + " CLICKED " + std::to_string(m_sampleButtonClickCount);
-		m_batch.DrawText(selectedText, SampleButtonX0, SampleButtonY + 88.0f, 1.7f, PromptColor);
+		if (const auto bounds = m_uiDocument->GetElementBounds("sample-a"))
+		{
+			m_batch.DrawText(selectedText, std::round(bounds->x), std::round(bounds->y + bounds->height + 12.0f * uiScale),
+				std::max(1.0f, 1.7f * uiScale), PromptColor);
+		}
 	}
-	DrawCenteredText("START GAME", height * 0.58f + 18.0f, 3.0f, UiLabelColor);
-	DrawCenteredText("EXIT", height * 0.58f + 94.0f, 3.0f, SubtleTextColor);
-	DrawCenteredText("PRESS ENTER", centerY + 245.0f + pulse * 6.0f, promptSize, PromptColor);
+	DrawButtonText("start", "START GAME", 0.5f, 3.0f * uiScale, UiLabelColor);
+	DrawButtonText("exit", "EXIT", 0.5f, 3.0f * uiScale, SubtleTextColor);
+	DrawCenteredText("PRESS ENTER", height * 0.84f + pulse * 6.0f * uiScale, promptSize, PromptColor);
 	if (m_loadFailed)
 	{
-		DrawCenteredText("LOAD FAILED - PRESS ENTER TO RETRY", height - 32.0f, 2.0f, PromptColor);
+		DrawCenteredText("LOAD FAILED - PRESS ENTER TO RETRY", height - 32.0f * uiScale, 2.0f * uiScale, PromptColor);
 	}
 	m_batch.Upload();
 }
@@ -294,4 +313,30 @@ void TitleScene::DrawCenteredText(std::string_view text, float centerY, float pi
 	const float x = (static_cast<float>(m_width) - textSize.x) * 0.5f;
 	const float y = centerY - textSize.y * 0.5f;
 	m_batch.DrawText(text, x, y, pixelSize, color);
+}
+
+void TitleScene::DrawButtonText(std::string_view elementId, std::string_view text, float centerYRatio,
+	float pixelSize, const XMFLOAT4& color)
+{
+	if (m_uiDocument == nullptr)
+	{
+		return;
+	}
+	const auto bounds = m_uiDocument->GetElementBounds(elementId);
+	if (!bounds || bounds->width <= 0.0f || bounds->height <= 0.0f)
+	{
+		return;
+	}
+	const XMFLOAT2 unitSize = m_batch.MeasureText(text, 1.0f);
+	if (unitSize.x <= 0.0f || unitSize.y <= 0.0f)
+	{
+		return;
+	}
+	const float lineHeightRatio = centerYRatio == 0.5f ? 0.5f : 0.22f;
+	// Subpixel bitmap cells can disappear when the window is narrow. Keep at
+	// least one pixel per cell whenever the control has enough room.
+	pixelSize = std::min({ std::max(1.0f, pixelSize), bounds->width * 0.85f / unitSize.x, bounds->height * lineHeightRatio / unitSize.y });
+	const XMFLOAT2 textSize = m_batch.MeasureText(text, pixelSize);
+	m_batch.DrawText(text, std::round(bounds->x + (bounds->width - textSize.x) * 0.5f),
+		std::round(bounds->y + bounds->height * centerYRatio - textSize.y * 0.5f), pixelSize, color);
 }
