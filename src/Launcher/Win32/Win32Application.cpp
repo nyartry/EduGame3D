@@ -1,6 +1,7 @@
 #include "Launcher/Win32/Win32Application.h"
 
 #include "Framework/Audio/AudioSystem.h"
+#include "Framework/Common/Common.h"
 #include "Framework/Core/Time/FixedStepClock.h"
 #include "Framework/Core/Diagnostics/Diagnostics.h"
 #include "Framework/Effects/Effekseer/EffekseerEffectSystem.h"
@@ -109,7 +110,14 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 	ui.Initialize();
 	scenes.Initialize(renderer, renderer, WindowWidth, WindowHeight);
 	game.RegisterScenes(scenes);
-	scenes.LoadScene(std::string(game.GetInitialSceneName()), SceneLoadType::Synchronous, SceneLoadMode::Single);
+	if (!scenes.LoadScene(std::string(game.GetInitialSceneName()), SceneLoadType::Synchronous, SceneLoadMode::Single))
+	{
+		// SceneManager already logged the cause. At startup there is no old
+		// scene to resume, so show the error and stop before entering the loop.
+		const std::string error = "Initial scene load failed:\n" + scenes.GetLastLoadError();
+		MessageBoxW(nullptr, ToWide(error.c_str()).c_str(), L"Startup error", MB_OK | MB_ICONERROR);
+		return 1;
+	}
 
 	ShowWindow(window, showCommand);
 	auto lastTickTime = std::chrono::steady_clock::now();

@@ -225,6 +225,48 @@ namespace
 		}
 	}
 
+	void InitialLoadFailuresLeaveNoActiveSceneAndCanRetry()
+	{
+		const char* causes[] = { "not registered", "factory failure", "returned null", "prepare failure", "activate failure" };
+		for (int failure = 0; failure < 5; ++failure)
+		{
+			Fixture fixture;
+			DiagnosticCapture diagnostics;
+			auto failed = std::make_shared<State>();
+			failed->failPrepare = failure == 3;
+			failed->failActivate = failure == 4;
+			if (failure == 1) fixture.manager.RegisterScene("initial", []() -> std::unique_ptr<IScene> { throw std::runtime_error("factory failure"); });
+			else if (failure == 2) fixture.manager.RegisterScene("initial", []() -> std::unique_ptr<IScene> { return nullptr; });
+			else if (failure >= 3) fixture.Register("initial", failed);
+
+			Require(!fixture.manager.LoadScene("initial", SceneLoadType::Synchronous, SceneLoadMode::Single),
+				"An initial load failure must return false even when there is no old scene");
+			const auto& error = fixture.manager.GetLastLoadError();
+			Require(error.find("initial") != std::string::npos && error.find(causes[failure]) != std::string::npos,
+				"The startup caller must receive the failed scene name and original cause");
+			if (failure > 0) Require(error.find(failure == 4 ? "activation" : "preparation") != std::string::npos,
+				"The startup error must identify the failed loading phase");
+			Require(diagnostics.messages.size() == 1 && diagnostics.messages.front().find(error) != std::string::npos,
+				"The load failure must already be diagnosed once for the startup caller");
+			Require(!fixture.manager.IsLoading() && fixture.lifetime.pending.empty(),
+				"A failed initial load must leave no pending transition or retired scene");
+			if (failure >= 3) Require(failed->destroyed == 1, "A failed initial candidate must be destroyed");
+			fixture.manager.Update(0.016f, fixture.input);
+			fixture.manager.UpdateFrame(0.016f, fixture.input);
+			Require(failed->updates == 0 && failed->frames == 0 && failed->failedLoads == 0,
+				"A failed initial candidate must never become an active scene");
+
+			auto recovered = std::make_shared<State>();
+			fixture.Register("initial", recovered);
+			Require(fixture.manager.LoadScene("initial") && fixture.manager.GetLastLoadError().empty(),
+				"SceneManager must still allow a successful retry and clear the old error");
+			fixture.manager.Update(0.016f, fixture.input);
+			fixture.manager.UpdateFrame(0.016f, fixture.input);
+			Require(recovered->activated == 1 && recovered->updates == 1 && recovered->frames == 1 && diagnostics.messages.size() == 1,
+				"Only the successful retry must run, without repeating the failure diagnostic");
+		}
+	}
+
 	void SynchronousFailureKeepsOldScene()
 	{
 		for (int failure = 0; failure < 4; ++failure)
@@ -381,6 +423,7 @@ namespace
 }
 
 #define SCENELIFECYCLETESTS_CASES(TEST) \
+	TEST(InitialLoadFailuresLeaveNoActiveSceneAndCanRetry, "initial load failures preserve cause and permit retry", Cpu) \
 	TEST(SynchronousFailureKeepsOldScene, "sync load failures preserve active scene", Cpu) \
 	TEST(DeferredRetirementAndAdditiveLoad, "additive load and fence-deferred retirement", Cpu) \
 	TEST(AsynchronousPrepareKeepsOldScene, "async Prepare retention, affinity and recovery", Cpu) \
