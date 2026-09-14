@@ -1,12 +1,12 @@
-# Animation Event Editor
+# EduGame3D Animation Event Editor
 
-FBX animation event editor for this DirectX12 Open Campus project.
+FBX animation event editor for the EduGame3D classroom game programming framework.
 
 ## Build
 
-Open `GameFramework.sln` in Visual Studio.
+Open `EduGame3D.sln` in Visual Studio.
 
-The solution contains four projects:
+The solution contains these application and library projects, plus `VisualStudioTests`:
 
 - `GameApp`
 - `GameModule`
@@ -37,7 +37,7 @@ The original Visual Studio output is also here:
 6. Edit the event type, bone, and cue in `Event Properties`.
 7. Choose `File > Save Events`.
 
-The editor saves `.anim_events.json` files.
+The editor saves `.anim_events.json` files with the `edugame3d-animation-events-v1` schema. It also reads the legacy schema; saving rewrites the schema to the current name. `sourceFbx` records the FBX filename, without a machine-specific folder path.
 
 When an FBX is opened, the editor also looks for a sibling `.anim_events.json` file and loads it automatically.
 
@@ -51,6 +51,8 @@ If a file name is rejected, the Status panel explains the restriction. The curre
 - `Edit > Redo` / `Ctrl+Y` reapplies reverted event edits.
 - `File > Open Events...` loads an existing `.anim_events.json` for the current model.
 - `View > Reset Layout` restores the default panel arrangement and rewrites the saved ImGui layout.
+
+Layout settings are stored in `%LOCALAPPDATA%\EduGame3D\AnimationEventEditor\imgui.ini`. On first use, an existing layout from the previous project name is copied if the new file is absent. Existing settings are never overwritten by this migration.
 
 ## Tuning Combo Input
 

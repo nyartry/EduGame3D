@@ -77,9 +77,9 @@ void HudOverlay::RebuildBatch()
 	m_batch.DrawRectangle(centerX - 1.0f, centerY + 6.0f, 2.0f, 12.0f, ReticleColor);
 
 	constexpr float labelSize = 3.0f;
-	const XMFLOAT2 labelSizePx = m_batch.MeasureText("OPEN CAMPUS", labelSize);
+	const XMFLOAT2 labelSizePx = m_batch.MeasureText("EDUGAME3D", labelSize);
 	m_batch.DrawText(
-		"OPEN CAMPUS",
+		"EDUGAME3D",
 		static_cast<float>(m_width) - labelSizePx.x - 28.0f,
 		30.0f,
 		labelSize,

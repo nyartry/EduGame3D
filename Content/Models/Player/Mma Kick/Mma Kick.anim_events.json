@@ -1,6 +1,6 @@
 {
-  "schema": "open-campus-animation-events-v1",
-  "sourceFbx": "Content\\Models\\Player\\Mma Kick\\Mma Kick.fbx",
+  "schema": "edugame3d-animation-events-v1",
+  "sourceFbx": "Mma Kick.fbx",
   "events": [
     {
       "animation": "mixamo.com",

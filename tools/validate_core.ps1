@@ -35,7 +35,7 @@ else {
 foreach ($configuration in $Configurations) {
     # The game and editor stage the same DLL into one output directory.
     # Serialize their post-build copies to avoid sharing violations.
-    & $msbuildPath (Join-Path $repositoryRoot 'GameFramework.sln') /nologo /m:1 /v:minimal "/p:Configuration=$configuration" /p:Platform=x64
+    & $msbuildPath (Join-Path $repositoryRoot 'EduGame3D.sln') /nologo /m:1 /v:minimal "/p:Configuration=$configuration" /p:Platform=x64
     if ($LASTEXITCODE -ne 0) { throw "$configuration solution build failed." }
     foreach ($test in (Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'tests') -Filter '*Tests.vcxproj' -File | Sort-Object Name)) {
         & $msbuildPath $test.FullName /nologo /v:minimal "/p:Configuration=$configuration" /p:Platform=x64

@@ -68,7 +68,7 @@ int APIENTRY wWinMain(
 {
 	try
 	{
-		const wchar_t className[] = L"OpenCampusAnimationEventEditorWindow";
+		const wchar_t className[] = L"EduGame3DAnimationEventEditorWindow";
 		WNDCLASSEXW windowClass{};
 		windowClass.cbSize = sizeof(WNDCLASSEXW);
 		windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -90,7 +90,7 @@ int APIENTRY wWinMain(
 		HWND hwnd = CreateWindowExW(
 			0,
 			className,
-			L"Open Campus Animation Event Editor",
+			L"EduGame3D Animation Event Editor",
 			WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT,
 			CW_USEDEFAULT,

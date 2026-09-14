@@ -13,12 +13,12 @@ AnimationEventEditor.exe
     `-- EngineFramework.lib
 ```
 
-- `src/Game` contains Open Campus-specific rules, scenes, actions, content IDs, and asset paths.
+- `src/Game` contains sample-game rules, scenes, actions, content IDs, and asset paths.
 - `src/Framework` contains reusable engine code, public service contracts, and backend adapters.
 - `src/Launcher` is the only place that creates and connects Win32, DX12, RmlUi, Effekseer, audio, and the game module.
 - `tools/AnimationEventEditor` reuses `EngineFramework.lib`; it does not compile a private copy of the engine.
 
-No DLL or opaque binary distribution is used. Static libraries are compilation boundaries only; every implementation remains in the solution. Visual Studio rebuilds a `.lib` only when its project inputs changed, then relinks dependent executables as needed.
+The engine and game modules use static libraries as compilation boundaries; their implementations remain in the solution. Third-party runtime dependencies include Assimp DLLs. Visual Studio rebuilds a `.lib` only when its project inputs changed, then relinks dependent executables as needed.
 
 Pimpl is used selectively for backend-heavy resource and service classes. It prevents platform/vendor headers from spreading through public includes; it does not hide source code. The corresponding `Impl` definitions remain in the repository and can be read, changed, and debugged normally.
 

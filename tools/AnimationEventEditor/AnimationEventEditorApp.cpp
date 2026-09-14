@@ -1298,7 +1298,9 @@ namespace
 				return;
 			}
 
-			AnimationEventFileData data{ m_modelPath, m_events };
+			// This metadata identifies the source file; model loading uses the selected FBX path.
+			const std::string sourceFileName = PathToUtf8String(AssetPathResolver::FromUtf8(m_modelPath).filename());
+			AnimationEventFileData data{ sourceFileName, m_events };
 			std::string error;
 			if (!SaveAnimationEventFile(path, data, error))
 			{

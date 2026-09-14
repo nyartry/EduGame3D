@@ -1,6 +1,6 @@
 {
-  "schema": "open-campus-animation-events-v1",
-  "sourceFbx": "D:\\Dev\\3D-game-for-open-campus-Koyo\\Content\\Models\\Y_Bot\\Y_Bot.fbx",
+  "schema": "edugame3d-animation-events-v1",
+  "sourceFbx": "Y_Bot.fbx",
   "events": [
     {
       "animation": "mixamo.com",

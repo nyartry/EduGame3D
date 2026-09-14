@@ -30,7 +30,10 @@ namespace AnimationEvents
 				{
 					if (key == "schema")
 					{
-						if (String() != Schema) Fail("Unsupported animation event schema");
+						const std::string schema = String();
+						// Retain read compatibility with event files saved before the EduGame3D rename.
+						if (schema != Schema && schema != "open-campus-animation-events-v1")
+							Fail("Unsupported animation event schema");
 						schemaSeen = true;
 					}
 					else if (key == "sourceFbx") data.sourceFbx = String();

@@ -37,7 +37,7 @@ namespace TestSupport
 			auto directory = ModuleDirectory();
 			while (!directory.empty())
 			{
-				if (std::filesystem::exists(directory / "GameFramework.sln"))
+				if (std::filesystem::exists(directory / "EduGame3D.sln"))
 				{
 					std::filesystem::current_path(directory);
 					return;
@@ -46,7 +46,7 @@ namespace TestSupport
 				if (parent == directory) break;
 				directory = parent;
 			}
-			throw std::runtime_error("Cannot find GameFramework.sln above the test module");
+			throw std::runtime_error("Cannot find EduGame3D.sln above the test module");
 		}
 		~RepositoryDirectory()
 		{

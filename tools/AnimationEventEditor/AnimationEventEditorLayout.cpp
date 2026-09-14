@@ -92,11 +92,16 @@ DockSpace       ID=0x08BD597D Window=0x1BBC0F80 Pos=0,19 Size=1920,990 Split=Y
 
 	std::filesystem::path MakeEditorSettingsDirectory()
 	{
-		std::filesystem::path directory = GetLocalAppDataPath() / L"OpenCampusAnimationEventEditor";
+		const std::filesystem::path localAppData = GetLocalAppDataPath();
+		const std::filesystem::path directory = localAppData / L"EduGame3D" / L"AnimationEventEditor";
 		std::error_code error;
 		std::filesystem::create_directories(directory, error);
 		if (!error)
 		{
+			// Import the known legacy preference without replacing an existing EduGame3D layout.
+			// Missing or unreadable legacy settings leave normal default-layout creation in place.
+			std::filesystem::copy_file(localAppData / L"OpenCampusAnimationEventEditor" / L"imgui.ini",
+				directory / L"imgui.ini", std::filesystem::copy_options::skip_existing, error);
 			return directory;
 		}
 

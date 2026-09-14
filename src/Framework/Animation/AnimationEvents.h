@@ -11,7 +11,7 @@
 
 namespace AnimationEvents
 {
-	inline constexpr std::string_view Schema = "open-campus-animation-events-v1";
+	inline constexpr std::string_view Schema = "edugame3d-animation-events-v1";
 
 	// Runtime data has no editor buffer sizes, selection or undo state.
 	struct Event

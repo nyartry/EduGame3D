@@ -28,7 +28,7 @@ namespace
 	//constexpr float CameraFarZ = 100.0f;
 	constexpr float CameraNearZ = 0.5f;
 	constexpr float CameraFarZ = 50.0f;
-	constexpr const char* GeneratedImageTexturePath = "Content\\Textures\\UI\\open_campus_crest.png";
+	constexpr const char* GeneratedImageTexturePath = "Content\\Textures\\UI\\edugame3d_crest.png";
 	constexpr XMFLOAT3 PlatformCubePosition{ 0.0f, 0.5f, 2.0f };
 	constexpr XMFLOAT4 RectColor{ 0.35f, 0.86f, 1.0f, 0.88f };
 	constexpr XMFLOAT4 SquareColor{ 0.92f, 0.36f, 0.78f, 0.88f };
@@ -182,8 +182,9 @@ void GameScene::Update(float deltaTime, const Input& input)
 			{
 				const auto& event = occurrence.event;
 				if (event.cue.empty()) continue;
-				if (event.type == "Footstep" || event.type == "PlaySE") m_audio.PlaySe(event.cue);
-				else if (event.type == "PlayEffect") m_effects.Play(event.cue, skinned->GetAnimationEventPosition(event.bone));
+				const auto cue = GameContent::ResolveCue(event.cue);
+				if (event.type == "Footstep" || event.type == "PlaySE") m_audio.PlaySe(cue);
+				else if (event.type == "PlayEffect") m_effects.Play(cue, skinned->GetAnimationEventPosition(event.bone));
 			}
 		}
 	}

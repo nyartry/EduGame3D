@@ -258,8 +258,8 @@ void TitleScene::RebuildBatch()
 	m_batch.DrawRectangle(centerX - markerWidth * 0.5f, panelY + 34.0f * uiScale, markerWidth, 5.0f * uiScale, PromptColor);
 	m_batch.DrawRectangle(centerX - markerWidth * 0.5f, panelY + panelHeight - 39.0f * uiScale, markerWidth, 5.0f * uiScale, PromptColor);
 
-	DrawCenteredText("TITLE", centerY - 70.0f * uiScale, titleSize, TitleColor);
-	DrawCenteredText("OPEN CAMPUS GAME", centerY + 8.0f * uiScale, subtitleSize, SubtleTextColor);
+	DrawCenteredText("EDUGAME3D", centerY - 70.0f * uiScale, titleSize, TitleColor);
+	DrawCenteredText("3D GAME PROGRAMMING", centerY + 8.0f * uiScale, subtitleSize, SubtleTextColor);
 	if (m_uiDocument != nullptr)
 	{
 		m_uiDocument->RenderTo(m_batch);

@@ -91,7 +91,7 @@ namespace
 		}
 		const float fps = static_cast<float>(frameCount) / elapsedSeconds;
 		wchar_t title[128]{};
-		swprintf_s(title, L"DirectX12 Open Campus Game - FPS: %.1f", fps);
+		swprintf_s(title, L"EduGame3D - FPS: %.1f", fps);
 		SetWindowText(window, title);
 		frameCount = 0;
 	}
@@ -104,7 +104,7 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 		const std::string line = std::string(message) + "\n";
 		OutputDebugStringA(line.c_str());
 	});
-	const wchar_t className[] = L"DirectX12OpenCampusWindow";
+	const wchar_t className[] = L"EduGame3DWindow";
 	WNDCLASSEX windowClass{};
 	windowClass.cbSize = sizeof(WNDCLASSEX);
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -121,7 +121,7 @@ int Win32Application::Run(HINSTANCE instance, int showCommand)
 	ownedWindow.handle = CreateWindowEx(
 		0,
 		className,
-		L"DirectX12 Open Campus Game",
+		L"EduGame3D",
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,

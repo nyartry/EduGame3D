@@ -1,4 +1,5 @@
 #include "Framework/Animation/AnimationEvents.h"
+#include "Game/Content/GameContent.h"
 #include "../tools/AnimationEventEditor/AnimationEventJson.h"
 
 #include <cmath>
@@ -74,13 +75,41 @@ namespace
 	void JsonContract()
 	{
 		std::string error;
-		const std::string prefix = R"({"schema":"open-campus-animation-events-v1","sourceFbx":"model.fbx","events":[)";
+		const std::string prefix = R"({"schema":"edugame3d-animation-events-v1","sourceFbx":"model.fbx","events":[)";
 		const std::string event = R"({"time":0.5,"animation":"walk","type":"Footstep","name":"\u8db3\ud83d\udc63","cue":"step\nleft"})";
 		const auto parsed = AnimationEvents::Parse(prefix + event + "]}", error);
 		Require(parsed && error.empty() && parsed->events.size() == 1, "Shared v1 JSON loads");
 		Require(parsed->events[0].name.size() == 7 && parsed->events[0].cue == "step\nleft", "Unicode surrogate and standard escapes decode");
 		const auto roundTrip = AnimationEvents::Parse(AnimationEvents::Serialize(*parsed), error);
 		Require(roundTrip && roundTrip->events[0].name == parsed->events[0].name, "Shared writer round-trips UTF-8");
+		const std::string legacyPrefix = R"({"schema":"open-campus-animation-events-v1","sourceFbx":"model.fbx","events":[)";
+		const auto legacy = AnimationEvents::Parse(legacyPrefix + event + "]}", error);
+		Require(legacy && error.empty(), "Existing Open Campus event files remain readable");
+		const std::string migrated = AnimationEvents::Serialize(*legacy);
+		Require(migrated == AnimationEvents::Serialize(*parsed) &&
+			migrated.find("\"schema\": \"edugame3d-animation-events-v1\"") != std::string::npos,
+			"Saving a legacy event file retains its data and emits the EduGame3D schema");
+		struct CueCase { std::string_view saved; std::string_view resolved; };
+		constexpr CueCase cueCases[] = {
+			{ "open-campus.audio.title-bgm", GameContent::TitleBgm },
+			{ "open-campus.audio.game-bgm", GameContent::GameBgm },
+			{ "open-campus.audio.button-se", GameContent::ButtonSe },
+			{ "open-campus.effect.jump", GameContent::JumpEffect },
+			{ GameContent::TitleBgm, GameContent::TitleBgm },
+			{ GameContent::GameBgm, GameContent::GameBgm },
+			{ GameContent::ButtonSe, GameContent::ButtonSe },
+			{ GameContent::JumpEffect, GameContent::JumpEffect },
+			{ "open-campus.audio.custom", "open-campus.audio.custom" },
+			{ "", "" }
+		};
+		for (const auto& cueCase : cueCases)
+		{
+			const auto cueFile = AnimationEvents::Parse(legacyPrefix +
+				R"({"time":0.5,"animation":"walk","type":"PlaySE","cue":")" + std::string(cueCase.saved) + R"("}]})", error);
+			Require(cueFile && error.empty() && cueFile->events[0].cue == cueCase.saved &&
+				GameContent::ResolveCue(cueFile->events[0].cue) == cueCase.resolved,
+				"Legacy JSON cues resolve at the game boundary; current, custom and empty cues are preserved");
+		}
 		for (const std::string& invalid : std::vector<std::string>{
 			R"({"events":[]})",
 			R"({"schema":"future-version","events":[]})",

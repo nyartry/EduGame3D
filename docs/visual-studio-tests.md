@@ -1,10 +1,10 @@
 # Visual Studioでテストを実行する
 
-Visual Studio 2022のMicrosoft Unit Testing Framework for C++へ12種類のテストを接続しています。`GameFramework.sln` の `VisualStudioTests` プロジェクトが、87件のテストを含む専用DLLを生成します（2026-09-11時点）。ゲーム本体へテストは組み込まれません。
+Visual Studio 2022のMicrosoft Unit Testing Framework for C++へ12種類のテストを接続しています。`EduGame3D.sln` の `VisualStudioTests` プロジェクトが、87件のテストを含む専用DLLを生成します（2026-09-11時点）。ゲーム本体へテストは組み込まれません。
 
 ## 最初の実行
 
-1. Visual Studioで `GameFramework.sln` を開きます。既に開いていた場合は、ソリューションファイルの変更通知で再読み込みします。
+1. Visual Studioで `EduGame3D.sln` を開きます。既に開いていた場合は、ソリューションファイルの変更通知で再読み込みします。
 2. 構成を `Debug`、プラットフォームを `x64` にします。
 3. ソリューションエクスプローラーの `VisualStudioTests` を右クリックして「ビルド」を実行します。
 4. メニューの「テスト」→「テスト エクスプローラー」を開きます。
