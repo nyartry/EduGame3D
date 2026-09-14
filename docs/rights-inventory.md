@@ -4,7 +4,10 @@
 名称更新: プロジェクト名は **EduGame3D**。リンク先とA10のファイル名は調査後の名称変更に合わせています。A10の画像内容は変更していません。
 追加調査（2026-09-14）: モデルの取得元と配布条件は [3Dモデルの調査](model-provenance-audit.md) で具体化しました。A01～A07と以下の関連説明には、その結果とUntitledの本人確認を反映しています。
 モデル置換（同日）: A01～A06・A11の旧素材は現在のソースツリーから除外し、A12のEduHumanへ切り替えました。旧素材の記述と当初のファイル数は履歴上の記録です。現在の構成・検証・履歴を含まない出力は [置換記録](model-replacement.md) を参照してください。A08～A10とコード・依存物の未確認事項は引き続き残っています。
+音楽の制作元確認（同日）: 所有者から「音楽はAIで作らせたもの」「作成元はCodex」と回答がありました。A08のBGMをCodexによる生成との本人確認済みに更新しています。生成指示・コード・外部入力の有無はGit履歴では確認できず、効果音の制作元は別項目として未確認です。
 作業の優先順位とSARTRAS制度上の整理は [調査報告](../docs/sartras-readiness-audit.md) を参照。
+
+名義・利用条件の整備（2026-09-14）: 所有者の指定により、プロジェクトの著作者・権利者表示を **Haruyuki Ishinaka** とし、[LICENSE](../LICENSE) と [作品情報](work-identification.md) を追加しました。制作したゲームの公開・販売は個別相談です。これにより表示名義は決まりましたが、以下のファイルごとの権利帰属・第三者条件の未確認事項が解消したものではありません。音源・効果音・エフェクト素材・画像素材への新たな許諾は、このLICENSEの対象外です。
 
 この台帳は確認済みの事実と不足資料を記録するもので、利用許諾を新たに与える文書ではありません。「未確認」は違反の認定を意味しません。バイナリの制作者文字列やファイル名は出所の手掛かりであり、本人が取得したライセンスの証拠とは区別します。
 
@@ -55,12 +58,14 @@ Assimp DLLはVCランタイムにも依存します。EXEを配布する場合�
 | A05 | `Content/Models/55-rp_nathan_animated_003_walking_fbx/` 8ファイル | Renderpeopleの同名作品と対応。公式SketchfabにCC BY 4.0版を確認。ArtStation・本家等は別条件。 | 公式CC BY配布物と手元の各ファイルを対応づけるか、同版へ差し替えて表示を整える。現在の8ファイルへ一括でCC BYを付与しない。 |
 | A06 | `Content/Models/Daven/` 159ファイル（FBX1、画像158） | CGTraderの `Daven Male Rigged`（作者 `d-e-c`）が有力。内部の制作元名・Blender版・T-poseが整合。TurboSquidにも同名作品。 | 実際の取得経路と適用規約は未確定。通常ライセンスで原FBX・画像を公開配布する判断はせず、利用者取得・置換・個別許可を検討。 |
 | A07 | `Content/Models/Untitled/Untitled.fbx`、`old_Untitled.fbx` | 2026-09-14に本人が両方の自作を確認。`067fcd2` の説明・FBX内部のBlender情報とも整合。制作元 `.blend` は未追跡。 | 自作サンプルとして保持する候補。制作元・作者の記録を残す。テストも使用しているため一括削除しない。 |
-| A08 | `Content/Audio/BGM/title_theme.wav`、`game_theme.wav`、`Content/Audio/SE/button_click.wav` | [GameContent.h 22行](../src/Game/Content/GameContent.h#L22) 以降で使用。導入履歴は音声再生の実装説明のみで、音源の権利資料はない。 | 3音源それぞれの制作者・取得元・再配布条件を記録。AI生成なら制作過程・使用サービスの条件も確認。 |
+| A08 | `Content/Audio/BGM/title_theme.wav`、`game_theme.wav`、`Content/Audio/SE/button_click.wav` | 2026-09-14、所有者がBGMをCodexで生成したと確認。3WAVは `59eda5583961a7f10bb4f8dd34c73f4faaa90fbf`（2026-07-03）で導入。生成スクリプト・プロンプトは同コミットと現在のリポジトリに見つからなかった。 | BGMの制作元は本人確認済みとして保持。生成コード・指示・入力素材の記録を補完する。クリックSEの制作元は今回の音楽の申告と分けて確認。AI生成という事実だけで権利確認完了やSARTRAS分配対象とはしない。 |
 | A09 | `Content/Effects/Effekseer/Samples/Laser01.efkefc` とテクスチャ3点 | `db9a391` で導入。元パッケージ・版の記録はない。 | 公式サンプルの取得版とファイルを対応づけ、素材のCC0等の適用を確認。ランタイムMITだけを素材の根拠にしない。 |
 | A10 | `edugame3d_crest.png` | [GameScene.cpp 31行](../src/Game/Scenes/GameScene.cpp#L31) の変数名は `GeneratedImageTexturePath`。 | 実際の制作者・生成経緯・利用条件を記録。変数名だけでAI生成物や自作と断定しない。 |
 | A11 | `Mma Kick.anim_events.json`、`Y_Bot.anim_events.json` | アニメーションに対応するイベントデータ。 | データの制作者を確認し、元アニメーション変更時には内容・教材との整合を確認。 |
 | A12 | `Content/Models/EduHuman/`、`tools/generate_eduhuman.py` | 所有者の依頼でCodexがプリミティブ・数式から新規生成した人型、22ボーン、待機・走行・キック。外部の形状・画像・リグ・モーションは入力に使っていない。[制作記録](../Content/Models/EduHuman/PROVENANCE.md) と編集用Blenderデータを保持。 | A01～A06・A11の代替として採用。制作経緯と人による編集記録を保持し、AI支援の生成物それ自体の独占権やSARTRAS分配対象を断定しない。 |
 | H01 | 過去の `Content/Models/forest_goddess/` | `94bcd6a` で削除されたFBX1点と画像26点、計27点がGit履歴に存在。 | 現在ツリーだけでなく、公開する履歴とLFSの範囲も確認。公開用成果物の構成を決める。今回履歴操作はしていない。 |
+
+音楽の生成元はCodexとの本人申告を根拠とし、音楽生成専用サービスを使ったとは扱いません。2026-09-14に確認した [OpenAI個人向け利用規約のContent節](https://openai.com/policies/row-terms-of-use/#content) は、OpenAIと利用者との間では、適用法が認める範囲でOutputを利用者に帰属させています。一方、[サービス規約4節](https://openai.com/policies/service-terms/#4-codex-and-code-generation) はCodex等のコード生成出力に第三者ライセンスが適用される場合を示しています。生成したコードや音源に外部素材が含まれていないかは、制作記録に基づいて整理します。これらは利用条件の確認であり、AI生成した音楽自体の著作権の成立やSARTRASの分配対象を認定するものではありません。人の創作的寄与に関する考え方は [文化庁資料](https://www.bunka.go.jp/seisaku/bunkashingikai/chosakuken/pdf/94057901_01.pdf) を参照してください。
 
 Mixamoの表記はサービスの関与を示しますが、アップロード元キャラクターも含めた権利を証明するものではありません。Adobeの [Mixamo公式FAQ](https://helpx.adobe.com/creative-cloud/faq/mixamo-faq.html) はゲーム等への利用を案内し、[一般利用条件3.6節](https://www.adobe.com/legal/terms.html) はContent Filesの単体配布を制限しています。学生向けソースひな型として元ファイルを渡す場合の適用条件を確認する必要があります。
 

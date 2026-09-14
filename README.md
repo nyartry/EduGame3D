@@ -4,6 +4,18 @@
 
 A C++ / DirectX 12 framework for classroom game programming on Windows, built with Visual Studio 2022.
 
+## 利用条件・授業で利用する方へ
+
+著作者・権利者表示: **Haruyuki Ishinaka**。本プロジェクトの権利者が保有する部分には、独自の [EduGame3D 利用条件](LICENSE) を適用します。
+
+- **学習・開発**: 対象部分の入手、手元でのビルド・実行・改変は無償で許可します。
+- **制作したゲームの公開・販売**: 対象部分を含む実行物・ソース等は、無料公開やポートフォリオの配布も含め、事前の個別相談と許可が必要です。法令上の例外とGitHub規約に基づく閲覧・fork等は維持します。
+- **授業での配信**: コードや解説をLMS・オンライン講義等で送信する場合は、学校のSARTRAS担当者に確認し、学校の利用報告の対象となるEduGame3Dの利用を報告してください。**GitHubの全利用者に一律の報告義務があるという意味ではありません。**
+
+手順と相談先は [授業利用・SARTRAS報告ガイド](docs/sartras-user-guide.md)、報告に使う作品名・名義・使用版は [作品情報](docs/work-identification.md) にまとめています。第三者コード・素材は個別条件が優先します。音源・エフェクト・画像等の未確認事項は [権利台帳](docs/rights-inventory.md) を参照してください。
+
+These are custom terms: local learning and development are permitted for the covered portions; publishing, distributing or selling games containing them requires prior individual permission, subject to statutory exceptions and GitHub's terms. See [LICENSE](LICENSE). The SARTRAS guidance concerns qualifying classroom transmissions and the institution's reporting procedures.
+
 ## Purpose and handoff
 
 EduGame3D is intended for teaching, reading and modifying source code, and building students' own 3D games. It is designed for use across educational institutions in Japan. The framework supports different game genres without prescribing gameplay rules; the included game demonstrates the framework's APIs.
