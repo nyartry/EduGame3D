@@ -48,19 +48,16 @@
     <ClCompile Include="src\Game\Gameplay\Cube.cpp">
       <Filter>Game\Gameplay</Filter>
     </ClCompile>
-    <ClCompile Include="src\Game\Gameplay\DavenPlayer.cpp">
-      <Filter>Game\Gameplay</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\Gameplay\ForestGoddessPlayer.cpp">
-      <Filter>Game\Gameplay</Filter>
-    </ClCompile>
     <ClCompile Include="src\Game\Gameplay\Ground.cpp">
       <Filter>Game\Gameplay</Filter>
     </ClCompile>
-    <ClCompile Include="src\Game\Gameplay\NathanWalker.cpp">
+    <ClCompile Include="src\Game\Gameplay\HumanoidFigure.cpp">
       <Filter>Game\Gameplay</Filter>
     </ClCompile>
-    <ClCompile Include="src\Game\Gameplay\OrcPlayer.cpp">
+    <ClCompile Include="src\Game\Gameplay\HumanoidPlayer.cpp">
+      <Filter>Game\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\Gameplay\HumanoidWalker.cpp">
       <Filter>Game\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="src\Game\Gameplay\Player.cpp">
@@ -104,19 +101,16 @@
     <ClInclude Include="src\Game\Gameplay\Cube.h">
       <Filter>Game\Gameplay</Filter>
     </ClInclude>
-    <ClInclude Include="src\Game\Gameplay\DavenPlayer.h">
-      <Filter>Game\Gameplay</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game\Gameplay\ForestGoddessPlayer.h">
-      <Filter>Game\Gameplay</Filter>
-    </ClInclude>
     <ClInclude Include="src\Game\Gameplay\Ground.h">
       <Filter>Game\Gameplay</Filter>
     </ClInclude>
-    <ClInclude Include="src\Game\Gameplay\NathanWalker.h">
+    <ClInclude Include="src\Game\Gameplay\HumanoidFigure.h">
       <Filter>Game\Gameplay</Filter>
     </ClInclude>
-    <ClInclude Include="src\Game\Gameplay\OrcPlayer.h">
+    <ClInclude Include="src\Game\Gameplay\HumanoidPlayer.h">
+      <Filter>Game\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\Gameplay\HumanoidWalker.h">
       <Filter>Game\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="src\Game\Gameplay\Player.h">

@@ -1,6 +1,8 @@
 #include "TestSupport.h"
+#include "Framework/Animation/BoneSkinning.h"
 #include "Framework/Assets/AssetPathResolver.h"
 #include "Framework/Assets/ImageLoader.h"
+#include "Framework/Core/Math/Aabb.h"
 #include "Framework/Models/ModelAssetCache.h"
 #include "Framework/Models/SkinnedModel.h"
 #include "Framework/Models/StaticModel.h"
@@ -8,6 +10,7 @@
 #include "Framework/Scene/Input/InputWriter.h"
 #include "Game/Gameplay/Player.h"
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -150,6 +153,204 @@ namespace
 			player.Update(duration * durationFraction, input);
 		}
 	};
+
+	constexpr std::array<const char*, 3> EduHumanModels{
+		"Content/Models/EduHuman/EduHuman_Idle.fbx",
+		"Content/Models/EduHuman/EduHuman_Jog.fbx",
+		"Content/Models/EduHuman/EduHuman_Kick.fbx"
+	};
+
+	std::size_t RequireEduHumanBone(const SkinnedModelData& data, std::string_view name)
+	{
+		for (std::size_t index = 0; index < data.bones.size(); ++index)
+			if (data.bones[index].name == name) return index;
+		throw std::runtime_error("EduHuman is missing bone: " + std::string(name));
+	}
+
+	void RequireSameBindMatrix(const DirectX::XMFLOAT4X4& first, const DirectX::XMFLOAT4X4& second)
+	{
+		for (int row = 0; row < 4; ++row)
+			for (int column = 0; column < 4; ++column)
+				Require(std::isfinite(first.m[row][column]) && std::isfinite(second.m[row][column]) &&
+					std::abs(first.m[row][column] - second.m[row][column]) < 0.001f,
+					"EduHuman animation exports must retain the same finite bind pose and skin offsets");
+	}
+
+	void EduHumanSkeletonAndSkinWeights()
+	{
+		ModelAssetCache assets;
+		const auto reference = assets.LoadSkinned(EduHumanModels[0]);
+		for (const char* path : EduHumanModels)
+		{
+			const auto data = assets.LoadSkinned(path);
+			Require(!data->meshes.empty() && data->animations.size() == 1,
+				"Each EduHuman FBX must contain drawable geometry and exactly one animation");
+			// Use the actual CPU/GPU skinning limit, not an assumed exporter bone count.
+			Require(!data->bones.empty() && data->bones.size() <= BoneSkinning::MaxBones,
+				"EduHuman must fit the engine's bone palette without truncation");
+			for (std::size_t index = 0; index < data->bones.size(); ++index)
+			{
+				const int parent = data->bones[index].parentIndex;
+				Require(parent >= -1 && parent < static_cast<int>(index),
+					"Imported EduHuman parents must precede children, without cycles or invalid indices");
+			}
+			const auto requireChain = [&](std::initializer_list<const char*> names)
+			{
+				int previous = -1;
+				for (const char* name : names)
+				{
+					const auto index = RequireEduHumanBone(*data, name);
+					if (previous >= 0)
+						Require(data->bones[index].parentIndex == previous,
+							"EduHuman must retain connected torso, head, arm and leg chains");
+					const auto referenceIndex = RequireEduHumanBone(*reference, name);
+					RequireSameBindMatrix(data->bones[index].localBindTransform, reference->bones[referenceIndex].localBindTransform);
+					previous = static_cast<int>(index);
+				}
+			};
+			requireChain({ "Root", "Hips", "Spine", "Chest", "Neck", "Head" });
+			requireChain({ "Chest", "Shoulder.L", "UpperArm.L", "Forearm.L", "Hand.L" });
+			requireChain({ "Chest", "Shoulder.R", "UpperArm.R", "Forearm.R", "Hand.R" });
+			requireChain({ "Hips", "Thigh.L", "Shin.L", "Foot.L", "Toe.L" });
+			requireChain({ "Hips", "Thigh.R", "Shin.R", "Foot.R", "Toe.R" });
+
+			Aabb geometryBounds;
+			std::vector<bool> weightedBones(data->bones.size());
+			for (const auto& mesh : data->meshes)
+			{
+				Require(!mesh.vertices.empty() && mesh.vertices.size() % 3 == 0,
+					"EduHuman meshes must contain complete triangles");
+				Require(mesh.baseColorTexturePath.empty() && mesh.opacityTexturePath.empty() && mesh.normalTexturePath.empty(),
+					"EduHuman must not depend on omitted third-party image assets");
+				for (const auto& vertex : mesh.vertices)
+				{
+					const auto& position = vertex.vertex.position;
+					const auto& normal = vertex.vertex.normal;
+					Require(std::isfinite(position.x) && std::isfinite(position.y) && std::isfinite(position.z) &&
+						std::isfinite(normal.x) && std::isfinite(normal.y) && std::isfinite(normal.z),
+						"EduHuman geometry must remain finite after Assimp import");
+					geometryBounds.AddPoint(position);
+					float totalWeight = 0;
+					for (std::size_t slot = 0; slot < std::size(vertex.boneWeights); ++slot)
+					{
+						const float weight = vertex.boneWeights[slot];
+						Require(std::isfinite(weight) && weight >= 0, "EduHuman skin weights must be finite and nonnegative");
+						if (weight == 0) continue;
+						const int boneIndex = vertex.boneIndices[slot];
+						Require(boneIndex >= 0 && static_cast<std::size_t>(boneIndex) < data->bones.size(),
+							"Every nonzero EduHuman skin weight must reference an imported bone");
+						weightedBones[static_cast<std::size_t>(boneIndex)] = true;
+						totalWeight += weight;
+					}
+					Require(std::abs(totalWeight - 1.0f) < 0.0001f,
+						"Every EduHuman vertex must be weighted and normalized; rigid fallback is not sufficient");
+				}
+			}
+			const auto geometrySize = geometryBounds.Size();
+			Require(geometrySize.y > 1.7f && geometrySize.y < 1.9f && std::abs(geometryBounds.Min().y) < 0.02f &&
+				geometrySize.x < 1.0f && geometrySize.z < 0.65f,
+				"EduHuman mesh export must use meters, Y-up and feet at the origin, matching its skeleton");
+			SkinnedModel pose;
+			pose.Prepare(assets, path, ModelScaleSettings::OriginalSize());
+			pose.SetAnimationTimeSeconds(0);
+			for (const auto& [footName, toeName] : { std::pair{ "Foot.L", "Toe.L" }, std::pair{ "Foot.R", "Toe.R" } })
+			{
+				DirectX::XMFLOAT3 foot{}, toe{};
+				Require(pose.TryGetBonePositionLocal(footName, foot) && pose.TryGetBonePositionLocal(toeName, toe) && toe.z < foot.z,
+					"Both EduHuman feet must face model-local negative Z after FBX coordinate conversion");
+			}
+			for (const char* name : { "Head", "Chest", "UpperArm.L", "Forearm.L", "Hand.L", "UpperArm.R", "Forearm.R",
+				"Hand.R", "Thigh.L", "Shin.L", "Foot.L", "Thigh.R", "Shin.R", "Foot.R" })
+			{
+				const auto index = RequireEduHumanBone(*data, name);
+				Require(weightedBones[index], "EduHuman needs weighted geometry on its head, torso and all four limbs");
+				const auto referenceIndex = RequireEduHumanBone(*reference, name);
+				RequireSameBindMatrix(data->bones[index].offsetMatrix, reference->bones[referenceIndex].offsetMatrix);
+			}
+		}
+	}
+
+	void EduHumanClipsAnimateOneSkeleton()
+	{
+		ModelAssetCache assets;
+		SkinnedModel model;
+		NoGpuDevice device;
+		model.Prepare(assets, EduHumanModels[0], ModelScaleSettings::NormalizeToHeight(1.8f));
+		constexpr std::array<const char*, 3> names{ "Idle", "Jogging", "Attack" };
+		for (std::size_t index = 0; index < names.size(); ++index)
+			model.PrepareAnimation(assets, names[index], EduHumanModels[index]);
+		Require(device.resources == 0, "EduHuman and all three clips must prepare without GPU resources");
+		model.Activate(device, SkinningMode::Gpu);
+		const auto requireMotion = [&](const char* clip, std::initializer_list<const char*> boneNames)
+		{
+			Require(model.PlayAnimation(clip, { AnimationPlaybackMode::Loop, true }),
+				"Idle, jogging and attack exports must load and play on the same EduHuman skeleton");
+			const float duration = model.GetCurrentAnimationDurationSeconds();
+			Require(std::isfinite(duration) && duration > 0, "Each EduHuman clip must have a finite positive duration");
+			for (const char* bone : boneNames)
+			{
+				model.SetAnimationTimeSeconds(0);
+				DirectX::XMFLOAT3 first{};
+				Require(model.TryGetBonePositionLocal(bone, first), "EduHuman animated joints must be queryable");
+				float maximumDisplacementSquared = 0;
+				for (const float fraction : { 0.125f, 0.25f, 0.375f, 0.5f, 0.625f, 0.75f, 0.875f })
+				{
+					model.SetAnimationTimeSeconds(duration * fraction);
+					DirectX::XMFLOAT3 current{};
+					Require(model.TryGetBonePositionLocal(bone, current) && std::isfinite(current.x) &&
+						std::isfinite(current.y) && std::isfinite(current.z), "EduHuman playback must produce finite joint positions");
+					const float dx = current.x - first.x, dy = current.y - first.y, dz = current.z - first.z;
+					maximumDisplacementSquared = (std::max)(maximumDisplacementSquared, dx * dx + dy * dy + dz * dz);
+				}
+				Require(maximumDisplacementSquared > 0.000001f,
+					"EduHuman clips must move the expected body parts, not merely contain static animation tracks");
+			}
+		};
+		requireMotion("Idle", { "Head" });
+		requireMotion("Jogging", { "Hand.L", "Hand.R", "Foot.L", "Foot.R" });
+		requireMotion("Attack", { "Foot.R" });
+	}
+
+	void EduHumanKickLoadsAuthoredComboEvents()
+	{
+		ModelAssetCache assets;
+		const auto kick = assets.LoadSkinned(EduHumanModels[2]);
+		Require(kick->animations.size() == 1 && std::abs(GetAnimationDurationSeconds(kick->animations.front()) - 1.6) < 0.001,
+			"The authored EduHuman kick must retain its 1.6-second duration");
+		auto sidecar = AssetPathResolver::Resolve(EduHumanModels[2]);
+		sidecar.replace_extension(".anim_events.json");
+		std::string error;
+		const auto events = AnimationEvents::Load(sidecar, error);
+		Require(events && error.empty() && events->events.size() == 2,
+			"The distributed EduHuman kick must include its authored combo-window sidecar");
+		for (std::size_t index = 0; index < events->events.size(); ++index)
+		{
+			const auto& event = events->events[index];
+			Require(event.animation == kick->animations.front().name &&
+				event.type == (index == 0 ? "ComboWindowOpen" : "ComboWindowClose") &&
+				std::abs(event.time - (index == 0 ? 0.5 : 1.2)) < 0.000001,
+				"EduHuman combo events must target the exported kick clip at 0.5 and 1.2 seconds");
+		}
+		SkinnedModel model;
+		NoGpuDevice device;
+		model.Prepare(assets, EduHumanModels[0], ModelScaleSettings::OriginalSize());
+		model.PrepareAnimation(assets, "Attack", EduHumanModels[2]);
+		model.Activate(device, SkinningMode::Gpu);
+		Require(model.PlayAnimation("Attack", { AnimationPlaybackMode::Once, true }), "The imported kick accepts the gameplay alias");
+		model.Update(0.49f);
+		Require(model.ConsumeAnimationEvents().empty(), "EduHuman combo input must remain closed before 0.5 seconds");
+		model.Update(0.02f);
+		auto fired = model.ConsumeAnimationEvents();
+		Require(fired.size() == 1 && fired.front().event.type == "ComboWindowOpen" && fired.front().event.animation == "Attack",
+			"The real kick sidecar must open the combo window through the runtime animation alias");
+		model.Update(0.70f);
+		fired = model.ConsumeAnimationEvents();
+		Require(fired.size() == 1 && fired.front().event.type == "ComboWindowClose",
+			"The real kick sidecar must close the combo window after 1.2 seconds");
+		model.Update(1.0f);
+		Require(model.IsAnimationFinished() && model.ConsumeAnimationEvents().empty(),
+			"Finishing the EduHuman kick must not repeat its combo events");
+	}
 
 	void WorkerPrepareThenActivationWithoutSource()
 	{
@@ -412,6 +613,9 @@ namespace
 }
 
 #define MODELPREPARATIONTESTS_CASES(TEST) \
+	TEST(EduHumanSkeletonAndSkinWeights, "EduHuman complete skeleton and compatible skin weights", Cpu) \
+	TEST(EduHumanClipsAnimateOneSkeleton, "EduHuman idle, jog and kick animate one skeleton", Cpu) \
+	TEST(EduHumanKickLoadsAuthoredComboEvents, "EduHuman authored kick and combo-window sidecar", Cpu) \
 	TEST(WorkerPrepareThenActivationWithoutSource, "worker preparation and activation without source", Cpu) \
 	TEST(FailedImportsDoNotPoisonCache, "failed model import remains retryable", Cpu) \
 	TEST(CacheLifetimeAndSynchronousCompatibility, "cache lifetime and synchronous compatibility", Cpu) \

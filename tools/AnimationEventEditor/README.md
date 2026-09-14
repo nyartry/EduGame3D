@@ -56,7 +56,7 @@ Layout settings are stored in `%LOCALAPPDATA%\EduGame3D\AnimationEventEditor\img
 
 ## Tuning Combo Input
 
-Open `Content/Models/Player/Mma Kick/Mma Kick.fbx` to edit the game's attack input window. Its sibling `Mma Kick.anim_events.json` loads automatically. The clip is `mixamo.com`, with a duration of 1.6 seconds (48 ticks at 30 ticks per second).
+Open `Content/Models/EduHuman/EduHuman_Kick.fbx` to edit the game's attack input window. Its sibling `EduHuman_Kick.anim_events.json` loads automatically. The newly generated clip is `Kick`, with a duration of 1.6 seconds (48 ticks at 30 ticks per second). The editable Blender source and generation script are described in [model assets](../../Content/Models/README.md).
 
 - Select `ComboWindowOpen` to adjust when the next attack can be requested. The initial time is 0.5 seconds.
 - Select `ComboWindowClose` to adjust when that input window ends. The initial time is 1.2 seconds.

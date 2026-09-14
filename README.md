@@ -19,6 +19,7 @@ See [学生配布用3Dゲームひな型のコア調査・引き継ぎ](docs/stu
 - Root signature and graphics pipeline state
 - A perspective camera, depth buffer, and simple 3D ground mesh
 - Visual Studio 2022 solution and project files
+- EduHuman: an original articulated humanoid with idle, jog and kick animations, editable Blender source, and a procedural generation script
 
 ## Source layout
 
@@ -39,6 +40,18 @@ The solution builds `EngineFramework.lib` and `GameModule.lib` as source-visible
 Open `EduGame3D.sln` in Visual Studio 2022, then build and run `GameApp` with `Debug|x64`.
 
 To run the built game outside Visual Studio, use the repository root as the working directory: `.\x64\Debug\GameApp.exe`.
+
+## Character assets
+
+The sample uses `Content/Models/EduHuman/`. Its mesh, skeleton and animations were generated from primitives and mathematical keyframes for this project, with Codex assistance; no external character mesh, texture or motion capture was used. Blender is only needed to regenerate or edit the assets, not to build or play the game. The two existing `Untitled` FBXs are retained as samples confirmed by the project owner to be their own work.
+
+See [model assets](Content/Models/README.md) for editing and [replacement record](docs/model-replacement.md) for the scope and verification. The current source tree excludes the previous external character models. `tools/export_clean_source.ps1` creates a source folder and ZIP without Git history, checks known old model hashes, and includes the downloaded third-party dependencies with their existing notices. This export addresses the model replacement; the separate [rights inventory](docs/rights-inventory.md) still applies to other content and to publication.
+
+## Player controls
+
+- `W` / `A` / `S` / `D`: move
+- `Space`: jump
+- `X`: kick; press again between 0.5 and 1.2 seconds to queue the next kick
 
 ## Camera controls
 

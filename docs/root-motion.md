@@ -19,7 +19,7 @@ For a `SkinnedMeshActor` with no programmatic movement, Blend scales the animati
 displacement against zero.
 
 Set the initial policy in `SkinnedMeshActorDefinition::rootMotion` (for players,
-`PlayerDefinition::mesh.rootMotion`). `OrcPlayer.cpp` contains an explicit example.
+`PlayerDefinition::mesh.rootMotion`). `HumanoidPlayer.cpp` contains an explicit example.
 Initialization loads this definition; change the policy at runtime after
 `Initialize()` using the inherited API:
 
@@ -42,8 +42,10 @@ clip). Choose Ignore or Blend when programmatic movement must contribute.
 
 ## Jump, gravity, and optional animation Y
 
-The default is horizontal Apply with vertical Ignore, preserving the current
-player's movement policy. Jump and gravity remain programmatic at every blend
+The settings type defaults to horizontal Apply with vertical Ignore. The included
+`HumanoidPlayer` explicitly uses horizontal Ignore and vertical Ignore because
+EduHuman's animations stay in place; input supplies its horizontal movement.
+Jump and gravity remain programmatic at every blend
 weight. Collision resolution still constrains the resulting position.
 
 `RootMotionVerticalMode::Apply` explicitly adds weighted animation Y. It does

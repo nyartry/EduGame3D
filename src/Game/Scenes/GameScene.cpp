@@ -4,12 +4,11 @@
 #include "Framework/Effects/IEffectService.h"
 #include "Game/Gameplay/AnimatedCubeObject.h"
 #include "Framework/Gameplay/CollisionBody.h"
-#include "Game/Gameplay/DavenPlayer.h"
+#include "Game/Gameplay/HumanoidFigure.h"
 #include "Framework/Rendering/Core/IRenderDevice.h"
 #include "Framework/Rendering/Core/IRenderer.h"
-#include "Game/Gameplay/ForestGoddessPlayer.h"
-#include "Game/Gameplay/NathanWalker.h"
-#include "Game/Gameplay/OrcPlayer.h"
+#include "Game/Gameplay/HumanoidWalker.h"
+#include "Game/Gameplay/HumanoidPlayer.h"
 #include "Game/Gameplay/Player.h"
 #include "Game/Input/GameActions.h"
 #include "Framework/Models/SkinnedMeshActor.h"
@@ -59,14 +58,13 @@ void GameScene::Prepare()
 	m_preparedImages.clear();
 	m_collisionWorld.RegisterSurface(m_ground);
 	m_collisionWorld.RegisterSurface(m_originCube, &m_originCube);
-	auto player = std::make_unique<OrcPlayer>();
+	auto player = std::make_unique<HumanoidPlayer>();
 	player->SetCollisionQuery(&m_collisionWorld);
 	m_player = &AddActor(std::move(player));
 	m_followTarget = m_player;
 	AddActor(std::make_unique<AnimatedCubeObject>());
-	AddActor(std::make_unique<DavenPlayer>());
-	AddActor(std::make_unique<NathanWalker>());
-	//AddActor(std::make_unique<ForestGoddessPlayer>());
+	AddActor(std::make_unique<HumanoidFigure>());
+	AddActor(std::make_unique<HumanoidWalker>());
 	ModelAssetCache assets;
 	for (const auto& actor : m_actors) actor->Prepare(assets);
 	m_preparedImages = assets.TakePreparedImages();

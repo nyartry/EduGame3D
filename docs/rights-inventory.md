@@ -2,6 +2,8 @@
 
 調査日: 2026-09-14。対象: `e0714173e9e07d7ba5d625bb5727d54f414cd6af`。
 名称更新: プロジェクト名は **EduGame3D**。リンク先とA10のファイル名は調査後の名称変更に合わせています。A10の画像内容は変更していません。
+追加調査（2026-09-14）: モデルの取得元と配布条件は [3Dモデルの調査](model-provenance-audit.md) で具体化しました。A01～A07と以下の関連説明には、その結果とUntitledの本人確認を反映しています。
+モデル置換（同日）: A01～A06・A11の旧素材は現在のソースツリーから除外し、A12のEduHumanへ切り替えました。旧素材の記述と当初のファイル数は履歴上の記録です。現在の構成・検証・履歴を含まない出力は [置換記録](model-replacement.md) を参照してください。A08～A10とコード・依存物の未確認事項は引き続き残っています。
 作業の優先順位とSARTRAS制度上の整理は [調査報告](../docs/sartras-readiness-audit.md) を参照。
 
 この台帳は確認済みの事実と不足資料を記録するもので、利用許諾を新たに与える文書ではありません。「未確認」は違反の認定を意味しません。バイナリの制作者文字列やファイル名は出所の手掛かりであり、本人が取得したライセンスの証拠とは区別します。
@@ -42,30 +44,31 @@ Assimp DLLはVCランタイムにも依存します。EXEを配布する場合�
 
 ## 3. 素材と生成物
 
-現在の `Content` は186ファイル。FBX10、画像167（JPG93・PNG66・TGA8）、WAV3、エフェクト1、イベントJSON2、README2、`.gitkeep`1。独立したフォントファイルは確認できませんでした。
+置換前の調査時点の `Content` は186ファイル。FBX10、画像167（JPG93・PNG66・TGA8）、WAV3、エフェクト1、イベントJSON2、README2、`.gitkeep`1。独立したフォントファイルは確認できませんでした。以下のA01～A06・A11は除外した旧素材の記録で、原ファイルの再採用を推奨するものではありません。
 
 | ID | パス／まとまり | 出所について確認できたこと | 公開・学生配布までに必要なこと |
 |---|---|---|---|
-| A01 | `Content/Models/Player/Jogging/Jogging.fbx` | FBX内部にMixamoの表記。 | 取得時条件・元モデルの権利・生FBXの配布可否を確認。 |
-| A02 | `Content/Models/Player/Mma Kick/Mma Kick.fbx` | FBX内部にMixamoの表記。[エディターREADME 57行](../tools/AnimationEventEditor/README.md#L57) にもクリップ情報。 | A01と同様。素材変更時はイベント教材も追従させる。 |
-| A03 | `Content/Models/Player/Orc Idle/Orc Idle.fbx` | FBX内部にMixamoの表記。 | アニメーション／リグとキャラクター本体の権利を分け、取得・再配布条件を確認。 |
+| A01 | `Content/Models/Player/Jogging/Jogging.fbx` | FBX内部のMixamo表記に加え、Windowsの取得元記録にMixamoの参照URL・エクスポート先。 | 原FBXの公開同梱は保留。利用者の公式取得、別素材、個別許可を検討。 |
+| A02 | `Content/Models/Player/Mma Kick/Mma Kick.fbx` | FBX内部にMixamoの表記。調査時のエディターREADMEにも旧クリップ情報があった（現在の説明はEduHuman向けに更新済み）。 | 除外した旧素材として記録を保持。新しいキックのイベント教材へ更新済み。 |
+| A03 | `Content/Models/Player/Orc Idle/Orc Idle.fbx` | FBX内部のMixamo表記に加え、Windowsの取得元記録にもMixamo。 | アニメーション／リグとキャラクター本体の権利を分け、原FBXの再配布条件を確認。 |
 | A04 | `Content/Models/Y_Bot/Y_Bot.fbx` | FBX内部にMixamoの表記。 | テンプレートへの生データ同梱条件を確認。必要なら利用者取得方式・別素材にする。 |
-| A05 | `Content/Models/55-rp_nathan_animated_003_walking_fbx/` 8ファイル | FBX3点の内部にRenderpeopleの制作元パス。 | 実際の取得元・契約を確認。個別ファイルを学生やPublic GitHubへ配布できる根拠がなければ、置換／同梱除外等を決める。 |
-| A06 | `Content/Models/Daven/` 159ファイル（FBX1、画像158） | FBXにBlender exporter情報。画像名だけでは販売元や許諾を特定できない。 | 制作者、モデル・衣装・テクスチャの取得元と適用規約を確認。Blenderからの出力は権利の証明ではない。 |
-| A07 | `Content/Models/Untitled/Untitled.fbx`、`old_Untitled.fbx` | `067fcd2` の導入説明に自作スキンメッシュとある。制作元 `.blend` は追跡されていない。 | 自作の手掛かりを本人に確認し、制作元データ・作者・権利者を記録。旧版を公開対象に含めるか決める。 |
+| A05 | `Content/Models/55-rp_nathan_animated_003_walking_fbx/` 8ファイル | Renderpeopleの同名作品と対応。公式SketchfabにCC BY 4.0版を確認。ArtStation・本家等は別条件。 | 公式CC BY配布物と手元の各ファイルを対応づけるか、同版へ差し替えて表示を整える。現在の8ファイルへ一括でCC BYを付与しない。 |
+| A06 | `Content/Models/Daven/` 159ファイル（FBX1、画像158） | CGTraderの `Daven Male Rigged`（作者 `d-e-c`）が有力。内部の制作元名・Blender版・T-poseが整合。TurboSquidにも同名作品。 | 実際の取得経路と適用規約は未確定。通常ライセンスで原FBX・画像を公開配布する判断はせず、利用者取得・置換・個別許可を検討。 |
+| A07 | `Content/Models/Untitled/Untitled.fbx`、`old_Untitled.fbx` | 2026-09-14に本人が両方の自作を確認。`067fcd2` の説明・FBX内部のBlender情報とも整合。制作元 `.blend` は未追跡。 | 自作サンプルとして保持する候補。制作元・作者の記録を残す。テストも使用しているため一括削除しない。 |
 | A08 | `Content/Audio/BGM/title_theme.wav`、`game_theme.wav`、`Content/Audio/SE/button_click.wav` | [GameContent.h 22行](../src/Game/Content/GameContent.h#L22) 以降で使用。導入履歴は音声再生の実装説明のみで、音源の権利資料はない。 | 3音源それぞれの制作者・取得元・再配布条件を記録。AI生成なら制作過程・使用サービスの条件も確認。 |
 | A09 | `Content/Effects/Effekseer/Samples/Laser01.efkefc` とテクスチャ3点 | `db9a391` で導入。元パッケージ・版の記録はない。 | 公式サンプルの取得版とファイルを対応づけ、素材のCC0等の適用を確認。ランタイムMITだけを素材の根拠にしない。 |
 | A10 | `edugame3d_crest.png` | [GameScene.cpp 31行](../src/Game/Scenes/GameScene.cpp#L31) の変数名は `GeneratedImageTexturePath`。 | 実際の制作者・生成経緯・利用条件を記録。変数名だけでAI生成物や自作と断定しない。 |
 | A11 | `Mma Kick.anim_events.json`、`Y_Bot.anim_events.json` | アニメーションに対応するイベントデータ。 | データの制作者を確認し、元アニメーション変更時には内容・教材との整合を確認。 |
+| A12 | `Content/Models/EduHuman/`、`tools/generate_eduhuman.py` | 所有者の依頼でCodexがプリミティブ・数式から新規生成した人型、22ボーン、待機・走行・キック。外部の形状・画像・リグ・モーションは入力に使っていない。[制作記録](../Content/Models/EduHuman/PROVENANCE.md) と編集用Blenderデータを保持。 | A01～A06・A11の代替として採用。制作経緯と人による編集記録を保持し、AI支援の生成物それ自体の独占権やSARTRAS分配対象を断定しない。 |
 | H01 | 過去の `Content/Models/forest_goddess/` | `94bcd6a` で削除されたFBX1点と画像26点、計27点がGit履歴に存在。 | 現在ツリーだけでなく、公開する履歴とLFSの範囲も確認。公開用成果物の構成を決める。今回履歴操作はしていない。 |
 
 Mixamoの表記はサービスの関与を示しますが、アップロード元キャラクターも含めた権利を証明するものではありません。Adobeの [Mixamo公式FAQ](https://helpx.adobe.com/creative-cloud/faq/mixamo-faq.html) はゲーム等への利用を案内し、[一般利用条件3.6節](https://www.adobe.com/legal/terms.html) はContent Filesの単体配布を制限しています。学生向けソースひな型として元ファイルを渡す場合の適用条件を確認する必要があります。
 
-Renderpeopleの現行条件は無料素材にも適用され、第三者への譲渡・再許諾や、個別の素材を容易に取得できる提供を制限しています。A05の取得時条件・個別契約は未確認なので、公開前の優先確認対象とします。[Renderpeople利用条件2.5、4.2、4.3節](https://renderpeople.com/general-terms-and-conditions/)
+Renderpeople本家の通常条件は無料素材にも適用され、原ファイルの配布等を制限しています。[本家利用条件2.5、4.2、4.3節](https://renderpeople.com/general-terms-and-conditions/) 一方、Nathanには [公式SketchfabのCC BY 4.0版](https://sketchfab.com/3d-models/nathan-animated-003-walking-3d-man-143a2b1ea5eb4385ae90a73657aca3bc) があるため、配布経路を一律の条件で扱いません。ファイルの対応・表示義務を確認すれば公開同梱の候補になります。詳細は [追加調査](model-provenance-audit.md) を参照してください。
 
 Effekseer公式概要はランタイムと素材のライセンスを区別しています。A09が当該条件の対象ファイルであることを元パッケージと照合します。[公式概要](https://effekseer.github.io/Help_Tool/ja/overview.html)
 
-現状の [GameScene.cpp 62行](../src/Game/Scenes/GameScene.cpp#L62) 以降はOrc、Daven、Nathan等を生成・準備します。素材を削除するだけではサンプルが動かなくなる可能性があるため、置換時は再配布可能な最小サンプルを用意して起動・教材を検証します。[AssetPathResolver.cpp 53行](../src/Framework/Assets/AssetPathResolver.cpp#L53) は親ディレクトリも探索するため、配布フォルダをソースツリー外へ置いた検証が必要です。
+現在の [GameScene.cpp](../src/Game/Scenes/GameScene.cpp) はEduHumanを使う操作キャラクター・静止展示・歩行サンプルを生成します。旧素材を除外した構成の検証は [置換記録](model-replacement.md) を参照してください。[AssetPathResolver.cpp](../src/Framework/Assets/AssetPathResolver.cpp) は親ディレクトリも探索するため、配布フォルダをソースツリー外へ置いた検証も行います。
 
 ## 4. 台帳を確定するための記録項目
 

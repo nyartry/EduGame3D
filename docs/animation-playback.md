@@ -16,7 +16,7 @@
 
 EduGame3Dの組込み音・効果IDは `edugame3d.*` を使います。改名前に保存した組込みIDは、ゲーム側の `GameContent::ResolveCue` で新IDへ対応づけます。独自cueは変更しません。
 
-GameScene は各固定更新直後に `SkinnedMeshActor::ConsumeAnimationEvents()` を消費します。`Footstep` と `PlaySE` は `cue` を既存音サービスの登録IDとして再生し、`PlayEffect` は既存エフェクトサービスへ渡します。`bone` が有効ならボーンのワールド位置、空または未検出ならActor原点を使います。音・効果の空cueは無視します。`HitboxStart` / `HitboxEnd` / `Custom` のゲーム固有処理はまだ定義していません。既存サンプルの `footstep_default` は音素材として未登録のため、鳴らすにはGameのカタログへIDと素材を登録してください。
+GameScene は各固定更新直後に `SkinnedMeshActor::ConsumeAnimationEvents()` を消費します。`Footstep` と `PlaySE` は `cue` を既存音サービスの登録IDとして再生し、`PlayEffect` は既存エフェクトサービスへ渡します。`bone` が有効ならボーンのワールド位置、空または未検出ならActor原点を使います。音・効果の空cueは無視します。`HitboxStart` / `HitboxEnd` / `Custom` のゲーム固有処理はまだ定義していません。EduHumanには足音イベントを同梱していません。足音を追加する場合はGameのカタログへIDと素材を登録してください。
 
 ## 単発攻撃とコンボ入力
 
@@ -26,6 +26,6 @@ GameScene は各固定更新直後に `SkinnedMeshActor::ConsumeAnimationEvents(
 
 ## 受付時間の調整
 
-`Content/Models/Player/Mma Kick/Mma Kick.anim_events.json` の `ComboWindowOpen` / `ComboWindowClose` の `time` が調整箇所です。単位は攻撃の先頭からの秒数で、コード側の秒数を変更する必要はありません。現素材を同梱 Assimp で読み取ると、クリップ名は `mixamo.com`、長さは 48 ticks / 30 ticks毎秒 = 1.6秒です。初期値は開始0.5秒、終了1.2秒で、先頭0.5秒と末尾0.4秒を受付外にしています。これはこの素材向けの初期調整値です。
+`Content/Models/EduHuman/EduHuman_Kick.anim_events.json` の `ComboWindowOpen` / `ComboWindowClose` の `time` が調整箇所です。単位は攻撃の先頭からの秒数で、コード側の秒数を変更する必要はありません。新規制作した素材を同梱 Assimp で読み取ると、クリップ名は `Kick`、長さは 48 ticks / 30 ticks毎秒 = 1.6秒です。初期値は開始0.5秒、終了1.2秒で、先頭0.5秒と末尾0.4秒を受付外にしています。これはこの素材向けの初期調整値です。ゲームでは `Attack` の別名で読み込み、イベントも同じ別名へ対応づけます。
 
-Animation Event Editor で `Mma Kick.fbx` を開くと隣のイベントファイルも読み込まれます。2つのイベントを選び、`Event Properties` の `Time` またはタイムライン上の位置を変更して `File > Save Events` で保存します。`0 < 開始 < 終了 <= 1.6` を保って調整してください。`Bone` と `Cue` は空のままで構いません。保存後にゲームを再起動すると反映されます。単発、早い再入力、窓内の再入力、遅い再入力、長押しを試し、受付の感触を確認してください。
+Animation Event Editor で `EduHuman_Kick.fbx` を開くと隣のイベントファイルも読み込まれます。2つのイベントを選び、`Event Properties` の `Time` またはタイムライン上の位置を変更して `File > Save Events` で保存します。`0 < 開始 < 終了 <= 1.6` を保って調整してください。`Bone` と `Cue` は空のままで構いません。保存後にゲームを再起動すると反映されます。単発、早い再入力、窓内の再入力、遅い再入力、長押しを試し、受付の感触を確認してください。
