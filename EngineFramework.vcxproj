@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{a04d8f6b-34b4-4c91-af98-158f3bca608d}</ProjectGuid>
+    <RootNamespace>EngineFramework</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType><UseDebugLibraries>true</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType><UseDebugLibraries>false</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><WholeProgramOptimization>true</WholeProgramOptimization><CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"><OutDir>$(SolutionDir)x64\$(Configuration)\lib\</OutDir><IntDir>$(SolutionDir)x64\$(Configuration)\EngineFramework\obj\</IntDir></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'"><OutDir>$(SolutionDir)x64\$(Configuration)\lib\</OutDir><IntDir>$(SolutionDir)x64\$(Configuration)\EngineFramework\obj\</IntDir></PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel><SDLCheck>true</SDLCheck><ConformanceMode>true</ConformanceMode><LanguageStandard>stdcpp20</LanguageStandard><TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal><ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel><DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <PreprocessorDefinitions>_DEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;RMLUI_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;$(ProjectDir)third_party\rmlui\include;$(ProjectDir)third_party\rmlui\backends;$(ProjectDir)third_party\effekseer\include;$(ProjectDir)third_party\directxtk12\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <PreBuildEvent><Command>powershell -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)tools\check_architecture.ps1" -RepositoryRoot "$(MSBuildProjectDirectory)"</Command></PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel><FunctionLevelLinking>true</FunctionLevelLinking><IntrinsicFunctions>true</IntrinsicFunctions><SDLCheck>true</SDLCheck><ConformanceMode>true</ConformanceMode><LanguageStandard>stdcpp20</LanguageStandard><TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal><ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel><DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <PreprocessorDefinitions>NDEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;RMLUI_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;$(ProjectDir)third_party\rmlui\include;$(ProjectDir)third_party\rmlui\backends;$(ProjectDir)third_party\effekseer\include;$(ProjectDir)third_party\directxtk12\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <PreBuildEvent><Command>powershell -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)tools\check_architecture.ps1" -RepositoryRoot "$(MSBuildProjectDirectory)"</Command></PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <!-- BEGIN sync_vs_filters:FrameworkCompile -->
+    <ClCompile Include="src\Framework\Animation\AnimationEvents.cpp" />
+    <ClCompile Include="src\Framework\Animation\AnimationPlayback.cpp" />
+    <ClCompile Include="src\Framework\Animation\AnimationSampler.cpp" />
+    <ClCompile Include="src\Framework\Animation\CpuSkinnedMeshProcessor.cpp" />
+    <ClCompile Include="src\Framework\Animation\GpuSkinnedMeshProcessor.cpp" />
+    <ClCompile Include="src\Framework\Animation\MeshTangentCalculator.cpp" />
+    <ClCompile Include="src\Framework\Animation\RootMotion.cpp" />
+    <ClCompile Include="src\Framework\Animation\RootMotionExtractor.cpp" />
+    <ClCompile Include="src\Framework\Animation\RootMotionPolicy.cpp" />
+    <ClCompile Include="src\Framework\Assets\AssetPathResolver.cpp" />
+    <ClCompile Include="src\Framework\Assets\ImageLoader.cpp" />
+    <ClCompile Include="src\Framework\Audio\AudioSystem.cpp" />
+    <ClCompile Include="src\Framework\Core\Math\Transform.cpp" />
+    <ClCompile Include="src\Framework\Effects\Effekseer\EffekseerEffectSystem.cpp" />
+    <ClCompile Include="src\Framework\Gameplay\CollisionBody.cpp" />
+    <ClCompile Include="src\Framework\Models\ModelAssetCache.cpp" />
+    <ClCompile Include="src\Framework\Models\ModelLoader.cpp" />
+    <ClCompile Include="src\Framework\Models\ModelTextureResolver.cpp" />
+    <ClCompile Include="src\Framework\Models\SkinnedMeshActor.cpp" />
+    <ClCompile Include="src\Framework\Models\SkinnedModel.cpp" />
+    <ClCompile Include="src\Framework\Models\SkinnedModelLoader.cpp" />
+    <ClCompile Include="src\Framework\Models\SolidSkinnedMeshActor.cpp" />
+    <ClCompile Include="src\Framework\Models\SolidStaticMeshActor.cpp" />
+    <ClCompile Include="src\Framework\Models\StaticMeshActor.cpp" />
+    <ClCompile Include="src\Framework\Models\StaticModel.cpp" />
+    <ClCompile Include="src\Framework\Physics\CollisionWorld.cpp" />
+    <ClCompile Include="src\Framework\Platform\Win32\Win32InputBackend.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Buffers\SkinnedVertexBuffer.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Buffers\SpriteVertexBuffer.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Buffers\TexturedVertexBuffer.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Buffers\VertexBuffer.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Core\Dx12BufferHelper.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Core\Dx12PipelineHelper.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Core\Dx12Renderer.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Materials\SpriteMaterial.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Materials\Texture2D.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Materials\TexturedMaterial.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Pipelines\BasicColorPipeline.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Pipelines\SkinnedTexturedPipeline.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Pipelines\SpritePipeline.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Pipelines\TexturedPipeline.cpp" />
+    <ClCompile Include="src\Framework\Rendering\RmlUi\RmlUiSpriteRenderInterface.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Sprites\Rect.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Sprites\Sprite.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Sprites\SpriteBatch.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Sprites\SpriteShape.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Sprites\SpriteShapeFactory.cpp" />
+    <ClCompile Include="src\Framework\Rendering\Sprites\Triangle.cpp" />
+    <ClCompile Include="src\Framework\Scene\Cameras\Camera.cpp" />
+    <ClCompile Include="src\Framework\Scene\Cameras\CameraBase.cpp" />
+    <ClCompile Include="src\Framework\Scene\Cameras\CameraController.cpp" />
+    <ClCompile Include="src\Framework\Scene\Cameras\CameraFollowHeightLock.cpp" />
+    <ClCompile Include="src\Framework\Scene\Cameras\FirstPersonCamera.cpp" />
+    <ClCompile Include="src\Framework\Scene\Cameras\FollowCamera.cpp" />
+    <ClCompile Include="src\Framework\Scene\Cameras\OrbitCamera.cpp" />
+    <ClCompile Include="src\Framework\Scene\Cameras\SplineCamera.cpp" />
+    <ClCompile Include="src\Framework\Scene\Cameras\SpringFollowCamera.cpp" />
+    <ClCompile Include="src\Framework\Scene\Core\SceneManager.cpp" />
+    <ClCompile Include="src\Framework\Scene\Input\Input.cpp" />
+    <ClCompile Include="src\Framework\Scene\Overlays\LoadingOverlay.cpp" />
+    <ClCompile Include="src\Framework\UI\RmlUi\RmlUiService.cpp" />
+    <!-- END sync_vs_filters:FrameworkCompile -->
+  </ItemGroup>
+  <ItemGroup>
+    <!-- BEGIN sync_vs_filters:FrameworkInclude -->
+    <ClInclude Include="src\Framework\Animation\AnimationEvents.h" />
+    <ClInclude Include="src\Framework\Animation\AnimationPlayback.h" />
+    <ClInclude Include="src\Framework\Animation\AnimationSampler.h" />
+    <ClInclude Include="src\Framework\Animation\BoneSkinning.h" />
+    <ClInclude Include="src\Framework\Animation\CpuSkinnedMeshProcessor.h" />
+    <ClInclude Include="src\Framework\Animation\GpuSkinnedMeshProcessor.h" />
+    <ClInclude Include="src\Framework\Animation\ISkinnedMeshProcessor.h" />
+    <ClInclude Include="src\Framework\Animation\MeshTangentCalculator.h" />
+    <ClInclude Include="src\Framework\Animation\RootMotion.h" />
+    <ClInclude Include="src\Framework\Animation\RootMotionExtractor.h" />
+    <ClInclude Include="src\Framework\Animation\RootMotionPolicy.h" />
+    <ClInclude Include="src\Framework\Animation\SkinningMode.h" />
+    <ClInclude Include="src\Framework\Assets\AssetPathResolver.h" />
+    <ClInclude Include="src\Framework\Assets\ImageLoader.h" />
+    <ClInclude Include="src\Framework\Audio\AudioSystem.h" />
+    <ClInclude Include="src\Framework\Audio\IAudioService.h" />
+    <ClInclude Include="src\Framework\Common\Common.h" />
+    <ClInclude Include="src\Framework\Common\ModelScaleSettings.h" />
+    <ClInclude Include="src\Framework\Core\Diagnostics\Diagnostics.h" />
+    <ClInclude Include="src\Framework\Core\Diagnostics\ExceptionUtils.h" />
+    <ClInclude Include="src\Framework\Core\Math\Aabb.h" />
+    <ClInclude Include="src\Framework\Core\Math\MathUtils.h" />
+    <ClInclude Include="src\Framework\Core\Math\Transform.h" />
+    <ClInclude Include="src\Framework\Core\Time\FixedStepClock.h" />
+    <ClInclude Include="src\Framework\Effects\Effekseer\EffekseerEffectSystem.h" />
+    <ClInclude Include="src\Framework\Effects\IEffectService.h" />
+    <ClInclude Include="src\Framework\Gameplay\Actor.h" />
+    <ClInclude Include="src\Framework\Gameplay\CollisionBody.h" />
+    <ClInclude Include="src\Framework\Models\ModelAssetCache.h" />
+    <ClInclude Include="src\Framework\Models\ModelFit.h" />
+    <ClInclude Include="src\Framework\Models\ModelLoader.h" />
+    <ClInclude Include="src\Framework\Models\ModelTextureResolver.h" />
+    <ClInclude Include="src\Framework\Models\SkinnedMeshActor.h" />
+    <ClInclude Include="src\Framework\Models\SkinnedModel.h" />
+    <ClInclude Include="src\Framework\Models\SkinnedModelData.h" />
+    <ClInclude Include="src\Framework\Models\SkinnedModelLoader.h" />
+    <ClInclude Include="src\Framework\Models\SolidSkinnedMeshActor.h" />
+    <ClInclude Include="src\Framework\Models\SolidStaticMeshActor.h" />
+    <ClInclude Include="src\Framework\Models\StaticMeshActor.h" />
+    <ClInclude Include="src\Framework\Models\StaticModel.h" />
+    <ClInclude Include="src\Framework\Physics\CollisionWorld.h" />
+    <ClInclude Include="src\Framework\Physics\ICollisionQuery.h" />
+    <ClInclude Include="src\Framework\Platform\Win32\Win32InputBackend.h" />
+    <ClInclude Include="src\Framework\Rendering\Buffers\SkinnedVertexBuffer.h" />
+    <ClInclude Include="src\Framework\Rendering\Buffers\SpriteVertexBuffer.h" />
+    <ClInclude Include="src\Framework\Rendering\Buffers\TexturedVertexBuffer.h" />
+    <ClInclude Include="src\Framework\Rendering\Buffers\VertexBuffer.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\ConstantBufferRing.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\Dx12BufferHelper.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\Dx12PipelineHelper.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\Dx12Renderer.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\FenceRetiredPagePool.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\FrameUploadBuffer.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\IRenderDevice.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\IRenderer.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\IRenderResourceLifetime.h" />
+    <ClInclude Include="src\Framework\Rendering\Core\RenderResourceAccess.h" />
+    <ClInclude Include="src\Framework\Rendering\Geometry\SpriteVertex.h" />
+    <ClInclude Include="src\Framework\Rendering\Geometry\TexturedVertex.h" />
+    <ClInclude Include="src\Framework\Rendering\Geometry\Vertex.h" />
+    <ClInclude Include="src\Framework\Rendering\Materials\SpriteMaterial.h" />
+    <ClInclude Include="src\Framework\Rendering\Materials\Texture2D.h" />
+    <ClInclude Include="src\Framework\Rendering\Materials\TexturedMaterial.h" />
+    <ClInclude Include="src\Framework\Rendering\Pipelines\BasicColorPipeline.h" />
+    <ClInclude Include="src\Framework\Rendering\Pipelines\SkinnedTexturedPipeline.h" />
+    <ClInclude Include="src\Framework\Rendering\Pipelines\SpritePipeline.h" />
+    <ClInclude Include="src\Framework\Rendering\Pipelines\TexturedPipeline.h" />
+    <ClInclude Include="src\Framework\Rendering\RmlUi\RmlUiSpriteRenderInterface.h" />
+    <ClInclude Include="src\Framework\Rendering\Sprites\Rect.h" />
+    <ClInclude Include="src\Framework\Rendering\Sprites\Sprite.h" />
+    <ClInclude Include="src\Framework\Rendering\Sprites\SpriteBatch.h" />
+    <ClInclude Include="src\Framework\Rendering\Sprites\SpriteShape.h" />
+    <ClInclude Include="src\Framework\Rendering\Sprites\SpriteShapeFactory.h" />
+    <ClInclude Include="src\Framework\Rendering\Sprites\Triangle.h" />
+    <ClInclude Include="src\Framework\Scene\Cameras\Camera.h" />
+    <ClInclude Include="src\Framework\Scene\Cameras\CameraBase.h" />
+    <ClInclude Include="src\Framework\Scene\Cameras\CameraController.h" />
+    <ClInclude Include="src\Framework\Scene\Cameras\CameraFollowHeightLock.h" />
+    <ClInclude Include="src\Framework\Scene\Cameras\FirstPersonCamera.h" />
+    <ClInclude Include="src\Framework\Scene\Cameras\FollowCamera.h" />
+    <ClInclude Include="src\Framework\Scene\Cameras\ICamera.h" />
+    <ClInclude Include="src\Framework\Scene\Cameras\OrbitCamera.h" />
+    <ClInclude Include="src\Framework\Scene\Cameras\SplineCamera.h" />
+    <ClInclude Include="src\Framework\Scene\Cameras\SpringFollowCamera.h" />
+    <ClInclude Include="src\Framework\Scene\Core\IScene.h" />
+    <ClInclude Include="src\Framework\Scene\Core\SceneManager.h" />
+    <ClInclude Include="src\Framework\Scene\Input\Input.h" />
+    <ClInclude Include="src\Framework\Scene\Input\InputWriter.h" />
+    <ClInclude Include="src\Framework\Scene\Input\SimulationInputBuffer.h" />
+    <ClInclude Include="src\Framework\Scene\Overlays\LoadingOverlay.h" />
+    <ClInclude Include="src\Framework\UI\IUiService.h" />
+    <ClInclude Include="src\Framework\UI\RmlUi\RmlUiService.h" />
+    <!-- END sync_vs_filters:FrameworkInclude -->
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Framework\Rendering\Shaders\BasicColor.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\SkinnedTextured.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Sprite.hlsl" />
+    <None Include="src\Framework\Rendering\Shaders\Textured.hlsl" />
+  </ItemGroup>
+  <Target Name="CheckSourceRegistration" BeforeTargets="PrepareForBuild">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectDir)tools\sync_vs_filters.ps1&quot; -RepositoryRoot &quot;$(MSBuildProjectDirectory)&quot; -Check" />
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

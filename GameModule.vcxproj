@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion><Keyword>Win32Proj</Keyword><ProjectGuid>{d7c198b4-e252-4630-a617-f0f2a4b4677a}</ProjectGuid><RootNamespace>GameModule</RootNamespace><WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration"><ConfigurationType>StaticLibrary</ConfigurationType><UseDebugLibraries>true</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration"><ConfigurationType>StaticLibrary</ConfigurationType><UseDebugLibraries>false</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><WholeProgramOptimization>true</WholeProgramOptimization><CharacterSet>Unicode</CharacterSet></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"><Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" /></ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'"><Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" /></ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"><OutDir>$(SolutionDir)x64\$(Configuration)\lib\</OutDir><IntDir>$(SolutionDir)x64\$(Configuration)\GameModule\obj\</IntDir></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'"><OutDir>$(SolutionDir)x64\$(Configuration)\lib\</OutDir><IntDir>$(SolutionDir)x64\$(Configuration)\GameModule\obj\</IntDir></PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"><ClCompile><WarningLevel>Level4</WarningLevel><SDLCheck>true</SDLCheck><ConformanceMode>true</ConformanceMode><LanguageStandard>stdcpp20</LanguageStandard><PreprocessorDefinitions>_DEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalIncludeDirectories>$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><ProgramDataBaseFileName>$(IntDir)GameModule.pdb</ProgramDataBaseFileName><AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions></ClCompile></ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'"><ClCompile><WarningLevel>Level4</WarningLevel><FunctionLevelLinking>true</FunctionLevelLinking><IntrinsicFunctions>true</IntrinsicFunctions><SDLCheck>true</SDLCheck><ConformanceMode>true</ConformanceMode><LanguageStandard>stdcpp20</LanguageStandard><PreprocessorDefinitions>NDEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalIncludeDirectories>$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><ProgramDataBaseFileName>$(IntDir)GameModule.pdb</ProgramDataBaseFileName><AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions></ClCompile></ItemDefinitionGroup>
+  <ItemGroup>
+    <!-- BEGIN sync_vs_filters:GameCompile -->
+    <ClCompile Include="src\Game\App\Game.cpp" />
+    <ClCompile Include="src\Game\Effects\Particles\SimpleJumpParticleSystem.cpp" />
+    <ClCompile Include="src\Game\Gameplay\AnimatedCubeObject.cpp" />
+    <ClCompile Include="src\Game\Gameplay\CharacterGrounding.cpp" />
+    <ClCompile Include="src\Game\Gameplay\CollisionComponents.cpp" />
+    <ClCompile Include="src\Game\Gameplay\Cube.cpp" />
+    <ClCompile Include="src\Game\Gameplay\Ground.cpp" />
+    <ClCompile Include="src\Game\Gameplay\HumanoidFigure.cpp" />
+    <ClCompile Include="src\Game\Gameplay\HumanoidPlayer.cpp" />
+    <ClCompile Include="src\Game\Gameplay\HumanoidWalker.cpp" />
+    <ClCompile Include="src\Game\Gameplay\Player.cpp" />
+    <ClCompile Include="src\Game\Gameplay\PrimitiveObject.cpp" />
+    <ClCompile Include="src\Game\Input\GameActions.cpp" />
+    <ClCompile Include="src\Game\Scenes\GameScene.cpp" />
+    <ClCompile Include="src\Game\Scenes\TitleScene.cpp" />
+    <ClCompile Include="src\Game\UI\HudOverlay.cpp" />
+    <!-- END sync_vs_filters:GameCompile -->
+  </ItemGroup>
+  <ItemGroup>
+    <!-- BEGIN sync_vs_filters:GameInclude -->
+    <ClInclude Include="src\Game\App\Game.h" />
+    <ClInclude Include="src\Game\Content\GameContent.h" />
+    <ClInclude Include="src\Game\Effects\Particles\SimpleJumpParticleSystem.h" />
+    <ClInclude Include="src\Game\Gameplay\AnimatedCubeObject.h" />
+    <ClInclude Include="src\Game\Gameplay\CharacterGrounding.h" />
+    <ClInclude Include="src\Game\Gameplay\CollisionComponents.h" />
+    <ClInclude Include="src\Game\Gameplay\Cube.h" />
+    <ClInclude Include="src\Game\Gameplay\Ground.h" />
+    <ClInclude Include="src\Game\Gameplay\HumanoidFigure.h" />
+    <ClInclude Include="src\Game\Gameplay\HumanoidPlayer.h" />
+    <ClInclude Include="src\Game\Gameplay\HumanoidWalker.h" />
+    <ClInclude Include="src\Game\Gameplay\Player.h" />
+    <ClInclude Include="src\Game\Gameplay\PrimitiveObject.h" />
+    <ClInclude Include="src\Game\Input\GameActions.h" />
+    <ClInclude Include="src\Game\Scenes\GameScene.h" />
+    <ClInclude Include="src\Game\Scenes\TitleScene.h" />
+    <ClInclude Include="src\Game\UI\HudOverlay.h" />
+    <!-- END sync_vs_filters:GameInclude -->
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="EngineFramework.vcxproj"><Project>{a04d8f6b-34b4-4c91-af98-158f3bca608d}</Project></ProjectReference></ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

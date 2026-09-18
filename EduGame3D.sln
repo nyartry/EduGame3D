@@ -1,0 +1,48 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameApp", "GameApp.vcxproj", "{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimationEventEditor", "AnimationEventEditor.vcxproj", "{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EngineFramework", "EngineFramework.vcxproj", "{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameModule", "GameModule.vcxproj", "{D7C198B4-E252-4630-A617-F0F2A4B4677A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VisualStudioTests", "tests\VisualStudio\VisualStudioTests.vcxproj", "{4E274BE8-0FB4-4C85-AAB6-49E11DF7AF87}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4E274BE8-0FB4-4C85-AAB6-49E11DF7AF87}.Debug|x64.ActiveCfg = Debug|x64
+		{4E274BE8-0FB4-4C85-AAB6-49E11DF7AF87}.Debug|x64.Build.0 = Debug|x64
+		{4E274BE8-0FB4-4C85-AAB6-49E11DF7AF87}.Release|x64.ActiveCfg = Release|x64
+		{4E274BE8-0FB4-4C85-AAB6-49E11DF7AF87}.Release|x64.Build.0 = Release|x64
+		{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}.Debug|x64.ActiveCfg = Debug|x64
+		{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}.Debug|x64.Build.0 = Debug|x64
+		{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}.Release|x64.ActiveCfg = Release|x64
+		{7D164F77-9E79-4D20-8B31-6E51BD5F3D34}.Release|x64.Build.0 = Release|x64
+		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Debug|x64.ActiveCfg = Debug|x64
+		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Debug|x64.Build.0 = Debug|x64
+		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Release|x64.ActiveCfg = Release|x64
+		{6D0726DF-71F6-4A9A-95D4-3A2CB7E8AB20}.Release|x64.Build.0 = Release|x64
+		{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}.Debug|x64.ActiveCfg = Debug|x64
+		{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}.Debug|x64.Build.0 = Debug|x64
+		{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}.Release|x64.ActiveCfg = Release|x64
+		{A04D8F6B-34B4-4C91-AF98-158F3BCA608D}.Release|x64.Build.0 = Release|x64
+		{D7C198B4-E252-4630-A617-F0F2A4B4677A}.Debug|x64.ActiveCfg = Debug|x64
+		{D7C198B4-E252-4630-A617-F0F2A4B4677A}.Debug|x64.Build.0 = Debug|x64
+		{D7C198B4-E252-4630-A617-F0F2A4B4677A}.Release|x64.ActiveCfg = Release|x64
+		{D7C198B4-E252-4630-A617-F0F2A4B4677A}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {62B67E9A-E114-49D6-9930-BC7F5D51B1B9}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,22 @@
+{
+  "schema": "edugame3d-animation-events-v1",
+  "sourceFbx": "EduHuman_Kick.fbx",
+  "events": [
+    {
+      "animation": "Kick",
+      "time": 0.5,
+      "type": "ComboWindowOpen",
+      "name": "Combo input opens",
+      "bone": "",
+      "cue": ""
+    },
+    {
+      "animation": "Kick",
+      "time": 1.2,
+      "type": "ComboWindowClose",
+      "name": "Combo input closes",
+      "bone": "",
+      "cue": ""
+    }
+  ]
+}

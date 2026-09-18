@@ -1,0 +1,57 @@
+{
+  "checkedDate": "2026-09-14",
+  "repositoryCommit": "73cb3279ddfa08f13d96214419cbc46524391a9c",
+  "scope": "Current FBX content bytes only; file identity does not establish a license.",
+  "files": [
+    {
+      "path": "Content/Models/55-rp_nathan_animated_003_walking_fbx/rp_nathan_animated_003_walking_u3d.fbx",
+      "bytes": 1011280,
+      "sha256": "4777658ab96fdeda09395712221d89c3d9a4c585316d134ad30c2c94d20f1f2b"
+    },
+    {
+      "path": "Content/Models/55-rp_nathan_animated_003_walking_fbx/rp_nathan_animated_003_walking_ue4.fbx",
+      "bytes": 1187952,
+      "sha256": "7fe682ee9190fd4ef828e822cfdb2c633e17c84ce47e3bb2ecbd5b6bc024a77e"
+    },
+    {
+      "path": "Content/Models/55-rp_nathan_animated_003_walking_fbx/rp_nathan_animated_003_walking.fbx",
+      "bytes": 24646304,
+      "sha256": "7a7a65df5a382049dd6bbb2d0ecbeba260702191916fbca97de537cf952f97ec"
+    },
+    {
+      "path": "Content/Models/Daven/t-pose.fbx",
+      "bytes": 66494908,
+      "sha256": "50220a1572dc725cb18e349b64be904c7873a029e571d67c5e6abe168ae8df4a"
+    },
+    {
+      "path": "Content/Models/Player/Jogging/Jogging.fbx",
+      "bytes": 2021296,
+      "sha256": "a63c89b5965651b0138799194e7bef29f6d428d424e150d41bdceb9a2bd81a8e"
+    },
+    {
+      "path": "Content/Models/Player/Mma Kick/Mma Kick.fbx",
+      "bytes": 1917216,
+      "sha256": "a68f1244aee3843b50f2fe51031d0602883d724392548e3c566c47ec5ba1d606"
+    },
+    {
+      "path": "Content/Models/Player/Orc Idle/Orc Idle.fbx",
+      "bytes": 2189296,
+      "sha256": "779b99b74975719c9ea571e0b4cbe73d158e17e9d070d90f1aa2f82e3e97bc41"
+    },
+    {
+      "path": "Content/Models/Untitled/old_Untitled.fbx",
+      "bytes": 29356,
+      "sha256": "8f6543976c5ca08d992d10e52d0e48c7b839f88dc1fa0f4e6e50ba55316ff722"
+    },
+    {
+      "path": "Content/Models/Untitled/Untitled.fbx",
+      "bytes": 47420,
+      "sha256": "668711ae7e67717a97384271db11d2552cd723c742c694b17aef8969ef905cad"
+    },
+    {
+      "path": "Content/Models/Y_Bot/Y_Bot.fbx",
+      "bytes": 1982368,
+      "sha256": "34174fa40d757d3cd9fb90546e848890016a78c74c34fd567e41b9f50064ccfd"
+    }
+  ]
+}

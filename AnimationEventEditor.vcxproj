@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals"><VCProjectVersion>17.0</VCProjectVersion><Keyword>Win32Proj</Keyword><ProjectGuid>{6d0726df-71f6-4a9a-95d4-3a2cb7e8ab20}</ProjectGuid><RootNamespace>AnimationEventEditor</RootNamespace><WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration"><ConfigurationType>Application</ConfigurationType><UseDebugLibraries>true</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration"><ConfigurationType>Application</ConfigurationType><UseDebugLibraries>false</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><WholeProgramOptimization>true</WholeProgramOptimization><CharacterSet>Unicode</CharacterSet></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"><Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" /></ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'"><Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" /></ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"><LinkIncremental>true</LinkIncremental><OutDir>$(SolutionDir)x64\$(Configuration)\</OutDir><IntDir>$(SolutionDir)x64\$(Configuration)\AnimationEventEditor\obj\</IntDir><TargetName>AnimationEventEditor</TargetName></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'"><LinkIncremental>false</LinkIncremental><OutDir>$(SolutionDir)x64\$(Configuration)\</OutDir><IntDir>$(SolutionDir)x64\$(Configuration)\AnimationEventEditor\obj\</IntDir><TargetName>AnimationEventEditor</TargetName></PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile><WarningLevel>Level4</WarningLevel><SDLCheck>true</SDLCheck><ConformanceMode>true</ConformanceMode><LanguageStandard>stdcpp20</LanguageStandard><TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal><ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel><DisableAnalyzeExternal>true</DisableAnalyzeExternal><PreprocessorDefinitions>_DEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;ANIMATION_EVENT_EDITOR_TOOL;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;$(ProjectDir)third_party\imgui;$(ProjectDir)third_party\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories></ClCompile>
+    <Link><SubSystem>Windows</SubSystem><GenerateDebugInformation>true</GenerateDebugInformation><AdditionalLibraryDirectories>$(ProjectDir)third_party\assimp\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories><AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;comdlg32.lib;shell32.lib;ole32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies></Link>
+    <PostBuildEvent><Command>if exist "$(ProjectDir)third_party\assimp\bin\Debug\assimp-vc143-mtd.dll" copy /Y "$(ProjectDir)third_party\assimp\bin\Debug\assimp-vc143-mtd.dll" "$(OutDir)"
+if not exist "$(OutDir)src\Framework\Rendering\Shaders" mkdir "$(OutDir)src\Framework\Rendering\Shaders"
+copy /Y "$(ProjectDir)src\Framework\Rendering\Shaders\*.hlsl" "$(OutDir)src\Framework\Rendering\Shaders\"
+if not exist "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)" mkdir "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)"
+copy /Y "$(TargetPath)" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\"
+if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\"
+if exist "$(OutDir)assimp-vc143-mtd.dll" copy /Y "$(OutDir)assimp-vc143-mtd.dll" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\" || echo assimp-vc143-mtd.dll is running; close the editor before rebuilding to update the bin copy.</Command></PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile><WarningLevel>Level4</WarningLevel><FunctionLevelLinking>true</FunctionLevelLinking><IntrinsicFunctions>true</IntrinsicFunctions><SDLCheck>true</SDLCheck><ConformanceMode>true</ConformanceMode><LanguageStandard>stdcpp20</LanguageStandard><TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal><ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel><DisableAnalyzeExternal>true</DisableAnalyzeExternal><PreprocessorDefinitions>NDEBUG;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;ANIMATION_EVENT_EDITOR_TOOL;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\assimp\include;$(ProjectDir)third_party\assimp\build_include;$(ProjectDir)third_party\imgui;$(ProjectDir)third_party\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories></ClCompile>
+    <Link><SubSystem>Windows</SubSystem><EnableCOMDATFolding>true</EnableCOMDATFolding><OptimizeReferences>true</OptimizeReferences><GenerateDebugInformation>true</GenerateDebugInformation><AdditionalLibraryDirectories>$(ProjectDir)third_party\assimp\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories><AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;windowscodecs.lib;comdlg32.lib;shell32.lib;ole32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies></Link>
+    <PostBuildEvent><Command>if exist "$(ProjectDir)third_party\assimp\bin\Release\assimp-vc143-mt.dll" copy /Y "$(ProjectDir)third_party\assimp\bin\Release\assimp-vc143-mt.dll" "$(OutDir)"
+if not exist "$(OutDir)src\Framework\Rendering\Shaders" mkdir "$(OutDir)src\Framework\Rendering\Shaders"
+copy /Y "$(ProjectDir)src\Framework\Rendering\Shaders\*.hlsl" "$(OutDir)src\Framework\Rendering\Shaders\"
+if not exist "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)" mkdir "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)"
+copy /Y "$(TargetPath)" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\"
+if exist "$(TargetDir)$(TargetName).pdb" copy /Y "$(TargetDir)$(TargetName).pdb" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\"
+if exist "$(OutDir)assimp-vc143-mt.dll" copy /Y "$(OutDir)assimp-vc143-mt.dll" "$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)\" || echo assimp-vc143-mt.dll is running; close the editor before rebuilding to update the bin copy.</Command></PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <!-- BEGIN sync_vs_filters:EditorCompile -->
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorApp.cpp" />
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.cpp" />
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventEditorLayout.cpp" />
+    <ClCompile Include="tools\AnimationEventEditor\AnimationEventJson.cpp" />
+    <ClCompile Include="tools\AnimationEventEditor\main.cpp" />
+    <!-- END sync_vs_filters:EditorCompile -->
+    <ClCompile Include="third_party\imgui\imgui.cpp"><DisableSpecificWarnings>28182;6011;%(DisableSpecificWarnings)</DisableSpecificWarnings></ClCompile><ClCompile Include="third_party\imgui\imgui_draw.cpp"><DisableSpecificWarnings>26819;%(DisableSpecificWarnings)</DisableSpecificWarnings></ClCompile><ClCompile Include="third_party\imgui\imgui_tables.cpp" /><ClCompile Include="third_party\imgui\imgui_widgets.cpp"><DisableSpecificWarnings>6011;%(DisableSpecificWarnings)</DisableSpecificWarnings></ClCompile>
+    <ClCompile Include="third_party\imgui\backends\imgui_impl_dx12.cpp"><DisableSpecificWarnings>4127;4189;%(DisableSpecificWarnings)</DisableSpecificWarnings></ClCompile>
+    <ClCompile Include="third_party\imgui\backends\imgui_impl_win32.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- BEGIN sync_vs_filters:EditorInclude -->
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventData.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorApp.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorDialogs.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventEditorLayout.h" />
+    <ClInclude Include="tools\AnimationEventEditor\AnimationEventJson.h" />
+    <!-- END sync_vs_filters:EditorInclude -->
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="EngineFramework.vcxproj"><Project>{a04d8f6b-34b4-4c91-af98-158f3bca608d}</Project></ProjectReference></ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
