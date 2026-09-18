@@ -1,6 +1,8 @@
 # EduGame3D
 
-授業用3Dゲームフレームワーク。日本国内の教育機関で、3Dゲームのプログラミングを学ぶためのプロジェクトです。
+授業用3Dゲームフレームワーク。日本国内の教育機関の通常授業で、3Dゲームのプログラミングを学ぶためのプロジェクトです。
+
+**開発を応援する：[GitHub Sponsors](https://github.com/sponsors/nyartry)** — 単発・月額の任意支援を受け付けています。[支援について](SUPPORT.md)
 
 A C++ / DirectX 12 framework for classroom game programming on Windows, built with Visual Studio 2022.
 
@@ -16,11 +18,15 @@ A C++ / DirectX 12 framework for classroom game programming on Windows, built wi
 
 These are custom terms: local learning and development are permitted for the covered portions; publishing, distributing or selling games containing them requires prior individual permission, subject to statutory exceptions and GitHub's terms. See [LICENSE](LICENSE). The SARTRAS guidance concerns qualifying classroom transmissions and the institution's reporting procedures.
 
+## 開発への支援
+
+EduGame3Dが授業やゲーム制作に役立ったら、[GitHub Sponsors](https://github.com/sponsors/nyartry)から開発費用へのご支援をお願いします。支援は完全に任意で、利用条件は変わりません。個別サポート・機能追加・更新の約束を伴うものではありません。単発・月額の支援先と詳細は [SUPPORT.md](SUPPORT.md) をご覧ください。
+
 ## Purpose and handoff
 
 EduGame3D is intended for teaching, reading and modifying source code, and building students' own 3D games. It is designed for use across educational institutions in Japan. The framework supports different game genres without prescribing gameplay rules; the included game demonstrates the framework's APIs.
 
-現在は公開準備中です。権利者への授業目的公衆送信補償金の分配を目指し、権利関係・利用条件・申請先を整理しています。SARTRASへの登録や分配の対象になることは未確認です。公開前の作業は [SARTRAS準備調査](docs/sartras-readiness-audit.md) と [権利台帳](docs/rights-inventory.md) を参照してください。
+ソースコードを公開し、GitHub Sponsorsによる任意支援を受け付けています。素材・依存物の権利確認は継続中です。確認状況は [権利台帳](docs/rights-inventory.md)、SARTRASに関する過去の調査は [SARTRAS準備調査](docs/sartras-readiness-audit.md) を参照してください。SARTRASへの登録や分配対象への該当は未確認です。
 
 See [学生配布用3Dゲームひな型のコア調査・引き継ぎ](docs/student-template-core-handoff.md) for the project intent, current implementation, proposed improvements, validation results, and instructions for continuing work on another PC.
 
