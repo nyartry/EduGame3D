@@ -27,6 +27,8 @@ Visual Studioによる元の出力ファイルは、次の場所にもありま�
 - `x64/Debug/AnimationEventEditor.exe`
 - `x64/Release/AnimationEventEditor.exe`
 
+どちらの出力先にも、ビルド時に`LICENSE`と`THIRD_PARTY_NOTICES.txt`を配置します。配布が許可される構成でエディターを渡す際は、この2ファイルも同梱してください。[利用条件と許諾文の案内](../../docs/rights-inventory.md#exeを配布するとき)を確認してください。
+
 ## 基本的な操作の流れ
 
 1. `AnimationEventEditor.exe` を起動します。

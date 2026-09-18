@@ -36,4 +36,5 @@
     <ProjectReference Include="GameModule.vcxproj"><Project>{d7c198b4-e252-4630-a617-f0f2a4b4677a}</Project></ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(ProjectDir)tools\distribution_notices.targets" />
 </Project>

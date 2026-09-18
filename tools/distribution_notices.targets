@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <DistributionNoticesCommand>powershell -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)tools\copy_distribution_notices.ps1" -RepositoryRoot "$(MSBuildProjectDirectory)" -OutputDirectory "$(OutDir)."</DistributionNoticesCommand>
+    <DistributionNoticesCommand Condition="'$(DistributionNoticesAdditionalDirectory)' != ''">$(DistributionNoticesCommand) -AdditionalOutputDirectory "$(DistributionNoticesAdditionalDirectory)"</DistributionNoticesCommand>
+  </PropertyGroup>
+  <ItemGroup>
+    <DistributionNoticeInput Include="$(ProjectDir)LICENSE" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\assimp\LICENSE" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\assimp\LICENSE_DEPENDENCIES.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\directxtk12\LICENSE" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\effekseer\LICENSE.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\effekseer\LICENSE_RUNTIME_DIRECTX.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\effekseer\LICENSE_LLGI.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\effekseer\LICENSE_MSPL.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\effekseer\LICENSE_STB.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\rmlui\LICENSE.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\rmlui\include\RmlUi\Core\Containers\LICENSE.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\imgui\LICENSE.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\imgui\LICENSE_FONTS.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)third_party\imgui\LICENSE_STB.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)Content\Effects\Effekseer\Samples\LICENSE.txt" />
+    <DistributionNoticeInput Include="$(ProjectDir)tools\copy_distribution_notices.ps1;$(MSBuildThisFileFullPath)" />
+    <DistributionNoticeOutput Include="$(OutDir)LICENSE;$(OutDir)THIRD_PARTY_NOTICES.txt" />
+    <DistributionNoticeOutput Condition="'$(DistributionNoticesAdditionalDirectory)' != ''" Include="$(DistributionNoticesAdditionalDirectory)\LICENSE;$(DistributionNoticesAdditionalDirectory)\THIRD_PARTY_NOTICES.txt" />
+  </ItemGroup>
+  <!-- Native C++ tracking makes notice-only edits and missing outputs trigger an incremental build. -->
+  <ItemGroup>
+    <CustomBuildStep Update="@(CustomBuildStep)">
+      <Command>$(DistributionNoticesCommand)</Command>
+      <Inputs>@(DistributionNoticeInput)</Inputs>
+      <Outputs>@(DistributionNoticeOutput)</Outputs>
+      <Message>配布用の著作権表示・利用条件を確認しています</Message>
+    </CustomBuildStep>
+  </ItemGroup>
+  <!-- This target can also be called directly without compiling or linking. -->
+  <Target Name="CopyDistributionNotices">
+    <Exec Command="$(DistributionNoticesCommand)" />
+  </Target>
+</Project>

@@ -59,4 +59,6 @@ if exist "$(OutDir)assimp-vc143-mt.dll" copy /Y "$(OutDir)assimp-vc143-mt.dll" "
   </ItemGroup>
   <ItemGroup><ProjectReference Include="EngineFramework.vcxproj"><Project>{a04d8f6b-34b4-4c91-af98-158f3bca608d}</Project></ProjectReference></ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <PropertyGroup><DistributionNoticesAdditionalDirectory>$(ProjectDir)tools\AnimationEventEditor\bin\$(Configuration)</DistributionNoticesAdditionalDirectory></PropertyGroup>
+  <Import Project="$(ProjectDir)tools\distribution_notices.targets" />
 </Project>
