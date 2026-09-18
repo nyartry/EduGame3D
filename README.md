@@ -1,4 +1,14 @@
-# DirectX12 Open Campus Game
+# EduGame3D
+
+日本国内の教育機関の通常授業で、3Dゲームのプログラミングを学ぶためのC++ / DirectX 12ライブラリです。
+
+**[最新のライブラリ・使い方はこちら（develop）](https://github.com/nyartry/EduGame3D/tree/develop)**
+
+授業やゲーム制作に役立ったら、**[GitHub Sponsorsで開発を応援する](https://github.com/sponsors/nyartry)**。単発・月額の支援を受け付けています。支援は完全に任意で、利用条件は変わりません。詳しくは[支援について](SUPPORT.md)をご覧ください。
+
+このmainブランチには初期版を残しています。現在の機能・導入手順・利用条件は、上記developブランチをご確認ください。
+
+## 初期版について
 
 Windows desktop DirectX 12 starter project for Visual Studio 2022.
 
