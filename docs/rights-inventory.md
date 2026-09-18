@@ -8,10 +8,10 @@ EduGame3D本体の利用条件は [LICENSE](../LICENSE) を確認してくださ
 |---|---|
 | 人型モデル「EduHuman」 | 本プロジェクトのLICENSEの対象。[制作元と入力の記録](../Content/Models/EduHuman/PROVENANCE.md)があります。 |
 | サンプルモデル「Untitled」2点 | 本人が自作と確認したモデル。本プロジェクトのLICENSEの対象です。 |
-| [BGM 2曲](../Content/Audio/BGM/) | Codexで生成したとの本人確認あり。生成時の外部入力などの記録は未確認です。 |
+| [BGM 2曲](../Content/Audio/BGM/) | プロジェクト所有者の依頼でCodexに生成させた楽曲です（所有者確認）。 |
 | [クリック音](../Content/Audio/SE/button_click.wav) | 制作元・利用条件が未確認です。 |
 | [Laser01エフェクトと画像3点](../Content/Effects/Effekseer/Samples/) | Effekseer公式素材と一致するCC0の素材です。[対象ファイル・出典・CC0本文](../Content/Effects/Effekseer/Samples/LICENSE.txt)を同梱しています。 |
-| [紋章画像](../Content/Textures/UI/edugame3d_crest.png) | 制作者・生成経緯・利用条件が未確認です。 |
+| [紋章画像](../Content/Textures/UI/edugame3d_crest.png) | プロジェクト所有者の依頼でAIに生成させた画像です（所有者確認）。 |
 
 **BGM・効果音・エフェクト・画像は、現行のプロジェクトLICENSEによる許諾の対象外です。** CC0の公式エフェクト素材には、その素材自身の条件が適用されます。利用条件が未確認の素材は、権利者や入手元の条件を確認するか、利用条件の明らかな素材へ差し替えてください。
 
