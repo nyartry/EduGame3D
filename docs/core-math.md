@@ -39,15 +39,15 @@ identity fallback for a degenerate world transform. Normals and tangents have
 separate shader transforms: inverse-transpose for normals, world linear transform
 for tangents. Lighting is then evaluated consistently in world space.
 
-## Ownership and existing gameplay
+## Transform ownership
 
-`StaticMeshActor` and `SkinnedMeshActor` each own one `Transform`. Their existing
+`StaticMeshActor` and `SkinnedMeshActor` each own one `Transform`. Their
 position and yaw APIs operate on it; `GetTransform()` provides read-only access.
-`StaticModel` and `SkinnedModel` no longer store a duplicate world position or yaw.
+`StaticModel` and `SkinnedModel` do not own world position or yaw.
 They receive the world matrix through `Draw(renderer, world)`; the editor supplies
 its own placement the same way.
 
-Existing upright collision actors still use their original position/yaw-only
+Upright collision actors use position/yaw-only
 controls. Arbitrary pitch/roll/scale setters are not exposed on them because their
 collider shapes do not yet support those changes. Skinned collision anchors remain
 horizontal offsets above the actor's bottom height.
@@ -61,8 +61,7 @@ in [root-motion.md](root-motion.md).
 - `TryNormalize`: failure clears output; the default minimum length is 1e-6 world
   units. It handles nonfinite and extreme finite input values, including aliased
   input/output. Pass epsilon 0 for an exact-zero cutoff.
-- `TryNormalizeXZ`: ignores Y and defaults to an exact-zero cutoff, preserving
-  the previous movement-input behavior.
+- `TryNormalizeXZ`: ignores Y and defaults to an exact-zero cutoff.
 - `NormalizeAngle`: canonical range [-pi, pi); nonfinite input becomes zero.
 - `LerpAngle`: shortest-path interpolation, using the same wrap convention.
 - `SmoothAmount`: exponential smoothing with stable small-time-step arithmetic;
@@ -79,7 +78,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/test_root_motion.ps1
 
 The math tests compile only the math core. They cover SRT order, point/direction
 separation, nonuniform-scale normals, invalid inputs, and angle/smoothing edges.
-The existing root-motion tests protect jump trajectories and landing behavior.
+The root-motion tests protect jump trajectories and landing behavior.
 
 The editor queues model-open requests until before the next `BeginFrame`, prepares
 replacement state, and waits for submitted GPU work before releasing the old model.

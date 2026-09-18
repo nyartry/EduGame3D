@@ -2,7 +2,7 @@
 
 `Framework/Animation/AnimationPlayback` は有限の正のクリップ長と前進更新を受け取り、同じ更新の開始局所秒・終了局所秒・通過した周回数を返します。既定の `Loop` は局所時刻を `double` の `[0, duration)` に保ち、長時間再生で大きな `float` の累積時刻を作りません。`Once` は `[0, duration]` で進み、終端を超える更新も `duration` で止まります。終端到達後は `IsFinished()` が真になり、後続更新で変位やイベントを追加しません。`Reset(mode)` は指定モードで先頭へ戻し、終了状態を解除します。ゼロ・逆方向・非有限の更新幅は進行せず、`Loop` では周回数で表現できない更新幅も進行しません。不正なクリップ長は静止として扱い、`Once` は終了状態になります。
 
-`AnimationSampler` はこの局所秒を直接サンプルし、独自には周回させません。`duration` ちょうどでは終端をサンプルします。`RootMotionExtractor` は端点差と全周回分の変位を合計し、モデル倍率を適用します。`Once` は終端までの差分だけを抽出し、周回による変位を加えません。クリップ長の後にキーがあっても実際のクリップ終端を使います。出力はモデル局所の XYZ です。既存のキャラクター側の水平合成・ジャンプ中のプログラム Y 優先は変えません。
+`AnimationSampler` はこの局所秒を直接サンプルし、独自には周回させません。`duration` ちょうどでは終端をサンプルします。`RootMotionExtractor` は端点差と全周回分の変位を合計し、モデル倍率を適用します。`Once` は終端までの差分だけを抽出し、周回による変位を加えません。クリップ長の後にキーがあっても実際のクリップ終端を使います。出力はモデル局所の XYZ です。キャラクター側で水平移動を合成し、ジャンプ中はプログラムによる Y 移動を優先します。
 
 `AnimationEvents` はエディターと実行系で同じ `edugame3d-animation-events-v1` の読込・保存処理を使います。改名前のschemaも読み込めます。保存時には現行schemaへ統一します。schema、必須の時刻/アニメーション名/type、有限かつ非負の時刻、JSON 構文を検証し、無効データは理由付きで失敗します。実行系の文字列に編集バッファの制限はありません。エディターに収まらない文字列は切り捨てず、読込エラーにします。
 
@@ -12,11 +12,11 @@
 
 各シミュレーションの `Update` 後、`GetAnimationEvents()` でその更新分を消費せず参照できます。次の更新までに `ConsumeAnimationEvents()` を呼ぶと、同じ更新分の意味イベントを一度取得できます。未読イベントは次の `Update`、シーク、クリップ変更・明示的な再開で消去します。参照はこれらの操作や消費をまたいで保持しません。イベントに応じた音・攻撃・エフェクトなどは取得側で選択し、Framework からバックエンドを直接呼びません。
 
-`tools/test_root_motion.ps1 -Configuration Debug`（または `Release`）で、抽出の一周・複数周・小数長・キーの範囲・無効値、既存ジャンプ Y、イベント境界、schema/JSON 検証、エディターと実行系の日本語パスを含む保存読込の回帰を実行できます。
+`tools/test_root_motion.ps1 -Configuration Debug`（または `Release`）で、抽出の一周・複数周・小数長・キーの範囲・無効値、ジャンプ Y、イベント境界、schema/JSON 検証、エディターと実行系の日本語パスを含む保存読込のテストを実行できます。
 
 EduGame3Dの組込み音・効果IDは `edugame3d.*` を使います。改名前に保存した組込みIDは、ゲーム側の `GameContent::ResolveCue` で新IDへ対応づけます。独自cueは変更しません。
 
-GameScene は各固定更新直後に `SkinnedMeshActor::ConsumeAnimationEvents()` を消費します。`Footstep` と `PlaySE` は `cue` を既存音サービスの登録IDとして再生し、`PlayEffect` は既存エフェクトサービスへ渡します。`bone` が有効ならボーンのワールド位置、空または未検出ならActor原点を使います。音・効果の空cueは無視します。`HitboxStart` / `HitboxEnd` / `Custom` のゲーム固有処理はまだ定義していません。EduHumanには足音イベントを同梱していません。足音を追加する場合はGameのカタログへIDと素材を登録してください。
+GameScene は各固定更新直後に `SkinnedMeshActor::ConsumeAnimationEvents()` を消費します。`Footstep` と `PlaySE` は `cue` を音サービスの登録IDとして再生し、`PlayEffect` はエフェクトサービスへ渡します。`bone` が有効ならボーンのワールド位置、空または未検出ならActor原点を使います。音・効果の空cueは無視します。`HitboxStart` / `HitboxEnd` / `Custom` のゲーム固有処理は定義していません。EduHumanには足音イベントを同梱していません。足音を追加する場合はGameのカタログへIDと素材を登録してください。
 
 ## 単発攻撃とコンボ入力
 
@@ -26,6 +26,6 @@ GameScene は各固定更新直後に `SkinnedMeshActor::ConsumeAnimationEvents(
 
 ## 受付時間の調整
 
-`Content/Models/EduHuman/EduHuman_Kick.anim_events.json` の `ComboWindowOpen` / `ComboWindowClose` の `time` が調整箇所です。単位は攻撃の先頭からの秒数で、コード側の秒数を変更する必要はありません。新規制作した素材を同梱 Assimp で読み取ると、クリップ名は `Kick`、長さは 48 ticks / 30 ticks毎秒 = 1.6秒です。初期値は開始0.5秒、終了1.2秒で、先頭0.5秒と末尾0.4秒を受付外にしています。これはこの素材向けの初期調整値です。ゲームでは `Attack` の別名で読み込み、イベントも同じ別名へ対応づけます。
+`Content/Models/EduHuman/EduHuman_Kick.anim_events.json` の `ComboWindowOpen` / `ComboWindowClose` の `time` が調整箇所です。単位は攻撃の先頭からの秒数で、コード側の秒数を変更する必要はありません。同梱素材のクリップ名は `Kick`、長さは 48 ticks / 30 ticks毎秒 = 1.6秒です。初期値は開始0.5秒、終了1.2秒で、先頭0.5秒と末尾0.4秒を受付外にしています。ゲームでは `Attack` の別名で読み込み、イベントも同じ別名へ対応づけます。
 
 Animation Event Editor で `EduHuman_Kick.fbx` を開くと隣のイベントファイルも読み込まれます。2つのイベントを選び、`Event Properties` の `Time` またはタイムライン上の位置を変更して `File > Save Events` で保存します。`0 < 開始 < 終了 <= 1.6` を保って調整してください。`Bone` と `Cue` は空のままで構いません。保存後にゲームを再起動すると反映されます。単発、早い再入力、窓内の再入力、遅い再入力、長押しを試し、受付の感触を確認してください。

@@ -27,8 +27,18 @@ Blender 5.1で生成します。リポジトリのルートから実行してく
 
 コンボ受付時間はAnimation Event Editorで `EduHuman_Kick.fbx` を開いて変更できます。[編集手順](../../tools/AnimationEventEditor/README.md#tuning-combo-input) を参照してください。
 
-## 配布範囲
+## 履歴を含まないソースの出力
 
-旧外部モデルと付属画像は現在のソースツリーから除外し、置換前の調査は [調査記録](../../docs/model-provenance-audit.md) に保存しています。既存のPrivate Git履歴には旧素材が残るため、履歴を含まない成果物を作るときは [公開用出力手順](../../docs/model-replacement.md) を使用します。
+リポジトリのルートで次を実行すると、現在のソース・ライブラリ・素材をまとめたフォルダーとZIPを作成できます。先に `git lfs pull` でファイルの実体を取得してください。
+
+```powershell
+.\tools\export_clean_source.ps1
+```
+
+出力先は `x64/CleanSource/EduGame3D/` と `x64/CleanSource/EduGame3D-clean-source.zip` です。Git履歴とビルド結果は含めず、モデルはEduHuman・Untitledに限定します。既知の旧外部モデルや未取得のLFSファイルが混ざると出力を中止します。モデルの照合用ハッシュは `MODEL_MANIFEST.json`、元のcommitと出力日時は `CLEAN_SOURCE_EXPORT.json` に入ります。
+
+既存の出力を更新するときは `-Force`、別の出力先を指定するときは `-OutputDirectory` を使用します。`-Force` は、このスクリプトの管理記録がある出力だけを置き換えます。取り出したソースをビルドするときは、出力フォルダー内の `EduGame3D.sln` を開きます。
+
+音源・エフェクト・画像や外部ライブラリの配布条件は、出力に含まれる [利用条件](../../docs/rights-inventory.md) を確認してください。出力の成功は、すべての素材を再配布してよいという意味ではありません。
 
 この文書は制作・構成の記録です。利用条件は [ルートのLICENSE](../../LICENSE) を参照してください。制作記録は、著作権の成立・SARTRASの分配対象であることを保証するものではありません。

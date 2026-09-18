@@ -15,11 +15,11 @@ renderer.Initialize(window, width, height);
 // その後、scenes・ui・effectsなどが破棄される。
 ```
 
-アプリ全体で使う資源所有者を追加するときは、ガードより前に宣言してください。ガードより後に宣言したローカル資源は、ガードより先に破棄されます。フレーム中に破棄する資源には、既存の`IRenderResourceLifetime::DeferRelease`を使います。
+アプリ全体で使う資源所有者を追加するときは、ガードより前に宣言してください。ガードより後に宣言したローカル資源は、ガードより先に破棄されます。フレーム中に破棄する資源には、`IRenderResourceLifetime::DeferRelease`を使います。
 
 エディターは`AnimationEventEditorApp::Impl`のデストラクタ本体で`Shutdown()`を呼びます。モデル・グリッド・ImGuiの資源が生きている間にGPUを停止し、その後ImGuiを終了します。コンテキストだけ生成された状態や、バックエンドの途中初期化も扱います。
 
-SceneManagerは引き続き非同期のCPU準備を終了させてからシーンを破棄します。`Prepare()`でGPUやUIを操作しない契約は維持してください。
+SceneManagerは非同期のCPU準備を終了させてからシーンを破棄します。`Prepare()`でGPUやUIを操作しないでください。
 
 ## rendererの終了契約
 
@@ -52,7 +52,7 @@ GPU待機は一回につき10秒を上限とし、イベントの戻り値と実
 
 ## 検証
 
-`RendererLifecycleTests`は本体の`EngineFramework.lib`を使い、CLIとVisual Studioで同じテストを実行します。GPUケースは明示的なWARPアダプターを使用し、GameAppのGPU選択は変更していません。
+`RendererLifecycleTests`は本体の`EngineFramework.lib`を使い、CLIとVisual Studioで同じテストを実行します。GPUケースはWARPアダプターを使用します。
 
 ```powershell
 .\tools\validate_core.ps1
@@ -64,4 +64,4 @@ GPU待機は一回につき10秒を上限とし、イベントの戻り値と実
 
 未初期化、途中初期化、正常終了、送信済み処理と記録中フレームの同居、破棄順、元の例外保持、解放失敗、再入、二重終了を検証します。GPUキューを止めるケースでは、10秒のタイムアウト後もデバイス削除の確認まで資源が残ることを確認します。削除API非対応環境では該当ケースがスキップを記録するため、成功件数だけで実行範囲を判断しないでください。
 
-WARPでの故障注入は、実機GPUの物理障害や全ドライバーの動作保証とは別です。削除非対応かつ待機不能の場合のプロセス強制終了は、通常のネイティブテスト内では起こしていません。
+WARPでの故障注入は、実機GPUの物理障害や全ドライバーの動作保証とは別です。削除非対応かつ待機不能の場合のプロセス強制終了は、通常のネイティブテストの対象外です。

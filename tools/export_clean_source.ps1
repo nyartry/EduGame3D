@@ -148,7 +148,7 @@ $tracked = @((Read-GitOutput 'ls-files --cached -z').Split([char]0) | Where-Obje
 $untracked = @((Read-GitOutput 'ls-files --others --exclude-standard -z').Split([char]0) | Where-Object { $_.Length -gt 0 })
 $commit = (Read-GitOutput 'rev-parse HEAD').Trim()
 
-$fingerprintPath = Join-Path $repositoryRoot 'docs\model-provenance-fingerprints.json'
+$fingerprintPath = Join-Path $PSScriptRoot 'model-provenance-fingerprints.json'
 $fingerprints = Get-Content -LiteralPath $fingerprintPath -Raw | ConvertFrom-Json
 $externalModels = @($fingerprints.files | Where-Object {
     $_.path -match '^Content/Models/(Player|Daven|55-rp_nathan_animated_003_walking_fbx|Y_Bot|forest_goddess)/.*\.fbx$'

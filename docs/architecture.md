@@ -35,6 +35,10 @@ Pimpl is used selectively for backend-heavy resource and service classes. It pre
 
 Scene loading has two explicit phases: `Prepare()` is worker-thread, CPU-only work, and `Activate()` is main-thread GPU/UI work. Scene factories receive their required services through constructors instead of a general service bag.
 
+Only one asynchronous scene transition runs at a time. The old scene is retained until preparation and activation succeed; failures preserve it for retry. Model and animation import data are shared during preparation through `ModelAssetCache`, while runtime skeletons and deformed vertices remain per instance. Individual texture uploads still wait for GPU completion. Resources created before a failed `Prepare()` or `Activate()` must be owned through RAII.
+
+The launcher runs simulation at 1/60 second, with at most eight updates per frame. It accepts at most 0.25 seconds of elapsed time and discards excess whole steps. Key presses and releases are buffered until a simulation update, then exposed once to every reader of that update. UI, fades, and HUD use `UpdateFrame` once per rendered frame. Focus changes reset accumulated time and pending input; rendering does not interpolate between simulation states.
+
 `IScene::OnResize(width, height)` runs on the main thread after preparation, immediately before activation with the latest client dimensions, and whenever an active scene's viewport changes. Preparing candidates are never resized on the worker. The launcher applies positive dimensions to the renderer and scene manager before starting a frame; zero dimensions suspend rendering. See [viewport-resize.md](viewport-resize.md) for UI coordinates and resume behavior.
 
 Root motion uses one `RootMotionSettings` contract shared by mesh actors and players. Horizontal movement can ignore, blend, or apply animation translation while programmatic jump and gravity retain control of vertical movement by default. See [root-motion.md](root-motion.md) for configuration and optional animation-driven vertical movement.

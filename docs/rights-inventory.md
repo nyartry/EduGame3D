@@ -1,51 +1,40 @@
-# 素材・ライブラリの出所と利用条件
+# 素材・外部ライブラリの利用条件
 
-更新日：2026-09-18
+EduGame3D本体の利用条件は [LICENSE](../LICENSE) を確認してください。このページは、同梱する素材・外部ライブラリを利用・配布するときの補足です。
 
-このページは、**同梱しているものの出所と、確認が残っている点**をまとめた開発者向けのメモです。利用条件そのものは [LICENSE](../LICENSE) を確認してください。「未確認」は違反を意味しませんが、配布してよいと確認できた状態でもありません。
+## 素材
 
-## プロジェクトのコードと説明文
+| 素材 | 利用条件・確認状況 |
+|---|---|
+| 人型モデル「EduHuman」 | 本プロジェクトのLICENSEの対象。[制作元と入力の記録](../Content/Models/EduHuman/PROVENANCE.md)があります。 |
+| サンプルモデル「Untitled」2点 | 本人が自作と確認したモデル。本プロジェクトのLICENSEの対象です。 |
+| [BGM 2曲](../Content/Audio/BGM/) | Codexで生成したとの本人確認あり。生成時の外部入力などの記録は未確認です。 |
+| [クリック音](../Content/Audio/SE/button_click.wav) | 制作元・利用条件が未確認です。 |
+| [Laser01エフェクトと画像3点](../Content/Effects/Effekseer/Samples/) | 取得したサンプルの版と、素材に適用される条件が未確認です。 |
+| [紋章画像](../Content/Textures/UI/edugame3d_crest.png) | 制作者・生成経緯・利用条件が未確認です。 |
 
-著作者・権利者の表示名は **Haruyuki Ishinaka** です。名前の表示とLICENSEは整備済みです。
+**BGM・効果音・エフェクト・画像は、現行のプロジェクトLICENSEによる許諾の対象外です。** このリポジトリに含まれることだけで、利用・再配布が許可されたものとは扱わないでください。権利者や入手元の条件を確認するか、利用条件の明らかな素材へ差し替えてください。
 
-コード・説明文・ツール・テストのうち、本人が権利を持つ部分にLICENSEが適用されます。取り込んだ第三者のコードや、勤務先・共同制作者との権利関係については、確認記録がまだそろっていません。名前の表示だけで全ファイルの権利確認が済んだわけではありません。
+コードやモデルについても、LICENSEが適用されるのは許諾者が実際に権利を持つ部分に限られます。第三者の部分にはそれぞれの条件が適用されます。
 
-## 現在同梱している素材
+## 外部ライブラリ
 
-| 素材 | 分かっていること | 確認・記録が残っていること |
-|---|---|---|
-| 人型モデル「EduHuman」 | このプロジェクト用にCodexの支援で新規制作。[制作記録](../Content/Models/EduHuman/PROVENANCE.md)と編集用データあり。 | 今後の編集履歴を残す。AI支援という理由だけで、著作権やSARTRASの対象になるとは判断しない。 |
-| サンプルモデル「Untitled」2点 | 2026-09-14に本人が自作と確認。 | 元のBlenderファイルなど、制作記録を補う。 |
-| [BGM 2曲](../Content/Audio/BGM/) | 2026-09-14に本人がCodexで生成したと確認。 | 生成時のコード・指示・外部素材を使ったかの記録を補う。 |
-| [クリック音](../Content/Audio/SE/button_click.wav) | ファイルを同梱。BGMとは別の確認が必要。 | 制作元・利用条件を確認する。 |
-| [Laser01エフェクトと画像3点](../Content/Effects/Effekseer/Samples/) | Effekseerのサンプルとして同梱。 | 取得したパッケージの版と、素材に適用される利用条件を確認する。 |
-| [紋章画像](../Content/Textures/UI/edugame3d_crest.png) | ゲーム内で使用。 | 制作者・生成経緯・利用条件を確認する。 |
+各ライブラリの著作権表示・許諾文を保持してください。同梱バイナリの版や追加の依存物については確認が完了していない部分もあります。配布する構成に適用される条件は、下記の本文と併せて確認してください。
 
-**BGM・効果音・エフェクト・画像に、プロジェクトのLICENSEで新たな利用許可を与えてはいません。** 制作元が分かることと、他の人へ配布してよいことは分けて確認します。
+| ライブラリ | 許諾文・注意点 |
+|---|---|
+| Assimp | [version.h内の許諾本文](../third_party/assimp/include/assimp/version.h)（BSD 3-Clause相当）。独立したLICENSEファイルは未同梱です。 |
+| DirectXTK12 | [MIT](../third_party/directxtk12/LICENSE)。 |
+| Effekseer | [MIT](../third_party/effekseer/LICENSE.txt)。エフェクト素材の条件は別です。 |
+| LLGI（Effekseerに同梱） | [同梱通知](../third_party/effekseer/LICENSE_RUNTIME_DIRECTX.txt)。LLGI自体の採用版と適用条件は確認が未完了です。 |
+| RmlUi | [本体のMIT](../third_party/rmlui/LICENSE.txt)と[内部コンテナのMIT](../third_party/rmlui/include/RmlUi/Core/Containers/LICENSE.txt)の両方を保持してください。 |
+| Dear ImGui | [本体のMIT](../third_party/imgui/LICENSE.txt)に加え、下記のフォント・stbの許諾文も保持してください。 |
 
-## 同梱している外部ライブラリ
+ImGui内の表示・許諾文の保存先：
 
-下のリンクは、保存してある各ライブラリの利用条件です。プロジェクトのLICENSEとは別に扱います。
+- フォント：[imgui_draw.cpp](../third_party/imgui/imgui_draw.cpp)内のProggyClean・ProggyForeverの表示。
+- stb：[imstb_rectpack.h](../third_party/imgui/imstb_rectpack.h)、[imstb_textedit.h](../third_party/imgui/imstb_textedit.h)、[imstb_truetype.h](../third_party/imgui/imstb_truetype.h)。
 
-| ライブラリ | 利用条件の保存先 | 残っている確認・作業 |
-|---|---|---|
-| Assimp | [ヘッダー内の許諾本文](../third_party/assimp/include/assimp/version.h)（BSD 3-Clause相当） | 配布用の独立したLICENSEを用意し、同梱DLL・LIBの版と追加の依存物を確認する。 |
-| DirectXTK12 | [MIT](../third_party/directxtk12/LICENSE) | 出所の記録はあり。EXE配布時にも著作権・許諾文を含める。 |
-| Effekseer | [MIT](../third_party/effekseer/LICENSE.txt) | 採用版・ビルド方法・追加の依存物を確認する。エフェクト素材の条件は上の表で別に確認。 |
-| LLGI（Effekseerに同梱） | [同梱通知](../third_party/effekseer/LICENSE_RUNTIME_DIRECTX.txt) | LLGI自体の版と、どの条件が適用されるかを確認する。 |
-| RmlUi | [MIT](../third_party/rmlui/LICENSE.txt)・[内部コンテナのMIT](../third_party/rmlui/include/RmlUi/Core/Containers/LICENSE.txt) | 両方の表示を保持し、採用版とビルド条件を記録する。 |
-| Dear ImGui | [MIT](../third_party/imgui/LICENSE.txt) | 内蔵フォント・stbの著作権・許諾文も保持する。保存先の詳細は[過去の調査](rights-inventory-history.md)。 |
+**現在のビルド処理は、許諾文をEXEの出力先へ自動コピーしません。** EXEだけを配布するときは、使用したライブラリに必要な著作権表示・許諾文も同梱してください。
 
-現在のビルド処理は、これらの許諾文をEXEの出力先へ自動コピーしません。**EXEだけを配布する場合は、必要な表示・許諾文も同梱する作業が残っています。**
-
-## 次に確認すること
-
-1. **素材の出所**：クリック音・エフェクト・紋章画像の制作元と条件を確認し、BGMなどの制作記録を補う。
-2. **配布時の表示**：外部ライブラリの版・条件を確認し、必要な著作権表示・許諾文を配布物へまとめる。
-3. **自作部分の記録**：参考にしたコード、勤務先・共同制作者との関係、AIへの指示や自分で編集した部分を整理する。コード内の5×7文字パターンの出所も未確認。
-
-SARTRASの分配対象になるかは、これらの確認とは別です。[授業利用・SARTRAS報告ガイド](sartras-user-guide.md)を参照してください。
-
-## 過去の記録
-
-削除済みモデル、当時のファイル数、詳しい根拠や調査経緯は[2026-09-14の調査記録](rights-inventory-history.md)に保存しました。旧モデルからの切り替えは[モデル置換記録](model-replacement.md)にあります。旧素材は現在のファイル構成から除外済みですが、Git履歴には残っています。
+ソース一式を取り出す方法は [モデル素材・ソース出力の手順](../Content/Models/README.md) を参照してください。
