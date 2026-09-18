@@ -1,19 +1,14 @@
-# Math core and transform ownership
+# 数学処理とTransformの所有関係
 
-`src/Framework/Core/Math` contains CPU-only value types and functions. It depends
-on the standard library and DirectXMath, with no scene, Win32, or GPU resource
-dependency. `tools/check_architecture.ps1` enforces this boundary.
+`src/Framework/Core/Math`には、CPUだけで扱う値型と関数を置いています。標準ライブラリとDirectXMathに依存し、シーン、Win32、GPU資源には依存しません。`tools/check_architecture.ps1`でこの境界を検査します。
 
-## Coordinate convention
+## 座標の規約
 
-- Left-handed coordinates: +X right, +Y up, +Z forward.
-- Angles are radians. `rotationRadians` stores pitch X, yaw Y, roll Z and uses
-  DirectXMath's `XMMatrixRotationRollPitchYaw` convention.
-- Row vectors multiply matrices on the right: local position × scale × rotation
-  × translation. View-projection is view × projection.
-- Model height normalization remains part of model loading. It is not repeated
-  by the actor's world transform.
-- The shader boundary transposes CPU matrices for HLSL's column-major storage.
+- 左手座標系です。+Xが右、+Yが上、+Zが前です。
+- 角度の単位はラジアンです。`rotationRadians`はXにピッチ、Yにヨー、Zにロールを保持し、DirectXMathの`XMMatrixRotationRollPitchYaw`の規約に従います。
+- 行ベクトルの右側に行列を掛けます。変換の順序は、ローカル座標 × 拡大縮小 × 回転 × 平行移動です。ビュー・射影行列は、ビュー × 射影の順です。
+- モデルの高さの正規化はモデル読み込み時に行います。アクターのワールド変換では繰り返しません。
+- CPUの行列をシェーダーへ渡す際は、HLSLの列優先の格納形式に合わせて転置します。
 
 ```cpp
 Transform transform;
@@ -27,59 +22,35 @@ DirectX::XMFLOAT3 worldNormal;
 bool hasNormal = transform.TryTransformNormal({ 0.0f, 1.0f, 0.0f }, worldNormal);
 ```
 
-`TransformPoint` includes translation. `TransformDirection` applies the linear
-rotation-and-scale portion without translation or normalization, so it can also
-transform displacement. `TryTransformNormal` applies the inverse-transpose
-linear matrix and normalizes the result; it returns false with a zero output for
-an invalid normal or a singular/nonfinite transform.
+`TransformPoint`は平行移動を含めて変換します。`TransformDirection`は回転と拡大縮小だけを適用し、平行移動や正規化を行わないため、変位の変換にも使えます。`TryTransformNormal`は線形変換部分の逆転置行列を適用して正規化します。法線が不正な場合や、変換が特異または非有限の場合は、出力をゼロにして`false`を返します。
 
-`MathUtils::TryCreateNormalMatrix` returns false with an identity output if no
-finite inverse can be represented. The textured render pipelines use that
-identity fallback for a degenerate world transform. Normals and tangents have
-separate shader transforms: inverse-transpose for normals, world linear transform
-for tangents. Lighting is then evaluated consistently in world space.
+`MathUtils::TryCreateNormalMatrix`は、有限値で表せる逆行列を作れない場合、出力を単位行列にして`false`を返します。テクスチャ描画のパイプラインは、ワールド変換が退化している場合にこの単位行列を代わりに使います。シェーダーでは、法線に逆転置行列、接線にワールド行列の線形変換部分を適用し、ライティングをワールド空間に統一して計算します。
 
-## Transform ownership
+## Transformの所有関係
 
-`StaticMeshActor` and `SkinnedMeshActor` each own one `Transform`. Their
-position and yaw APIs operate on it; `GetTransform()` provides read-only access.
-`StaticModel` and `SkinnedModel` do not own world position or yaw.
-They receive the world matrix through `Draw(renderer, world)`; the editor supplies
-its own placement the same way.
+`StaticMeshActor`と`SkinnedMeshActor`は、それぞれ1つの`Transform`を所有します。位置とヨー角のAPIはこの値を操作し、`GetTransform()`で読み取り専用の参照を取得できます。`StaticModel`と`SkinnedModel`はワールド座標の位置やヨー角を保持しません。`Draw(renderer, world)`でワールド行列を受け取り、エディターも同じ方法で配置を指定します。
 
-Upright collision actors use position/yaw-only
-controls. Arbitrary pitch/roll/scale setters are not exposed on them because their
-collider shapes do not yet support those changes. Skinned collision anchors remain
-horizontal offsets above the actor's bottom height.
+直立した形状の衝突判定を持つアクターは、位置とヨー角だけを操作できます。衝突形状が対応していないため、任意のピッチ・ロール・拡大縮小を指定するAPIは公開していません。スキニングを使うアクターの衝突基準点は、アクターの底面からの高さと水平方向のオフセットで扱います。
 
-Root-motion translation uses the shared direction transform. Its Ignore/Blend/Apply
-configuration, vertical opt-in, and programmatic jump protection remain as described
-in [root-motion.md](root-motion.md).
+ルートモーションの移動にも共通の方向変換を使います。`Ignore` / `Blend` / `Apply`の設定、垂直移動の有効化、プログラムによるジャンプの保護は[ルートモーションの設定](root-motion.md)を参照してください。
 
-## Numerical contracts
+## 数値処理の仕様
 
-- `TryNormalize`: failure clears output; the default minimum length is 1e-6 world
-  units. It handles nonfinite and extreme finite input values, including aliased
-  input/output. Pass epsilon 0 for an exact-zero cutoff.
-- `TryNormalizeXZ`: ignores Y and defaults to an exact-zero cutoff.
-- `NormalizeAngle`: canonical range [-pi, pi); nonfinite input becomes zero.
-- `LerpAngle`: shortest-path interpolation, using the same wrap convention.
-- `SmoothAmount`: exponential smoothing with stable small-time-step arithmetic;
-  nonpositive/nonfinite parameters return zero.
+- `TryNormalize`：失敗時は出力をゼロにします。既定の最小長はワールド単位で1e-6です。非有限値や極端な有限値を扱い、入力と出力が同じ変数でも使えます。厳密にゼロかどうかだけで判定する場合は、epsilonに0を渡します。
+- `TryNormalizeXZ`：Yを無視し、既定では厳密にゼロかどうかで判定します。
+- `NormalizeAngle`：角度を[-pi, pi)の範囲にそろえます。非有限値はゼロになります。
+- `LerpAngle`：同じ角度の折り返し規約を使い、最短の回転方向で補間します。
+- `SmoothAmount`：小さな時間刻みでも安定する計算で指数平滑化を行います。引数が正でない場合や非有限の場合はゼロを返します。
 
-The camera and CPU skinning call these helpers instead of private copies.
+カメラとCPUスキニングも、個別の実装を持たずにこれらの共通関数を呼び出します。
 
-## Verification
+## テストの実行
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/test_math_core.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/test_root_motion.ps1
 ```
 
-The math tests compile only the math core. They cover SRT order, point/direction
-separation, nonuniform-scale normals, invalid inputs, and angle/smoothing edges.
-The root-motion tests protect jump trajectories and landing behavior.
+数学処理のテストは数学処理のコアだけをコンパイルし、拡大縮小・回転・平行移動（SRT）の順序、点と方向の変換の違い、非一様スケールでの法線、不正な入力、角度と平滑化の境界条件を確認します。ルートモーションのテストでは、ジャンプの軌道と着地の動作を確認します。
 
-The editor queues model-open requests until before the next `BeginFrame`, prepares
-replacement state, and waits for submitted GPU work before releasing the old model.
-A failed replacement load preserves the current model and event document.
+エディターはモデルを開く要求を次の`BeginFrame`の直前まで保留します。置換後の状態を準備し、送信済みのGPU処理の完了を待ってから旧モデルを解放します。新しいモデルの読み込みに失敗した場合は、現在のモデルとイベント文書を保持します。

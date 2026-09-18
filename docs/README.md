@@ -11,7 +11,7 @@
 | アニメーションの再生とイベント | [アニメーション再生](animation-playback.md) |
 | アニメーションに合わせた移動 | [ルートモーション](root-motion.md) |
 | モデル編集とソースの出力 | [モデル素材](../Content/Models/README.md) |
-| アニメーションイベントの編集 | [Animation Event Editor](../tools/AnimationEventEditor/README.md) |
+| アニメーションイベントの編集 | [アニメーションイベントエディター](../tools/AnimationEventEditor/README.md) |
 
 ## 調べる・テストする
 

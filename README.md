@@ -4,7 +4,7 @@
 
 **開発を応援する：[GitHub Sponsors](https://github.com/sponsors/nyartry)** — 単発・月額の任意支援を受け付けています。[支援について](SUPPORT.md)
 
-A C++ / DirectX 12 framework for classroom game programming on Windows, built with Visual Studio 2022.
+Windows向けのC++ / DirectX 12フレームワークで、Visual Studio 2022を使ってビルドします。
 
 ## 利用条件・授業で利用する方へ
 
@@ -16,42 +16,40 @@ A C++ / DirectX 12 framework for classroom game programming on Windows, built wi
 
 手順と相談先は [授業利用・SARTRAS報告ガイド](docs/sartras-user-guide.md)、報告に使う作品名・名義・使用版は [作品情報](docs/work-identification.md) にまとめています。第三者コード・素材は個別条件が優先します。素材の利用条件と外部ライブラリの許諾文は [素材・ライブラリの利用条件](docs/rights-inventory.md) を参照してください。
 
-These are custom terms: local learning and development are permitted for the covered portions; publishing, distributing or selling games containing them requires prior individual permission, subject to statutory exceptions and GitHub's terms. See [LICENSE](LICENSE). The SARTRAS guidance concerns qualifying classroom transmissions and the institution's reporting procedures.
-
 ## 開発への支援
 
 EduGame3Dが授業やゲーム制作に役立ったら、[GitHub Sponsors](https://github.com/sponsors/nyartry)から開発費用へのご支援をお願いします。支援は完全に任意で、利用条件は変わりません。個別サポート・機能追加・更新の約束を伴うものではありません。単発・月額の支援先と詳細は [SUPPORT.md](SUPPORT.md) をご覧ください。
 
-## Documentation
+## 利用ガイド
 
 [利用ガイド一覧](docs/README.md)から、フレームワークの構成、アニメーション、モデル編集、テスト方法、利用条件を確認できます。
 
-## What is included
+## 含まれる機能・素材
 
-- Win32 window creation
-- Direct3D 12 device, swap chain, command queue, command list
-- Root signature and graphics pipeline state
-- A perspective camera, depth buffer, and simple 3D ground mesh
-- Visual Studio 2022 solution and project files
-- EduHuman: an original articulated humanoid with idle, jog and kick animations, editable Blender source, and a procedural generation script
+- Win32によるウィンドウ作成
+- Direct3D 12のデバイス、スワップチェーン、コマンドキュー、コマンドリスト
+- ルートシグネチャとグラフィックスパイプラインステート
+- 透視投影カメラ、深度バッファ、簡単な3D地面メッシュ
+- Visual Studio 2022のソリューションとプロジェクトファイル
+- EduHuman：待機・ジョギング・キックのアニメーションを持つ独自の人型モデル。編集可能なBlenderデータと自動生成スクリプトを同梱
 
-## Source layout
+## ソースの構成
 
-- `src/Game`: sample gameplay, scenes, actions, and content definitions.
-- `src/Framework`: reusable engine APIs, runtime systems, and visible backend adapters.
-- `src/Launcher`: Win32 composition root that connects Game to concrete engine implementations.
-- `tools/AnimationEventEditor`: editor executable that reuses the same static engine library.
+- `src/Game`：サンプルゲームのルール、シーン、操作、素材の定義。
+- `src/Framework`：再利用できるエンジンAPI、実行時の処理、描画などの外部ライブラリを接続するアダプター。
+- `src/Launcher`：Win32アプリの起動処理。Gameとエンジンの具体的な実装を組み合わせます。
+- `tools/AnimationEventEditor`：ゲームと同じエンジンの静的ライブラリを利用するエディター。
 
-The solution builds `EngineFramework.lib` and `GameModule.lib` as source-visible static libraries. Third-party runtime dependencies include Assimp DLLs. See [docs/architecture.md](docs/architecture.md) for dependency rules and extension points.
+`EngineFramework.lib`と`GameModule.lib`は、ソースを参照・編集できる静的ライブラリとしてビルドします。実行時にはAssimpのDLLなどの外部ライブラリも使用します。依存関係のルールと拡張方法は[構成と依存関係](docs/architecture.md)を参照してください。
 
-## Requirements
+## 必要な環境
 
-- Windows 10 or later
-- Visual Studio 2022 with the Desktop development with C++ workload
+- Windows 10以降
+- Visual Studio 2022（「C++によるデスクトップ開発」をインストール）
 - Windows 10/11 SDK
-- Git and Git LFS (required for third-party libraries and model/audio assets)
+- GitとGit LFS（外部ライブラリ、モデル・音声素材の取得に必要）
 
-## Get the source
+## ソースの取得
 
 Git LFSをインストールしてから、次のコマンドで取得してください。ライブラリや素材の実体を取得するため、ビルド前に `git lfs pull` まで実行します。
 
@@ -62,37 +60,37 @@ cd EduGame3D
 git lfs pull
 ```
 
-## Build
+## ビルドと起動
 
-Open `EduGame3D.sln` in Visual Studio 2022, then build and run `GameApp` with `Debug|x64`.
+Visual Studio 2022で`EduGame3D.sln`を開き、構成を`Debug|x64`にして`GameApp`をビルド・実行してください。
 
-To run the built game outside Visual Studio, use the repository root as the working directory: `.\x64\Debug\GameApp.exe`.
+Visual Studio以外から起動する場合は、リポジトリのルートを作業ディレクトリにして`.\x64\Debug\GameApp.exe`を実行します。
 
-## Character assets
+## キャラクター素材
 
-The sample uses `Content/Models/EduHuman/`. Its mesh, skeleton and animations were generated from primitives and mathematical keyframes for this project, with Codex assistance; no external character mesh, texture or motion capture was used. Blender is only needed to regenerate or edit the assets, not to build or play the game. The two existing `Untitled` FBXs are retained as samples confirmed by the project owner to be their own work.
+サンプルには`Content/Models/EduHuman/`を使用しています。メッシュ、骨格、アニメーションは、Codexの支援を受け、基本図形と数式で定めたキーフレームから生成しました。外部のキャラクターメッシュ、テクスチャ、モーションキャプチャは使用していません。Blenderが必要なのは素材の再生成・編集時だけで、ゲームのビルドやプレイには不要です。`Untitled`のFBX2点も、プロジェクト所有者が自作と確認したサンプルとして同梱しています。
 
-See [model assets](Content/Models/README.md) for editing and source export instructions. `tools/export_clean_source.ps1` creates a source folder and ZIP without Git history. It includes downloaded third-party dependencies and their existing notices; see [asset and library terms](docs/rights-inventory.md) before redistributing the result.
+編集とソース出力の手順は[モデル素材](Content/Models/README.md)を参照してください。`tools/export_clean_source.ps1`で、Gitの履歴を含まないソースフォルダーとZIPを作成できます。取得済みの外部ライブラリとその許諾文も含まれるため、再配布の前に[素材・ライブラリの利用条件](docs/rights-inventory.md)を確認してください。
 
-## Player controls
+## プレイヤーの操作
 
-- `W` / `A` / `S` / `D`: move
-- `Space`: jump
-- `X`: kick; press again between 0.5 and 1.2 seconds to queue the next kick
+- `W` / `A` / `S` / `D`：移動
+- `Space`：ジャンプ
+- `X`：キック。開始から0.5～1.2秒の間にもう一度押すと、次のキックを予約
 
-## Camera controls
+## カメラの操作
 
-- `1`: existing interactive follow camera (default)
-- `2`: critically damped spring follow camera
-- `3`: first-person camera
-- `4`: orbit camera
-- `5`: Catmull-Rom spline camera; press `5` again to restart the shot
-- Arrow keys control the active interactive camera. Hold `Shift` with Up/Down to zoom where supported, and hold `Z` to align the view with the player.
+- `1`：手動操作できる追従カメラ（初期設定）
+- `2`：ばねモデルの追従カメラ（臨界減衰）
+- `3`：一人称カメラ
+- `4`：周回カメラ
+- `5`：Catmull-Romスプラインに沿って動くカメラ。もう一度`5`を押すと先頭から再生
+- 矢印キー：選択中のカメラを操作。対応するカメラでは`Shift`＋上下キーでズームし、`Z`を押している間は視点をプレイヤーに合わせる
 
-## Dependency check
+## 依存関係とテストの確認
 
-`tools/check_architecture.ps1` prevents Game from directly or transitively depending on Win32, DX12, RmlUi, Effekseer, Assimp, or other backend implementation types. It runs automatically when `EngineFramework` builds.
+`tools/check_architecture.ps1`は、GameがWin32、DX12、RmlUi、Effekseer、Assimpなどの実装型に直接・間接に依存していないかを確認します。`EngineFramework`のビルド時に自動実行されます。
 
-See [error handling and diagnostics](docs/error-handling.md) for failure recovery, diagnostic ownership, and regression test commands.
+失敗時の回復、診断処理の役割分担、回帰テストのコマンドは[エラー処理と診断](docs/error-handling.md)を参照してください。
 
-The solution also includes `VisualStudioTests`, a native C++ test project. Build it and open **Test > Test Explorer** to run or debug individual tests. See [Visual Studio testing](docs/visual-studio-tests.md) for setup and command-line equivalents.
+ソリューションには、C++のテストプロジェクト`VisualStudioTests`も含まれます。ビルド後に**テスト > テスト エクスプローラー**を開くと、各テストを実行・デバッグできます。準備とコマンドラインからの実行方法は[Visual Studioでテストを実行する](docs/visual-studio-tests.md)を参照してください。

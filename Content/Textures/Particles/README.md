@@ -1,12 +1,14 @@
-# Particle Textures
+# パーティクル用テクスチャ
 
-Place particle sprite textures here, such as smoke, spark, fire, magic, dust, and hit effect images.
+煙、火花、炎、魔法、土煙、ヒット時のエフェクトなど、パーティクル用の画像をここに置きます。
 
-Recommended formats:
-- PNG for alpha-blended particles.
-- JPG only for opaque or mask-free textures.
+推奨する画像形式：
 
-Suggested naming:
+- PNG：半透明のパーティクルに使用します。
+- JPG：不透明な画像や、透明部分を切り抜くマスクが不要な画像に使用します。
+
+ファイル名の例：
+
 - `smoke_soft.png`
 - `spark_star.png`
 - `fire_core.png`

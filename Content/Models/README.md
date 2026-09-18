@@ -25,7 +25,7 @@ Blender 5.1で生成します。リポジトリのルートから実行してく
 
 スクリプトはBlender内のデータを初期化してから生成し、個人のスタートアップファイルの素材を持ち込みません。プレビューが不要なら末尾に `-- --no-preview` を付けられます。
 
-コンボ受付時間はAnimation Event Editorで `EduHuman_Kick.fbx` を開いて変更できます。[編集手順](../../tools/AnimationEventEditor/README.md#tuning-combo-input) を参照してください。
+コンボ受付時間はAnimation Event Editorで `EduHuman_Kick.fbx` を開いて変更できます。[編集手順](../../tools/AnimationEventEditor/README.md#コンボ入力の調整) を参照してください。
 
 ## 履歴を含まないソースの出力
 

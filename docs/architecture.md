@@ -1,11 +1,11 @@
-# Architecture
+# 全体構成と依存関係
 
-This repository keeps all engine and game source visible in one solution, but uses static-library and API boundaries to make dependency direction explicit.
+このリポジトリは、エンジンとゲームの全ソースを1つのソリューションにまとめ、静的ライブラリとAPIの境界によって依存の方向を明確にしています。
 
-## Project dependency direction
+## プロジェクト間の依存関係
 
 ```text
-GameApp.exe (Win32 application / composition root)
+GameApp.exe（Win32アプリケーション／各機能を組み立てる起点）
     |-- GameModule.lib
     `-- EngineFramework.lib
 
@@ -13,55 +13,55 @@ AnimationEventEditor.exe
     `-- EngineFramework.lib
 ```
 
-- `src/Game` contains sample-game rules, scenes, actions, content IDs, and asset paths.
-- `src/Framework` contains reusable engine code, public service contracts, and backend adapters.
-- `src/Launcher` is the only place that creates and connects Win32, DX12, RmlUi, Effekseer, audio, and the game module.
-- `tools/AnimationEventEditor` reuses `EngineFramework.lib`; it does not compile a private copy of the engine.
+- `src/Game`：サンプルゲームのルール、シーン、入力アクション、コンテンツID、素材のパス。
+- `src/Framework`：再利用するエンジンのコード、公開APIの仕様、バックエンドを接続するアダプター。
+- `src/Launcher`：Win32、DX12、RmlUi、Effekseer、音声、ゲームモジュールを生成して接続する唯一の場所。
+- `tools/AnimationEventEditor`：`EngineFramework.lib`を共有するエディター。エンジンのコピーを別にコンパイルすることはありません。
 
-The engine and game modules use static libraries as compilation boundaries; their implementations remain in the solution. Third-party runtime dependencies include Assimp DLLs. Visual Studio rebuilds a `.lib` only when its project inputs changed, then relinks dependent executables as needed.
+エンジンとゲームは静的ライブラリを単位としてコンパイルします。実装のソースはソリューション内で参照できます。実行時に必要な外部ライブラリにはAssimpのDLLがあります。Visual Studioはプロジェクトの入力に変更がある場合に`.lib`を再ビルドし、必要に応じて依存する実行ファイルを再リンクします。
 
-Pimpl is used selectively for backend-heavy resource and service classes. It prevents platform/vendor headers from spreading through public includes; it does not hide source code. The corresponding `Impl` definitions remain in the repository and can be read, changed, and debugged normally.
+バックエンドへの依存が多い資源・サービスのクラスには、必要に応じてPimplを使っています。これにより、公開ヘッダーを通じてプラットフォームや外部ライブラリのヘッダーが広がるのを防ぎます。対応する`Impl`の定義もリポジトリ内にあり、通常どおり閲覧・変更・デバッグできます。
 
-## Important contracts
+## 主なAPIと動作仕様
 
-- `IRenderer`: frame drawing without command-list or descriptor-heap access.
-- `IRenderDevice`: engine resource creation without exposing `ID3D12Device` to Game.
-- `IRenderResourceLifetime`: GPU-safe deferred destruction without exposing fence values or frame-count assumptions.
-- `IAudioService`: cue registration/playback; Game owns semantic cue IDs and paths.
-- `IEffectCatalog` / `IEffectPlayer`: content registration and gameplay playback without exposing Effekseer or its render lifecycle.
-- `IUiService` / `IUiDocument`: UI documents, semantic click events, and state classes without exposing RmlUi or requiring Game-side hit testing.
-- `Input`: platform-neutral frame snapshot; platform adapters write through the narrow `InputWriter` boundary.
-- `AssetPathResolver`: one path-location policy shared by texture, model, audio, and effect adapters.
+- `IRenderer`：コマンドリストやディスクリプターヒープを直接操作せずにフレームを描画します。
+- `IRenderDevice`：Game側へ`ID3D12Device`を公開せずにエンジンの資源を生成します。
+- `IRenderResourceLifetime`：フェンス値やフレーム数への依存を公開せず、GPUが使い終えるまで資源の破棄を遅らせます。
+- `IAudioService`：音声cueの登録・再生を行います。用途を表すcue IDと素材のパスはGame側で管理します。
+- `IEffectCatalog` / `IEffectPlayer`：Effekseerやその描画手順を公開せずに、エフェクトの登録・再生を行います。
+- `IUiService` / `IUiDocument`：UI文書、操作の意味を表すクリックイベント、状態を表すクラスを扱います。Game側でRmlUiを直接操作したり、クリック位置を判定したりする必要はありません。
+- `Input`：プラットフォームに依存しない、フレーム時点の入力状態です。プラットフォーム側のアダプターは、書き込み専用の`InputWriter`を通じて更新します。
+- `AssetPathResolver`：テクスチャ、モデル、音声、エフェクトの各アダプターで、素材のパスを探す方針を共有します。
 
-Scene loading has two explicit phases: `Prepare()` is worker-thread, CPU-only work, and `Activate()` is main-thread GPU/UI work. Scene factories receive their required services through constructors instead of a general service bag.
+シーンの読み込みは2段階です。`Prepare()`はワーカースレッドでCPU処理だけを行い、`Activate()`はメインスレッドでGPU・UIを扱います。シーンの生成に必要なサービスは、汎用のサービスコンテナーを使わず、コンストラクターへ渡します。
 
-Only one asynchronous scene transition runs at a time. The old scene is retained until preparation and activation succeed; failures preserve it for retry. Model and animation import data are shared during preparation through `ModelAssetCache`, while runtime skeletons and deformed vertices remain per instance. Individual texture uploads still wait for GPU completion. Resources created before a failed `Prepare()` or `Activate()` must be owned through RAII.
+非同期のシーン遷移は同時に1件までです。準備と有効化が成功するまで旧シーンを保持し、失敗時には旧シーンへ戻って再試行できます。準備中のモデル・アニメーションのインポートデータは`ModelAssetCache`で共有しますが、実行中のスケルトンや変形後の頂点はインスタンスごとに保持します。個々のテクスチャ転送にはGPUの完了待ちがあります。`Prepare()`や`Activate()`の途中で失敗しても解放できるよう、生成した資源はRAIIで管理してください。
 
-The launcher runs simulation at 1/60 second, with at most eight updates per frame. It accepts at most 0.25 seconds of elapsed time and discards excess whole steps. Key presses and releases are buffered until a simulation update, then exposed once to every reader of that update. UI, fades, and HUD use `UpdateFrame` once per rendered frame. Focus changes reset accumulated time and pending input; rendering does not interpolate between simulation states.
+Launcherは1/60秒刻みでシミュレーションを進め、1フレームあたりの更新を最大8回に制限します。受け付ける経過時間は最大0.25秒で、上限を超える整数ステップ分は捨てます。キーの押下・解放はシミュレーション更新まで保持し、1回の更新だけで公開します。同じ更新内の読み手は全員同じ状態を参照できます。UI・フェード・HUDは描画フレームごとに`UpdateFrame`で更新します。フォーカスが変わると蓄積時間と保留入力をリセットします。シミュレーションの更新間を補間する描画は行いません。
 
-`IScene::OnResize(width, height)` runs on the main thread after preparation, immediately before activation with the latest client dimensions, and whenever an active scene's viewport changes. Preparing candidates are never resized on the worker. The launcher applies positive dimensions to the renderer and scene manager before starting a frame; zero dimensions suspend rendering. See [viewport-resize.md](viewport-resize.md) for UI coordinates and resume behavior.
+`IScene::OnResize(width, height)`はメインスレッドで呼ばれます。準備完了後、有効化の直前に最新のクライアント領域の寸法を渡し、有効なシーンの描画領域が変わったときも通知します。ワーカースレッドで準備中のシーンへは通知しません。Launcherはフレーム開始前に正の寸法をrendererとSceneManagerへ反映し、寸法が0の間は描画を止めます。UI座標と復帰時の動作は[ウィンドウ寸法とシーン・UI](viewport-resize.md)を参照してください。
 
-Root motion uses one `RootMotionSettings` contract shared by mesh actors and players. Horizontal movement can ignore, blend, or apply animation translation while programmatic jump and gravity retain control of vertical movement by default. See [root-motion.md](root-motion.md) for configuration and optional animation-driven vertical movement.
+ルートモーションの設定は、メッシュアクターとプレイヤーで共通の`RootMotionSettings`を使います。水平移動には、アニメーションの移動を無視・合成・適用する設定があります。垂直移動は、既定ではプログラムによるジャンプと重力が制御します。設定方法と、アニメーションによる垂直移動を有効にする方法は[ルートモーションの設定](root-motion.md)を参照してください。
 
-`Framework/Core/Math` is independent of scenes and rendering backends. Mesh actors own their world `Transform`; models receive a world matrix at draw time instead of storing duplicate placement state. See [core-math.md](core-math.md) for coordinate conventions, numerical contracts, and tests.
+`Framework/Core/Math`は、シーンや描画バックエンドに依存しません。メッシュアクターがワールド座標の`Transform`を所有し、モデルは配置情報を重複して保持せず、描画時にワールド行列を受け取ります。座標の規約、数値処理の仕様、テストは[数学処理とTransformの所有関係](core-math.md)を参照してください。
 
-## Rules
+## 依存関係のルール
 
-1. Framework never includes Game.
-2. Game never names Win32, DX12, RmlUi, Effekseer, or Assimp types.
-3. Game-specific content paths do not live in Framework.
-4. Vendor-native access is allowed in adapters and the Launcher composition root.
-5. New physical key bindings are added to `GameActions`, not scattered through gameplay classes.
-6. `DirectXMath` value types are currently an intentional shared math vocabulary. This is the remaining vendor-level public dependency; replacing it should be a deliberate math-API migration, not a set of aliases.
-7. Core math only depends on the standard library, DirectXMath, and other core math files.
+1. FrameworkからGameをインクルードしません。
+2. GameではWin32、DX12、RmlUi、Effekseer、Assimpの型を直接使いません。
+3. Game固有のコンテンツのパスをFrameworkに置きません。
+4. 外部ライブラリ固有のAPIは、アダプターとLauncherの組み立て処理で使います。
+5. 新しいキー割り当ては`GameActions`へ追加し、ゲームプレイの各クラスへ分散させません。
+6. `DirectXMath`の値型は、共通の数学表現として意図的に採用しています。公開APIに残る外部ライブラリへの依存なので、置き換える場合は型の別名で包むだけでなく、数学APIの移行として設計してください。
+7. 数学処理のコアは、標準ライブラリ、DirectXMath、同じ数学処理のコア内のファイルだけに依存します。
 
-`tools/check_architecture.ps1` checks these rules and runs before EngineFramework builds. It also follows Framework headers transitively reachable from Game, so a backend header leaking through an otherwise innocent public include is rejected.
+`tools/check_architecture.ps1`はEngineFrameworkのビルド前に実行され、これらのルールを検査します。Gameから間接的に参照されるFrameworkのヘッダーもたどるため、公開ヘッダーを経由してバックエンドのヘッダーが入り込んだ場合も検出します。
 
-## Visual Studio filters
+## Visual Studioのフィルター
 
-The solution explorer mirrors the physical source layout below `src` (for example, `Framework\Rendering\Pipelines`). Both the `.vcxproj` and `.vcxproj.filters` files contain explicit source entries because Visual Studio does not reliably assign wildcard-expanded C++ project items to filters.
+ソリューションエクスプローラーは、`src`以下の実際のフォルダー構成（例：`Framework\Rendering\Pipelines`）に合わせています。ワイルドカードで追加したC++のファイルはVisual Studioのフィルターへ確実に割り当てられないため、`.vcxproj`と`.vcxproj.filters`の両方へ明示的に登録しています。
 
-After adding, moving, or removing source files, regenerate the managed project entries and filters from the repository root:
+ソースファイルを追加・移動・削除したら、リポジトリのルートから次を実行し、プロジェクトへの登録とフィルターを再生成してください。
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\sync_vs_filters.ps1
